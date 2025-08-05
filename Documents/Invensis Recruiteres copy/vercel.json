@@ -5,14 +5,26 @@
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "client/build"
+        "distDir": "build"
       }
     }
   ],
   "routes": [
     {
+      "src": "/static/(.*)",
+      "dest": "/client/build/static/$1"
+    },
+    {
+      "src": "/favicon.ico",
+      "dest": "/client/build/favicon.ico"
+    },
+    {
+      "src": "/manifest.json",
+      "dest": "/client/build/manifest.json"
+    },
+    {
       "src": "/(.*)",
-      "dest": "/client/$1"
+      "dest": "/client/build/index.html"
     }
   ],
   "buildCommand": "cd client && npm install && npm run build",
