@@ -3,7 +3,6 @@ services:
     name: invensis-hiring-api
     env: node
     plan: free
-    sourceDir: server
     buildCommand: npm install
     startCommand: npm start
     envVars:
