@@ -4,7 +4,6 @@
   "description": "Admin portal backend server",
   "main": "index.js",
   "scripts": {
-    "prestart": "lsof -ti:5002 | xargs kill -9 2>/dev/null || true",
     "start": "node index.js",
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"

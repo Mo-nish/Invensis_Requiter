@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: invensis-admin-server
+    name: invensis-admin-api
     env: node
     plan: free
     sourceDir: admin-portal/admin-server

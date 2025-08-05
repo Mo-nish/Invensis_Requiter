@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: invensis-hiring-server
+    name: invensis-hiring-api
     env: node
     plan: free
     sourceDir: server
