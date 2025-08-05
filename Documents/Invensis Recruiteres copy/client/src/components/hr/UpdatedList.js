@@ -1,45 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import {
   Container,
-  Typography,
-  Box,
-  Chip,
-  Avatar,
-  IconButton,
-  Tooltip,
-  Card,
-  CardContent,
-  Grid,
-  Divider,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  CircularProgress,
   Paper,
+  Typography,
   Table,
   TableBody,
   TableCell,
   TableContainer,
   TableHead,
   TableRow,
-  Collapse
+  Chip,
+  Box,
+  IconButton,
+  Collapse,
+  TextField,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  // Remove unused imports
+  // Divider,
+  // Feedback,
 } from '@mui/material';
 import {
-  Visibility,
-  Download,
-  Feedback,
-  Delete,
-  KeyboardArrowDown,
-  KeyboardArrowUp,
-  Email,
-  Phone,
-  School,
-  Work,
-  Schedule,
-  Star,
-  RateReview
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  Search as SearchIcon,
+  FilterList as FilterListIcon,
+  Sort as SortIcon,
+  ViewList as ViewListIcon,
+  Dashboard as DashboardIcon,
+  Person as PersonIcon,
+  Email as EmailIcon,
+  Phone as PhoneIcon,
+  CalendarToday as CalendarIcon,
+  LocationOn as LocationIcon,
+  Work as WorkIcon,
+  School as SchoolIcon,
+  Star as StarIcon,
+  CheckCircle as CheckCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  Info as InfoIcon,
+  // Remove unused import
+  // Feedback,
 } from '@mui/icons-material';
 import { toast } from 'react-toastify';
 import axios from 'axios';
@@ -240,9 +244,9 @@ const UpdatedList = () => {
                         }}
                       >
                         {expandedRows.has(assignment._id) ? (
-                          <KeyboardArrowUp />
+                          <ExpandLessIcon />
                         ) : (
-                          <KeyboardArrowDown />
+                          <ExpandMoreIcon />
                         )}
                       </IconButton>
                     </TableCell>
