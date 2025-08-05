@@ -3,6 +3,7 @@ services:
     name: invensis-admin-server
     env: node
     plan: free
+    sourceDir: admin-portal/admin-server
     buildCommand: npm install
     startCommand: npm start
     envVars:
