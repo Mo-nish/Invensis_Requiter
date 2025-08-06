@@ -1,0 +1,40 @@
+services:
+  - type: web
+    name: invensis-hiring-api
+    env: node
+    plan: free
+    buildCommand: |
+      if [ -d "server" ]; then
+        cd server && npm install
+      else
+        echo "Server directory not found, installing in root"
+        npm install
+      fi
+    startCommand: |
+      if [ -d "server" ]; then
+        cd server && npm start
+      else
+        echo "Server directory not found, starting from root"
+        npm start
+      fi
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        sync: false
+      - key: EMAIL_USER
+        sync: false
+      - key: EMAIL_PASS
+        sync: false
+      - key: FRONTEND_URL
+        value: https://hiring.invensis.com
+      - key: CORS_ORIGIN
+        value: https://hiring.invensis.com,https://admin.invensis.com
+    routes:
+      - type: rewrite
+        source: /api/hiring/*
+        destination: /api/* 
