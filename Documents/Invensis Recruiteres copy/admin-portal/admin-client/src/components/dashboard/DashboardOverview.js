@@ -71,7 +71,7 @@ const DashboardOverview = () => {
 
       {/* System Statistics */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -89,7 +89,7 @@ const DashboardOverview = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -107,7 +107,7 @@ const DashboardOverview = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -125,7 +125,7 @@ const DashboardOverview = () => {
           </Card>
         </Grid>
         
-        <Grid item xs={12} sm={6} md={3}>
+        <Grid xs={12} sm={6} md={3}>
           <Card>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -147,14 +147,14 @@ const DashboardOverview = () => {
       {/* Role Statistics */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
         {roleStats && Object.entries(roleStats).map(([role, stats]) => (
-          <Grid item xs={12} md={4} key={role}>
+          <Grid xs={12} md={4} key={role}>
             <Card>
               <CardContent>
                 <Typography variant="h6" gutterBottom>
                   {role} Statistics
                 </Typography>
                 <Grid container spacing={2}>
-                  <Grid item xs={6}>
+                  <Grid xs={6}>
                     <Typography variant="body2" color="textSecondary">
                       Total
                     </Typography>
@@ -162,7 +162,7 @@ const DashboardOverview = () => {
                       {stats.total}
                     </Typography>
                   </Grid>
-                  <Grid item xs={6}>
+                  <Grid xs={6}>
                     <Typography variant="body2" color="textSecondary">
                       Active
                     </Typography>

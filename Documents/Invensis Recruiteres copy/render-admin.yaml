@@ -9,7 +9,7 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      - key: ADMIN_PORT
+      - key: PORT
         value: 10000
       - key: MONGODB_URI
         sync: false
@@ -19,10 +19,10 @@ services:
         sync: false
       - key: EMAIL_PASS
         sync: false
-      - key: ADMIN_URL
+      - key: FRONTEND_URL
         value: https://admin.invensis.com
       - key: CORS_ORIGIN
-        value: https://hiring.invensis.com,https://admin.invensis.com
+        value: https://admin.invensis.com,https://hiring.invensis.com
     routes:
       - type: rewrite
         source: /api/admin/*

@@ -149,7 +149,11 @@ router.post('/login', [
 
   } catch (error) {
     console.error('Admin login error:', error);
-    res.status(500).json({ message: 'Admin login failed' });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      message: 'Admin login failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

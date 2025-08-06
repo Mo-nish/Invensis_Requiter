@@ -18,8 +18,15 @@ require('./models/RoleAssignment');
 const app = express();
 const PORT = process.env.PORT || 5001;
 
+// CORS configuration for production
+app.use(cors({
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ['http://localhost:3000', 'http://localhost:3001'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 // Middleware
-app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -42,23 +49,39 @@ app.use('/api/board', boardRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'Invensis Hiring Portal API is running' });
+  res.json({ 
+    status: 'OK', 
+    message: 'Invensis Hiring Portal API is running',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
 });
 
-// Serve static files from the React app build directory
-app.use(express.static(path.join(__dirname, '../client/build')));
-
-// For any request that doesn't match an API route, serve the React app
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Invensis Hiring Portal API',
+    version: '1.0.0',
+    status: 'running'
+  });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  console.error('Server Error:', err);
+  res.status(500).json({ 
+    message: 'Internal server error',
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
+// 404 handler
+app.use('*', (req, res) => {
+  res.status(404).json({ message: 'API endpoint not found' });
 });
 
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`📧 Email Service: ${process.env.EMAIL_USER ? 'ENABLED' : 'DISABLED'}`);
 }); 

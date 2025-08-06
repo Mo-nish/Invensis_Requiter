@@ -3,14 +3,14 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from root directory
+dotenv.config({ path: '../../.env' });
 
 const app = express();
 
-// CORS configuration - allow both admin client and main app
+// CORS configuration for production
 app.use(cors({
-  origin: [
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
     'http://localhost:3001',  // Admin client (actual port)
     'http://localhost:3002',  // Admin client (intended port)
     'http://localhost:3000',  // Main app
@@ -48,7 +48,23 @@ app.get('/api/admin/health', (req, res) => {
   res.json({ 
     status: 'OK', 
     message: 'Admin server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Invensis Admin Portal API',
+    version: '1.0.0',
+    status: 'running',
+    endpoints: {
+      health: '/api/admin/health',
+      auth: '/api/admin/auth',
+      roles: '/api/admin/roles',
+      dashboard: '/api/admin/dashboard'
+    }
   });
 });
 
@@ -66,7 +82,7 @@ app.use('*', (req, res) => {
   res.status(404).json({ message: 'Admin API endpoint not found' });
 });
 
-const PORT = process.env.ADMIN_PORT || 5002;
+const PORT = process.env.PORT || 5002;
 
 app.listen(PORT, () => {
   console.log(`🚀 Admin Server running on port ${PORT}`);

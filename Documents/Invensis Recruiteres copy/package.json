@@ -6,7 +6,9 @@
   "scripts": {
     "build": "cd client && npm install && npm run build",
     "start": "cd client && npm start",
-    "dev": "cd client && npm start",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm start",
     "install-client": "cd client && npm install",
     "install-server": "cd server && npm install",
     "install-admin": "cd admin-portal/admin-server && npm install",
@@ -21,6 +23,9 @@
   ],
   "author": "Invensis Team",
   "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
   "engines": {
     "node": ">=16.0.0",
     "npm": ">=8.0.0"

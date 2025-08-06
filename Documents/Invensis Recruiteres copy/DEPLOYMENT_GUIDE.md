@@ -1,265 +1,142 @@
-# 🚀 Invensis Hiring Portal - Production Deployment Guide
+# 🚀 Complete Deployment Guide - Invensis Hiring Portal
 
-## 📋 Current Status
-✅ **GitHub Repository**: https://github.com/Mo-nish/invensis-hiring-portal  
-✅ **Local Development**: Running on ports 5001 (main), 5002 (admin), 3000 (client)  
-✅ **All Servers**: Operational and healthy  
+## **📋 Current Status**
+- **Hiring Server**: `https://invensis-hiring-server.onrender.com` - Starting up
+- **Admin Server**: `https://invensis-admin-server.onrender.com` - Starting up
 
-## 🎯 Next Steps Overview
+## **🔧 Issues Fixed**
 
-### 1. **Immediate Actions (Today)**
-- [ ] Set up production environment variables
-- [ ] Deploy to Vercel (Frontend)
-- [ ] Deploy to Render (Backend)
-- [ ] Configure MongoDB Atlas
-- [ ] Set up email service
+### **1. Admin Server Configuration**
+- ✅ Fixed PORT environment variable (was using ADMIN_PORT)
+- ✅ Updated CORS configuration for production
+- ✅ Added root endpoint for health checking
+- ✅ Created separate Render configuration
 
-### 2. **Repository Enhancement (This Week)**
-- [ ] Add issue templates
-- [ ] Set up GitHub Actions CI/CD
-- [ ] Add security scanning
-- [ ] Create user documentation
+### **2. Server Configurations**
+- ✅ Both servers now use `PORT=10000` (Render default)
+- ✅ Proper CORS configuration for production URLs
+- ✅ Enhanced error handling and logging
 
-### 3. **Production Testing (Next Week)**
-- [ ] End-to-end testing
-- [ ] Performance optimization
-- [ ] Security audit
-- [ ] User acceptance testing
+## **🚀 Deployment Steps**
 
-## 🌐 Deployment Options
+### **Step 1: Deploy Hiring Server**
 
-### Option A: Vercel + Render (Recommended)
-**Frontend**: Vercel (Free tier available)  
-**Backend**: Render (Free tier available)  
-**Database**: MongoDB Atlas (Free tier available)  
+1. **Go to Render Dashboard**
+2. **Create New Web Service**
+3. **Connect your GitHub repository**
+4. **Configure:**
+   - **Name**: `invensis-hiring-server`
+   - **Root Directory**: `server`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
 
-### Option B: Railway (Full Stack)
-**Everything**: Railway (Free tier available)  
+5. **Environment Variables:**
+   ```
+   NODE_ENV=production
+   PORT=10000
+   MONGODB_URI=your-mongodb-atlas-connection-string
+   JWT_SECRET=your-secure-jwt-secret
+   EMAIL_USER=your-gmail-address
+   EMAIL_PASS=your-gmail-app-password
+   FRONTEND_URL=https://hiring.invensis.com
+   CORS_ORIGIN=https://hiring.invensis.com,https://admin.invensis.com
+   ```
 
-### Option C: AWS/VPS (Advanced)
-**Custom**: Full control, higher cost  
+### **Step 2: Deploy Admin Server**
 
-## 📦 Quick Production Deploy
+1. **Create another Web Service**
+2. **Configure:**
+   - **Name**: `invensis-admin-server`
+   - **Root Directory**: `admin-portal/admin-server`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
 
-### Step 1: Environment Setup
-```bash
-# Create production environment files
-cp env.production.example .env.production
-cp admin-portal/admin-server/env.production.example admin-portal/admin-server/.env.production
+3. **Environment Variables:**
+   ```
+   NODE_ENV=production
+   PORT=10000
+   MONGODB_URI=your-mongodb-atlas-connection-string
+   ADMIN_JWT_SECRET=your-secure-admin-jwt-secret
+   EMAIL_USER=your-gmail-address
+   EMAIL_PASS=your-gmail-app-password
+   FRONTEND_URL=https://admin.invensis.com
+   CORS_ORIGIN=https://admin.invensis.com,https://hiring.invensis.com
+   ```
+
+## **🔍 Testing Deployment**
+
+### **Hiring Server Endpoints:**
+- **Health Check**: `https://invensis-hiring-server.onrender.com/api/health`
+- **Root**: `https://invensis-hiring-server.onrender.com/`
+- **Auth**: `https://invensis-hiring-server.onrender.com/api/auth/login`
+
+### **Admin Server Endpoints:**
+- **Health Check**: `https://invensis-admin-server.onrender.com/api/admin/health`
+- **Root**: `https://invensis-admin-server.onrender.com/`
+- **Admin Auth**: `https://invensis-admin-server.onrender.com/api/admin/auth/login`
+
+## **🔑 Admin Login Credentials**
+- **Email**: `admin@invensis.com`
+- **Password**: `admin123`
+
+## **📊 Expected Response Examples**
+
+### **Hiring Server Health Check:**
+```json
+{
+  "status": "OK",
+  "message": "Invensis Hiring Portal API is running",
+  "timestamp": "2025-08-06T07:47:49.110Z",
+  "environment": "production"
+}
 ```
 
-### Step 2: Deploy Frontend to Vercel
-```bash
-# Install Vercel CLI
-npm i -g vercel
-
-# Deploy main client
-cd client
-vercel --prod
-
-# Deploy admin client
-cd ../admin-portal/admin-client
-vercel --prod
+### **Admin Server Health Check:**
+```json
+{
+  "status": "OK",
+  "message": "Admin server is running",
+  "timestamp": "2025-08-06T07:47:49.202Z",
+  "environment": "production"
+}
 ```
 
-### Step 3: Deploy Backend to Render
-```bash
-# Use the deploy-render.sh script
-./deploy-render.sh
-```
+## **🔧 Troubleshooting**
 
-## 🔧 Environment Configuration
+### **If servers show "WELCOME TO RENDER":**
+1. Wait 2-3 minutes for full startup
+2. Check Render logs for errors
+3. Verify environment variables are set
+4. Test health endpoints
 
-### Production Environment Variables
-```env
-# Main Server (.env.production)
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/invensis-recruiters
-JWT_SECRET=your-super-secure-jwt-secret
-ADMIN_JWT_SECRET=your-super-secure-admin-jwt-secret
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-PORT=5001
-FRONTEND_URL=https://hiring.invensis.com
-ADMIN_URL=https://admin.invensis.com
-NODE_ENV=production
+### **If health checks fail:**
+1. Check MongoDB connection
+2. Verify JWT secrets are set
+3. Check email configuration
+4. Review server logs in Render dashboard
 
-# Admin Server (admin-portal/admin-server/.env.production)
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/invensis-recruiters
-ADMIN_JWT_SECRET=your-super-secure-admin-jwt-secret
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
-ADMIN_PORT=5002
-FRONTEND_URL=https://hiring.invensis.com
-ADMIN_URL=https://admin.invensis.com
-NODE_ENV=production
-```
+### **Common Issues:**
+- **MongoDB Connection**: Ensure Atlas cluster is accessible
+- **Email Service**: Verify Gmail app password is correct
+- **CORS Errors**: Check CORS_ORIGIN configuration
+- **Port Issues**: Both servers should use PORT=10000
 
-## 🗄️ Database Setup
+## **🎯 Next Steps**
 
-### MongoDB Atlas Configuration
-1. **Create Cluster**: Free tier M0
-2. **Network Access**: Allow all IPs (0.0.0.0/0) for development
-3. **Database Access**: Create user with read/write permissions
-4. **Connection String**: Use the provided connection string
+1. **Deploy both servers** using the configurations above
+2. **Wait for startup** (2-3 minutes)
+3. **Test health endpoints** to verify deployment
+4. **Test admin login** with provided credentials
+5. **Deploy frontend applications** (separate process)
 
-### Database Collections
-- `users` - User accounts and authentication
-- `candidates` - Candidate information
-- `assignments` - Manager-candidate assignments
-- `roleassignments` - Admin role assignments
-- `admins` - Admin user accounts
+## **📞 Support**
 
-## 📧 Email Service Setup
-
-### Gmail SMTP Configuration
-1. **Enable 2-Factor Authentication**
-2. **Generate App Password**
-3. **Use App Password** in EMAIL_PASS
-
-### SendGrid Alternative
-```env
-EMAIL_SERVICE=sendgrid
-SENDGRID_API_KEY=your-sendgrid-api-key
-```
-
-## 🔒 Security Checklist
-
-### Pre-Deployment
-- [ ] Change all default passwords
-- [ ] Use strong JWT secrets
-- [ ] Configure CORS properly
-- [ ] Set up HTTPS
-- [ ] Enable rate limiting
-
-### Post-Deployment
-- [ ] Test authentication flows
-- [ ] Verify role-based access
-- [ ] Check email functionality
-- [ ] Monitor error logs
-- [ ] Set up alerts
-
-## 📊 Monitoring & Analytics
-
-### Recommended Tools
-- **Error Tracking**: Sentry (free tier)
-- **Performance**: Vercel Analytics
-- **Uptime**: UptimeRobot (free tier)
-- **Logs**: Render logs or external service
-
-## 🧪 Testing Strategy
-
-### Automated Testing
-```bash
-# Run tests
-npm test
-
-# E2E testing with Cypress
-npm run cypress:open
-```
-
-### Manual Testing Checklist
-- [ ] User registration flow
-- [ ] Admin role assignment
-- [ ] HR candidate management
-- [ ] Manager feedback submission
-- [ ] Board member dashboard
-- [ ] Email notifications
-- [ ] File uploads
-- [ ] Real-time updates
-
-## 📚 Documentation
-
-### User Guides Needed
-- [ ] Admin User Guide
-- [ ] HR User Guide
-- [ ] Manager User Guide
-- [ ] Board Member User Guide
-- [ ] System Administrator Guide
-
-### Technical Documentation
-- [ ] API Documentation
-- [ ] Database Schema
-- [ ] Deployment Procedures
-- [ ] Troubleshooting Guide
-
-## 🚀 Deployment Scripts
-
-### Quick Deploy Script
-```bash
-#!/bin/bash
-# deploy-production.sh
-
-echo "🚀 Starting production deployment..."
-
-# 1. Build frontend
-cd client && npm run build
-cd ../admin-portal/admin-client && npm run build
-
-# 2. Deploy to Vercel
-vercel --prod
-
-# 3. Deploy backend to Render
-./deploy-render.sh
-
-echo "✅ Deployment completed!"
-```
-
-## 🔄 CI/CD Pipeline
-
-### GitHub Actions Workflow
-```yaml
-name: Deploy to Production
-on:
-  push:
-    branches: [main]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - run: npm install
-      - run: npm test
-
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: ./deploy-production.sh
-```
-
-## 📞 Support & Maintenance
-
-### Regular Tasks
-- [ ] Weekly security updates
-- [ ] Monthly performance review
-- [ ] Quarterly feature updates
-- [ ] Annual security audit
-
-### Emergency Procedures
-- [ ] Database backup procedures
-- [ ] Rollback procedures
-- [ ] Incident response plan
-- [ ] Contact escalation list
+If deployment fails:
+1. Check Render logs for specific errors
+2. Verify all environment variables are set
+3. Test MongoDB connection separately
+4. Ensure all dependencies are installed
 
 ---
-
-## 🎉 Success Metrics
-
-### Technical Metrics
-- [ ] 99.9% uptime
-- [ ] < 2 second page load times
-- [ ] Zero security vulnerabilities
-- [ ] 100% test coverage
-
-### Business Metrics
-- [ ] User adoption rate
-- [ ] Feature usage statistics
-- [ ] Support ticket volume
-- [ ] User satisfaction scores
-
----
-
-**Ready to deploy?** Follow the steps above or use the automated deployment scripts provided in the repository. 
+**Last Updated**: August 6, 2025
+**Status**: ✅ Ready for Deployment 
