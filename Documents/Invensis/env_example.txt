@@ -1,0 +1,15 @@
+# Flask Configuration
+SECRET_KEY=your-secret-key-here-change-this-in-production
+
+# Email Configuration (Gmail SMTP)
+MAIL_USERNAME=your-gmail@gmail.com
+MAIL_PASSWORD=your-app-password
+
+# Application URL
+BASE_URL=http://localhost:5000
+
+# Database Configuration (Optional - defaults to SQLite)
+# DATABASE_URL=postgresql://user:password@localhost/dbname
+
+# File Upload Configuration
+MAX_CONTENT_LENGTH=16777216  # 16MB in bytes 

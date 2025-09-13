@@ -1,0 +1,479 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Invensis Hiring Portal{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                <p class="text-gray-600">Manage user roles and monitor system activity</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('admin.activity_logs') }}" 
+                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-history mr-2"></i>Activity Logs
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards - 3D Design System -->
+    <div class="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
+        <!-- Recruiter Users -->
+        <div class="dashboard-card-3d">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-400 to-blue-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-users text-xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-purple-200 mb-1">Recruiter Users</p>
+                    <p class="text-2xl font-bold text-white">{{ recruiter_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- HR Users -->
+        <div class="dashboard-card-3d">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-user-cog text-xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-purple-200 mb-1">HR Users</p>
+                    <p class="text-2xl font-bold text-white">{{ hr_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manager Users -->
+        <div class="dashboard-card-3d">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-user-tie text-xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-purple-200 mb-1">Manager Users</p>
+                    <p class="text-2xl font-bold text-white">{{ manager_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Cluster Users -->
+        <div class="dashboard-card-3d">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-400 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-chart-line text-xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-purple-200 mb-1">Cluster Users</p>
+                    <p class="text-2xl font-bold text-white">{{ cluster_count }}</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Total Users -->
+        <div class="dashboard-card-3d">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-users-cog text-xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-medium text-purple-200 mb-1">Total Users</p>
+                    <p class="text-2xl font-bold text-white">{{ total_users }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Role Management Tabs -->
+    <div class="bg-white rounded-xl shadow-lg fade-in">
+        <div class="border-b border-gray-200">
+            <nav class="flex space-x-2 px-4" aria-label="Tabs">
+                <button onclick="showTab('recruiter-tab')" 
+                        class="tab-button bg-blue-600 text-white px-3 py-2 rounded-t-lg font-medium text-sm">
+                    <i class="fas fa-users mr-1"></i>Recruiter
+                </button>
+                <button onclick="showTab('hr-tab')" 
+                        class="tab-button bg-gray-200 text-gray-700 px-3 py-2 rounded-t-lg font-medium text-sm">
+                    <i class="fas fa-user-cog mr-1"></i>HR
+                </button>
+                <button onclick="showTab('manager-tab')" 
+                        class="tab-button bg-gray-200 text-gray-700 px-3 py-2 rounded-t-lg font-medium text-sm">
+                    <i class="fas fa-user-tie mr-1"></i>Manager
+                </button>
+                <button onclick="showTab('cluster-tab')" 
+                        class="tab-button bg-gray-200 text-gray-700 px-3 py-2 rounded-t-lg font-medium text-sm">
+                    <i class="fas fa-chart-line mr-1"></i>Cluster
+                </button>
+            </nav>
+        </div>
+
+        <!-- Recruiter Emails Tab -->
+        <div id="recruiter-tab" class="tab-content active p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Recruiter Email Management</h2>
+                <button onclick="showAddRoleModal('recruiter')" 
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-plus mr-2"></i>Add Recruiter Email
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for role in recruiter_emails %}
+                <div class="bg-gray-50 rounded-lg p-4 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ role.email }}</p>
+                            <p class="text-sm text-gray-500">Assigned: {{ role.created_at.strftime('%Y-%m-%d') if role.created_at else 'N/A' }}</p>
+                        </div>
+                        <button onclick="removeUserEmail('{{ role.email }}', 'Recruiter')" 
+                                class="text-red-500 hover:text-red-700 btn-animate">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8 col-span-full">
+                    <i class="fas fa-users text-4xl text-gray-300"></i>
+                    <p class="mt-4 text-gray-500">No recruiter emails found</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- HR Emails Tab -->
+        <div id="hr-tab" class="tab-content p-6" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">HR Email Management</h2>
+                <button onclick="showAddRoleModal('hr')" 
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-plus mr-2"></i>Add HR Email
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="hr-emails-container">
+                {% for role in hr_emails %}
+                <div class="bg-gray-50 rounded-lg p-4 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ role.email }}</p>
+                            <p class="text-sm text-gray-500">Assigned: {{ role.created_at.strftime('%Y-%m-%d') if role.created_at else 'N/A' }}</p>
+                        </div>
+                        <button onclick="removeUserEmail('{{ role.email }}', 'HR_Role')" 
+                                class="text-red-600 hover:text-red-800 btn-animate">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8 col-span-full">
+                    <i class="fas fa-user-cog text-4xl text-gray-300"></i>
+                    <p class="mt-4 text-gray-500">No HR emails found</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Manager Emails Tab -->
+        <div id="manager-tab" class="tab-content p-6" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Manager Email Management</h2>
+                <button onclick="showAddRoleModal('manager')" 
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-plus mr-2"></i>Add Manager Email
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for role in manager_emails %}
+                <div class="bg-gray-50 rounded-lg p-4 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ role.email }}</p>
+                            <p class="text-sm text-gray-500">Assigned: {{ role.created_at.strftime('%Y-%m-%d') if role.created_at else 'N/A' }}</p>
+                        </div>
+                        <button onclick="removeUserEmail('{{ role.email }}', 'Manager')" 
+                                class="text-red-500 hover:text-red-700 btn-animate">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8 col-span-full">
+                    <i class="fas fa-user-tie text-4xl text-gray-300"></i>
+                    <p class="mt-4 text-gray-500">No manager emails found</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Cluster Emails Tab -->
+        <div id="cluster-tab" class="tab-content p-6" style="display: none;">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-semibold text-gray-900">Cluster Email Management</h2>
+                <button onclick="showAddRoleModal('cluster')" 
+                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-plus mr-2"></i>Add Cluster Email
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {% for role in cluster_emails %}
+                <div class="bg-gray-50 rounded-lg p-4 card-hover">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="font-medium text-gray-900">{{ role.email }}</p>
+                            <p class="text-sm text-gray-500">Assigned: {{ role.created_at.strftime('%Y-%m-%d') if role.created_at else 'N/A' }}</p>
+                        </div>
+                        <button onclick="removeUserEmail('{{ role.email }}', 'Cluster Member')" 
+                                class="text-red-500 hover:text-red-700 btn-animate">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-8 col-span-full">
+                    <i class="fas fa-chart-line text-4xl text-gray-300"></i>
+                    <p class="mt-4 text-gray-500">No cluster emails found</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+        <div class="space-y-4">
+            {% for log in activity_logs %}
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ log.action }}</p>
+                        <p class="text-sm text-gray-500">{{ log.user_email }} • {{ log.timestamp.strftime('%Y-%m-%d %H:%M') }}</p>
+                    </div>
+                </div>
+                {% if log.target_email %}
+                <span class="text-sm text-gray-500">{{ log.target_email }}</span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Add Email Modal -->
+<div id="addRoleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Add <span id="modalRoleType">Email</span></h3>
+            <button onclick="hideAddRoleModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="addRoleForm">
+            <div class="space-y-4">
+                <div>
+                    <label for="roleEmail" class="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                    <input type="email" id="roleEmail" required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Enter email address">
+                </div>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                    <p class="text-sm text-blue-800">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        An invitation email will be automatically sent to this address with a registration link.
+                    </p>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="submit" 
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg btn-animate">
+                        <i class="fas fa-plus mr-2"></i>Add & Send Invitation
+                    </button>
+                    <button type="button" onclick="hideAddRoleModal()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg btn-animate">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentRoleType = '';
+
+function showAddRoleModal(roleType) {
+    currentRoleType = roleType;
+    
+    // Update modal title based on role type
+    const modalTitle = document.getElementById('modalRoleType');
+    switch(roleType) {
+        case 'recruiter':
+            modalTitle.textContent = 'Recruiter Email';
+            break;
+        case 'hr':
+            modalTitle.textContent = 'HR Email';
+            break;
+        case 'manager':
+            modalTitle.textContent = 'Manager Email';
+            break;
+        case 'cluster':
+            modalTitle.textContent = 'Cluster Email';
+            break;
+        default:
+            modalTitle.textContent = 'Email';
+    }
+    
+    document.getElementById('addRoleModal').classList.remove('hidden');
+    document.getElementById('addRoleModal').classList.add('flex');
+}
+
+function hideAddRoleModal() {
+    document.getElementById('addRoleModal').classList.add('hidden');
+    document.getElementById('addRoleModal').classList.remove('flex');
+    document.getElementById('addRoleForm').reset();
+}
+
+document.getElementById('addRoleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const email = document.getElementById('roleEmail').value;
+    
+    if (!email) {
+        alert('Please enter an email address');
+        return;
+    }
+    
+    // Determine the correct endpoint based on current role type
+    let endpoint;
+    switch(currentRoleType) {
+        case 'recruiter':
+            endpoint = '{{ url_for("admin.add_recruiter_email") }}';
+            break;
+        case 'hr':
+            endpoint = '{{ url_for("admin.add_hr_email") }}';
+            break;
+        case 'manager':
+            endpoint = '{{ url_for("admin.add_manager_email") }}';
+            break;
+        case 'cluster':
+            endpoint = '{{ url_for("admin.add_cluster_email") }}';
+            break;
+        default:
+            alert('Invalid role type');
+            return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#addRoleForm button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Adding...';
+    submitBtn.disabled = true;
+    
+    fetch(endpoint, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `email=${encodeURIComponent(email)}`
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while adding the email.', 'error');
+    })
+    .finally(() => {
+        // Reset button state
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        hideAddRoleModal();
+    });
+});
+
+function removeUserEmail(email, roleType) {
+    if (confirm(`Are you sure you want to remove ${email} from ${roleType}?`)) {
+        fetch('{{ url_for("admin.remove_user_email") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `email=${encodeURIComponent(email)}&role=${encodeURIComponent(roleType)}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification(data.message, 'success');
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                showNotification(data.message, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('An error occurred while removing the email.', 'error');
+        });
+    }
+}
+
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Tab functionality
+function showTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('.tab-content');
+    tabContents.forEach(content => {
+        content.style.display = 'none';
+    });
+    
+    // Remove active class from all tab buttons
+    const tabButtons = document.querySelectorAll('.tab-button');
+    tabButtons.forEach(button => {
+        button.classList.remove('bg-blue-600', 'text-white');
+        button.classList.add('bg-gray-200', 'text-gray-700');
+    });
+    
+    // Show selected tab content
+    const selectedTab = document.getElementById(tabName);
+    if (selectedTab) {
+        selectedTab.style.display = 'block';
+    }
+    
+    // Add active class to selected tab button
+    const selectedButton = document.querySelector(`[onclick="showTab('${tabName}')"]`);
+    if (selectedButton) {
+        selectedButton.classList.remove('bg-gray-200', 'text-gray-700');
+        selectedButton.classList.add('bg-blue-600', 'text-white');
+    }
+}
+</script>
+{% endblock %} 

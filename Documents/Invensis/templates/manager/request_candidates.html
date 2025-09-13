@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Requests - Manager Dashboard{% endblock %}
+
+{% block head %}
+<style>
+    .request-card {
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .request-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .urgency-high {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+        color: white;
+    }
+
+    .urgency-medium {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+    }
+
+    .urgency-low {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+
+    .status-active {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+    }
+
+    .status-completed {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Candidate Requests</h1>
+                <p class="text-gray-600">Manage your requests for new candidates</p>
+            </div>
+            <div class="flex space-x-3">
+                <button onclick="openRequestModal()" 
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-plus mr-2"></i>New Request
+                </button>
+                <a href="{{ url_for('manager.dashboard') }}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white rounded-xl shadow-lg p-6 request-card">
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-clipboard-list text-2xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 mb-2">Total Requested</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_requested }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 request-card">
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-user-check text-2xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 mb-2">Remaining</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ total_remaining }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-lg p-6 request-card">
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-users text-2xl text-white"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-semibold text-gray-600 mb-2">Active Requests</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ requests|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Requests List -->
+    <div class="bg-white rounded-xl shadow-lg p-6 request-card">
+        <h2 class="text-xl font-semibold text-gray-900 mb-6">Your Requests</h2>
+        
+        {% if requests %}
+        <div class="space-y-4">
+            {% for request in requests %}
+            <div class="border border-gray-200 rounded-lg p-6 hover:bg-gray-50 transition-colors">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <i class="fas fa-briefcase text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ request.position_title }}</h3>
+                            <p class="text-sm text-gray-600">Requested on {{ request.created_at[:10] }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <span class="px-3 py-1 rounded-full text-sm font-medium 
+                            {% if request.urgency_level == 'High' %}urgency-high
+                            {% elif request.urgency_level == 'Medium' %}urgency-medium
+                            {% else %}urgency-low{% endif %}">
+                            {{ request.urgency_level }}
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium 
+                            {% if request.status == 'Active' %}status-active
+                            {% else %}status-completed{% endif %}">
+                            {{ request.status }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                    <div class="text-center">
+                        <p class="text-sm font-medium text-gray-600">Quantity Needed</p>
+                        <p class="text-2xl font-bold text-blue-600">{{ request.quantity_needed }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-medium text-gray-600">Assigned</p>
+                        <p class="text-2xl font-bold text-green-600">{{ request.assigned_count }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-medium text-gray-600">Onboarded</p>
+                        <p class="text-2xl font-bold text-purple-600">{{ request.onboarded_count }}</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm font-medium text-gray-600">Remaining</p>
+                        <p class="text-2xl font-bold text-orange-600">{{ request.remaining_count }}</p>
+                    </div>
+                </div>
+                
+                {% if request.required_skills %}
+                <div class="mb-3">
+                    <p class="text-sm font-medium text-gray-700 mb-1">Required Skills:</p>
+                    <p class="text-sm text-gray-600">{{ request.required_skills }}</p>
+                </div>
+                {% endif %}
+                
+                {% if request.additional_notes %}
+                <div class="mb-3">
+                    <p class="text-sm font-medium text-gray-700 mb-1">Additional Notes:</p>
+                    <p class="text-sm text-gray-600">{{ request.additional_notes }}</p>
+                </div>
+                {% endif %}
+                
+                <div class="flex items-center justify-between pt-3 border-t border-gray-200">
+                    <p class="text-xs text-gray-500">
+                        Last updated: {{ request.updated_at[:10] }}
+                    </p>
+                    {% if request.status == 'Active' %}
+                    <button onclick="editRequest('{{ request._id }}')" 
+                            class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                        <i class="fas fa-edit mr-1"></i>Edit Request
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clipboard-list text-3xl text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No requests yet</h3>
+            <p class="text-gray-600 mb-4">Start by creating your first candidate request</p>
+            <button onclick="openRequestModal()" 
+                    class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                <i class="fas fa-plus mr-2"></i>Create First Request
+            </button>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Request Modal -->
+<div id="requestModal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-screen overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-gray-900">Request New Candidates</h2>
+                    <button onclick="closeRequestModal()" class="text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <form id="requestForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="position_title" class="block text-sm font-medium text-gray-700 mb-2">Position Title *</label>
+                            <input type="text" id="position_title" name="position_title" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label for="quantity_needed" class="block text-sm font-medium text-gray-700 mb-2">Number of Candidates Needed *</label>
+                            <input type="number" id="quantity_needed" name="quantity_needed" min="1" required
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="urgency_level" class="block text-sm font-medium text-gray-700 mb-2">Urgency Level *</label>
+                        <select id="urgency_level" name="urgency_level" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select urgency level</option>
+                            <option value="Low">Low - Within 1 month</option>
+                            <option value="Medium">Medium - Within 2 weeks</option>
+                            <option value="High">High - Within 1 week</option>
+                            <option value="Critical">Critical - ASAP</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label for="required_skills" class="block text-sm font-medium text-gray-700 mb-2">Required Skills</label>
+                        <textarea id="required_skills" name="required_skills" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="e.g., Python, React, 3+ years experience"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label for="additional_notes" class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                        <textarea id="additional_notes" name="additional_notes" rows="3"
+                                  class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                                  placeholder="Any additional requirements or notes"></textarea>
+                    </div>
+                    
+                    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-3"></i>
+                            <p class="text-sm text-blue-700">
+                                This request will be sent to all Recruiters and HR team members. They will be notified immediately.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-3">
+                        <button type="button" onclick="closeRequestModal()" 
+                                class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">
+                            Cancel
+                        </button>
+                        <button type="submit" 
+                                class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-medium">
+                            <i class="fas fa-paper-plane mr-2"></i>Send Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openRequestModal() {
+    document.getElementById('requestModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeRequestModal() {
+    document.getElementById('requestModal').classList.add('hidden');
+    document.body.style.overflow = 'auto';
+    document.getElementById('requestForm').reset();
+}
+
+function editRequest(requestId) {
+    // TODO: Implement edit functionality
+    alert('Edit functionality coming soon!');
+}
+
+document.getElementById('requestForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = {
+        position_title: formData.get('position_title'),
+        quantity_needed: formData.get('quantity_needed'),
+        urgency_level: formData.get('urgency_level'),
+        required_skills: formData.get('required_skills'),
+        additional_notes: formData.get('additional_notes')
+    };
+    
+    try {
+        const response = await fetch('/manager/submit-candidate-request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification(result.message, 'success');
+            closeRequestModal();
+            // Refresh the page to show new request
+            location.reload();
+        } else {
+            showNotification(result.error || 'Failed to submit request', 'error');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showNotification('Error submitting request', 'error');
+    }
+});
+
+function showNotification(message, type) {
+    // Simple notification - you can enhance this
+    alert(message);
+}
+</script>
+{% endblock %}

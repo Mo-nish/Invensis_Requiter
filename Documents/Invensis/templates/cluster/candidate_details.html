@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Details - Cluster Dashboard{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Candidate Details</h1>
+                <p class="text-gray-600">View detailed information about the candidate</p>
+            </div>
+            <a href="{{ url_for('cluster.dashboard') }}" 
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg btn-animate">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Candidate Information -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Basic Information -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-semibold text-gray-900">Basic Information</h2>
+                
+                <div class="flex items-center space-x-4">
+                    {% if candidate.image_path %}
+                    <img src="{{ url_for('static', filename=candidate.image_path) }}" 
+                         alt="{{ candidate.first_name }} {{ candidate.last_name }}" 
+                         class="w-24 h-24 rounded-full object-cover">
+                    {% else %}
+                    <div class="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-gray-400 text-2xl"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-2xl font-bold text-gray-900">{{ candidate.first_name }} {{ candidate.last_name }}</h3>
+                        <p class="text-gray-600">{{ candidate.email }}</p>
+                        <p class="text-sm text-gray-500">Reference ID: {{ candidate.reference_id }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <p class="text-gray-900">{{ candidate.phone }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Gender</label>
+                        <p class="text-gray-900">{{ candidate.gender }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                        <p class="text-gray-900">{{ candidate.dob }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                                   {% if candidate.status == 'Selected' %}bg-green-100 text-green-800
+                                   {% elif candidate.status == 'Not Selected' %}bg-red-100 text-red-800
+                                   {% elif candidate.status == 'Reassign to Hr' %}bg-orange-100 text-orange-800
+                                   {% elif candidate.status == 'Shortlisted' %}bg-green-100 text-green-800
+                                   {% elif candidate.status == 'Rejected' %}bg-red-100 text-red-800
+                                   {% elif candidate.status == 'On Hold' %}bg-yellow-100 text-yellow-800
+                                   {% elif candidate.status == 'Assigned' %}bg-blue-100 text-blue-800
+                                   {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ candidate.status }}
+                        </span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Education</label>
+                    <p class="text-gray-900">{{ candidate.education }}</p>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Experience</label>
+                    <p class="text-gray-900">{{ candidate.experience }}</p>
+                </div>
+            </div>
+
+            <!-- Ratings and Feedback -->
+            <div class="space-y-6">
+                <h2 class="text-xl font-semibold text-gray-900">HR Assessment</h2>
+                
+                <div class="space-y-4">
+                    <!-- HR Round Rating -->
+                    {% if candidate.overall_rating or candidate.communication_skills or candidate.adaptability or candidate.teamwork_collaboration or candidate.job_fit %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">HR Round Rating</label>
+                        <div class="mt-2 p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                            {% if candidate.overall_rating %}
+                            <div class="mb-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm font-medium text-gray-700">Overall Rating</span>
+                                    <div class="flex items-center">
+                                        <span class="text-yellow-500 mr-2">
+                                            {% for i in range(candidate.overall_rating|int) %}⭐{% endfor %}
+                                        </span>
+                                        <span class="text-lg font-bold text-blue-600">{{ "%.1f"|format(candidate.overall_rating) }}/5</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="grid grid-cols-2 gap-2 text-xs">
+                                {% if candidate.communication_skills %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-comments mr-1 text-blue-500"></i>
+                                    <span class="font-medium">Communication:</span>
+                                    <span class="ml-1">
+                                        {% for i in range(candidate.communication_skills) %}⭐{% endfor %}
+                                        <span class="text-gray-600">({{ candidate.communication_skills }}/5)</span>
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if candidate.adaptability %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-sync-alt mr-1 text-green-500"></i>
+                                    <span class="font-medium">Adaptability:</span>
+                                    <span class="ml-1">
+                                        {% for i in range(candidate.adaptability) %}⭐{% endfor %}
+                                        <span class="text-gray-600">({{ candidate.adaptability }}/5)</span>
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if candidate.teamwork_collaboration %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-users mr-1 text-purple-500"></i>
+                                    <span class="font-medium">Teamwork:</span>
+                                    <span class="ml-1">
+                                        {% for i in range(candidate.teamwork_collaboration) %}⭐{% endfor %}
+                                        <span class="text-gray-500">({{ candidate.teamwork_collaboration }}/5)</span>
+                                    </span>
+                                </div>
+                                {% endif %}
+                                
+                                {% if candidate.job_fit %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-briefcase mr-1 text-orange-500"></i>
+                                    <span class="font-medium">Job Fit:</span>
+                                    <span class="ml-1">
+                                        {% for i in range(candidate.job_fit) %}⭐{% endfor %}
+                                        <span class="text-gray-600">({{ candidate.job_fit }}/5)</span>
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                                         <!-- Notes -->
+                     {% if candidate.other_notes %}
+                     <div>
+                         <label class="block text-sm font-medium text-gray-700">Notes</label>
+                         <p class="text-gray-900 mt-1 bg-yellow-50 p-2 rounded border border-yellow-200">{{ candidate.other_notes }}</p>
+                     </div>
+                     {% endif %}
+                     
+                     <!-- Manager Ratings -->
+                     {% if candidate.manager_feedback %}
+                     <div class="border-t pt-4">
+                         <h2 class="text-xl font-semibold text-gray-900">Manager Assessment</h2>
+                         
+                         <div class="space-y-4">
+                             <!-- Manager Round Rating -->
+                             {% if candidate.manager_feedback.communication_skills or candidate.manager_feedback.technical_skills or candidate.manager_feedback.problem_solving or candidate.manager_feedback.cultural_fit %}
+                             <div>
+                                 <label class="block text-sm font-medium text-gray-700">Manager Round Rating</label>
+                                 <div class="mt-2 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                                     {% if candidate.manager_feedback.overall_rating %}
+                                     <div class="mb-3">
+                                         <div class="flex items-center justify-between">
+                                             <span class="text-sm font-medium text-gray-700">Overall Rating</span>
+                                             <div class="flex items-center">
+                                                 <span class="text-yellow-500 mr-2">
+                                                     {% for i in range(candidate.manager_feedback.overall_rating|round|int) %}⭐{% endfor %}
+                                                 </span>
+                                                 <span class="text-lg font-bold text-green-600">{{ "%.1f"|format(candidate.manager_feedback.overall_rating) }}/5</span>
+                                             </div>
+                                         </div>
+                                     </div>
+                                     {% endif %}
+                                     
+                                     <div class="grid grid-cols-2 gap-2 text-xs">
+                                         {% if candidate.manager_feedback.communication_skills %}
+                                         <div class="flex items-center">
+                                             <i class="fas fa-comments mr-1 text-blue-500"></i>
+                                             <span class="font-medium">Communication:</span>
+                                             <span class="ml-1">
+                                                 {% for i in range(candidate.manager_feedback.communication_skills) %}⭐{% endfor %}
+                                                 <span class="text-gray-600">({{ candidate.manager_feedback.communication_skills }}/5)</span>
+                                             </span>
+                                         </div>
+                                         {% endif %}
+                                         
+                                         {% if candidate.manager_feedback.technical_skills %}
+                                         <div class="flex items-center">
+                                             <i class="fas fa-code mr-1 text-green-500"></i>
+                                             <span class="font-medium">Technical:</span>
+                                             <span class="ml-1">
+                                                 {% for i in range(candidate.manager_feedback.technical_skills) %}⭐{% endfor %}
+                                                 <span class="text-gray-600">({{ candidate.manager_feedback.technical_skills }}/5)</span>
+                                             </span>
+                                         </div>
+                                         {% endif %}
+                                         
+                                         {% if candidate.manager_feedback.problem_solving %}
+                                         <div class="flex items-center">
+                                             <i class="fas fa-lightbulb mr-1 text-yellow-500"></i>
+                                             <span class="font-medium">Problem Solving:</span>
+                                             <span class="ml-1">
+                                                 {% for i in range(candidate.manager_feedback.problem_solving) %}⭐{% endfor %}
+                                                 <span class="text-gray-500">({{ candidate.manager_feedback.problem_solving }}/5)</span>
+                                             </span>
+                                         </div>
+                                         {% endif %}
+                                         
+                                         {% if candidate.manager_feedback.cultural_fit %}
+                                         <div class="flex items-center">
+                                             <i class="fas fa-users mr-1 text-purple-500"></i>
+                                             <span class="font-medium">Cultural Fit:</span>
+                                             <span class="ml-1">
+                                                 {% for i in range(candidate.manager_feedback.cultural_fit) %}⭐{% endfor %}
+                                                 <span class="text-gray-600">({{ candidate.manager_feedback.cultural_fit }}/5)</span>
+                                             </span>
+                                         </div>
+                                         {% endif %}
+                                     </div>
+                                 </div>
+                             </div>
+                             {% endif %}
+                             
+                             <!-- Overall Impression -->
+                             {% if candidate.manager_feedback.overall_impression %}
+                             <div>
+                                 <label class="block text-sm font-medium text-gray-700">Overall Impression</label>
+                                 <p class="text-gray-900 mt-1 bg-yellow-50 p-2 rounded border border-yellow-200">{{ candidate.manager_feedback.overall_impression }}</p>
+                             </div>
+                             {% endif %}
+                             
+                             <!-- Feedback Text -->
+                             {% if candidate.manager_feedback.feedback %}
+                             <div>
+                                 <label class="block text-sm font-medium text-gray-700">Feedback</label>
+                                 <p class="text-gray-900 mt-1 bg-gray-50 p-2 rounded border border-gray-200">{{ candidate.manager_feedback.feedback }}</p>
+                             </div>
+                             {% endif %}
+                             
+                             <!-- Feedback Date -->
+                             {% if candidate.manager_feedback.feedback_date %}
+                             <div class="text-sm text-gray-500">
+                                 <i class="fas fa-calendar-alt mr-1"></i>
+                                 Feedback Date: {{ candidate.manager_feedback.feedback_date[:10] if candidate.manager_feedback.feedback_date else 'N/A' }}
+                             </div>
+                             {% endif %}
+                             
+                             <!-- Manager Email -->
+                             {% if candidate.manager_feedback.manager_email %}
+                             <div class="text-sm text-gray-500">
+                                 <i class="fas fa-user mr-1"></i>
+                                 Manager: {{ candidate.manager_feedback.manager_email }}
+                             </div>
+                             {% endif %}
+                             
+                             <!-- Review Date -->
+                             {% if candidate.reviewed_at %}
+                             <div class="text-sm text-gray-500">
+                                 <i class="fas fa-calendar-alt mr-1"></i>
+                                 Reviewed on: {{ candidate.reviewed_at if candidate.reviewed_at else 'Not reviewed' }}
+                             </div>
+                             {% endif %}
+                             
+                             <!-- Rejection Reasons (if status is Not Selected) -->
+                             {% if candidate.status == 'Not Selected' and candidate.rejection_reasons %}
+                             <div class="mb-4">
+                                 <h4 class="text-sm font-medium text-gray-700 mb-2">Rejection Reasons</h4>
+                                 <div class="p-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-lg border border-red-200">
+                                     <div class="space-y-2">
+                                         {% for reason in candidate.rejection_reasons %}
+                                         <div class="flex items-center space-x-2">
+                                             <i class="fas fa-times text-red-500 text-xs"></i>
+                                             <span class="text-sm text-gray-700">{{ reason }}</span>
+                                         </div>
+                                         {% endfor %}
+                                         {% if candidate.rejection_notes %}
+                                         <div class="mt-3 pt-2 border-t border-red-200">
+                                             <div class="flex items-start">
+                                                 <i class="fas fa-comment mr-1 text-blue-500 mt-0.5"></i>
+                                                 <span class="text-sm text-gray-700">{{ candidate.rejection_notes }}</span>
+                                             </div>
+                                         </div>
+                                         {% endif %}
+                                     </div>
+                                 </div>
+                             </div>
+                             {% endif %}
+                         </div>
+                     </div>
+                     {% endif %}
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment Information -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Assignment Information</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Assigned By</label>
+                <p class="text-gray-900">{{ candidate.assigned_by }}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Assigned To Manager</label>
+                <p class="text-gray-900">{{ candidate.manager_email or 'Not assigned' }}</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700">Scheduled Interview</label>
+                <p class="text-gray-900">{{ candidate.scheduled_date if candidate.scheduled_date else 'Not scheduled' }}</p>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <label class="block text-sm font-medium text-gray-700">Created Date</label>
+            <p class="text-gray-900">{{ candidate.created_at if candidate.created_at else 'N/A' }}</p>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Actions</h2>
+        
+        <div class="flex flex-wrap gap-3">
+            {% if candidate.resume_path %}
+            <a href="{{ url_for('static', filename=candidate.resume_path.replace('static/', '')) }}" 
+               target="_blank"
+               class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center">
+                <i class="fas fa-download mr-2"></i>Download Resume
+            </a>
+            {% endif %}
+            
+            {% if candidate.image_path %}
+            <a href="{{ url_for('static', filename=candidate.image_path.replace('static/', '')) }}" 
+               target="_blank"
+               class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center">
+                <i class="fas fa-image mr-2"></i>View Image
+            </a>
+            {% endif %}
+
+            {% if candidate.status == 'Pending' %}
+            <button onclick="showAssignModal('{{ candidate._id }}', '{{ candidate.first_name }} {{ candidate.last_name }}')"
+                    class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center">
+                <i class="fas fa-user-plus mr-2"></i>Assign to Manager
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Assign Candidate Modal -->
+<div id="assignModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Assign Candidate</h3>
+            <button onclick="hideAssignModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="assignForm">
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Candidate</label>
+                    <p id="assignCandidateName" class="text-gray-900 font-medium"></p>
+                </div>
+                
+                <div>
+                    <label for="managerEmail" class="block text-sm font-medium text-gray-700 mb-2">Manager Email *</label>
+                    <input type="email" id="managerEmail" name="manager_email" required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                           placeholder="Enter manager email">
+                </div>
+                
+                <div>
+                    <label for="interviewTime" class="block text-sm font-medium text-gray-700 mb-2">Interview Time (Optional)</label>
+                    <input type="datetime-local" id="interviewTime" name="interview_time"
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="submit" 
+                            class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg btn-animate">
+                        <i class="fas fa-user-plus mr-2"></i>Assign
+                    </button>
+                    <button type="button" onclick="hideAssignModal()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg btn-animate">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let currentAssignCandidateId = null;
+
+function showAssignModal(candidateId, candidateName) {
+    currentAssignCandidateId = candidateId;
+    document.getElementById('assignCandidateName').textContent = candidateName;
+    document.getElementById('assignModal').classList.remove('hidden');
+    document.getElementById('assignModal').classList.add('flex');
+}
+
+function hideAssignModal() {
+    document.getElementById('assignModal').classList.add('hidden');
+    document.getElementById('assignModal').classList.remove('flex');
+    document.getElementById('assignForm').reset();
+    currentAssignCandidateId = null;
+}
+
+document.getElementById('assignForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    formData.append('candidate_id', currentAssignCandidateId);
+    
+    fetch('{{ url_for("cluster.assign_candidate") }}', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert(data.message || 'An error occurred while assigning the candidate.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while assigning the candidate. Please try again.');
+    });
+    
+    hideAssignModal();
+});
+</script>
+{% endblock %} 

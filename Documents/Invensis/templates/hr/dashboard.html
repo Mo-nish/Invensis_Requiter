@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block title %}HR Dashboard - Invensis Hiring Portal{% endblock %}
+
+{% block head %}
+<style>
+/* HR-specific styles */
+.btn-hr {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-hr:hover {
+    background: linear-gradient(135deg, #5a6fd8 0%, #6a3d91 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.onboarding-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #F3F4F6;
+    transition: all 0.3s ease;
+}
+
+.onboarding-card:hover {
+    box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">HR Dashboard</h1>
+                <p class="text-gray-600">Manage employee onboarding and lifecycle</p>
+            </div>
+            <div class="flex flex-wrap gap-4">
+                <a href="{{ url_for('hr.onboarding') }}" class="btn-3d btn-hr px-6 py-3 text-lg font-semibold">
+                    <i class="fas fa-user-check mr-2"></i>Onboarding Management
+                </a>
+                <button onclick="refreshOnboardingData()" class="btn-3d btn-hr px-6 py-3 text-lg font-semibold">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 fade-in">
+        <!-- Pending Onboarding -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-yellow-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-hourglass-half text-3xl text-yellow-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Pending Onboarding</p>
+                    <p class="text-2xl font-bold text-gray-900" id="pendingOnboarding">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Successfully Onboarded -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-user-check text-3xl text-green-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Onboarded</p>
+                    <p class="text-2xl font-bold text-gray-900" id="completedOnboarding">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- This Month -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-calendar-alt text-3xl text-blue-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">This Month</p>
+                    <p class="text-2xl font-bold text-gray-900" id="thisMonthOnboarding">0</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Success Rate -->
+        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <i class="fas fa-percentage text-3xl text-purple-500"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Success Rate</p>
+                    <p class="text-2xl font-bold text-gray-900" id="onboardingSuccessRate">0%</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Onboarding Activities -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Recent Onboarding Activities</h2>
+            <button onclick="viewAllOnboarding()" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                View All →
+                </button>
+        </div>
+
+        <div id="onboardingActivities" class="space-y-4">
+            <!-- Onboarding activities will be loaded here -->
+            <div class="text-center py-8">
+                <i class="fas fa-users text-4xl text-gray-300"></i>
+                <p class="mt-4 text-gray-500">No onboarding activities found</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <a href="{{ url_for('hr.onboarding') }}" class="onboarding-card text-center">
+                <i class="fas fa-user-plus text-3xl text-blue-500 mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Manage Onboarding</h3>
+                <p class="text-sm text-gray-600">Process new employee onboarding</p>
+            </a>
+            
+            <button onclick="generateOnboardingReport()" class="onboarding-card text-center">
+                <i class="fas fa-chart-bar text-3xl text-green-500 mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Generate Report</h3>
+                <p class="text-sm text-gray-600">Create onboarding analytics report</p>
+                    </button>
+            
+            <button onclick="scheduleOnboardingSession()" class="onboarding-card text-center">
+                <i class="fas fa-calendar-plus text-3xl text-purple-500 mb-3"></i>
+                <h3 class="text-lg font-semibold text-gray-900 mb-2">Schedule Session</h3>
+                <p class="text-sm text-gray-600">Plan onboarding sessions</p>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Initialize HR Dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    loadOnboardingStatistics();
+    loadRecentActivities();
+});
+
+// Load onboarding statistics
+async function loadOnboardingStatistics() {
+    try {
+        const response = await fetch('/hr/api/onboarding-stats');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('pendingOnboarding').textContent = data.stats.pending || 0;
+            document.getElementById('completedOnboarding').textContent = data.stats.completed || 0;
+            document.getElementById('thisMonthOnboarding').textContent = data.stats.thisMonth || 0;
+            document.getElementById('onboardingSuccessRate').textContent = (data.stats.successRate || 0) + '%';
+        }
+    } catch (error) {
+        console.error('Error loading onboarding statistics:', error);
+    }
+}
+
+// Load recent onboarding activities
+async function loadRecentActivities() {
+    try {
+        const response = await fetch('/hr/api/recent-activities');
+        const data = await response.json();
+        
+        if (data.success && data.activities.length > 0) {
+            renderActivities(data.activities);
+        }
+    } catch (error) {
+        console.error('Error loading recent activities:', error);
+    }
+}
+
+// Render activities
+function renderActivities(activities) {
+    const container = document.getElementById('onboardingActivities');
+    
+    container.innerHTML = activities.map(activity => `
+        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div class="flex items-center space-x-4">
+                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-blue-600"></i>
+                </div>
+                <div>
+                    <p class="font-medium text-gray-900">${activity.name}</p>
+                    <p class="text-sm text-gray-500">${activity.action} • ${activity.date}</p>
+                </div>
+            </div>
+            <span class="px-3 py-1 rounded-full text-xs font-medium ${getStatusClass(activity.status)}">
+                ${activity.status}
+            </span>
+        </div>
+    `).join('');
+}
+
+// Get status class for styling
+function getStatusClass(status) {
+    switch(status) {
+        case 'Completed': return 'bg-green-100 text-green-800';
+        case 'In Progress': return 'bg-blue-100 text-blue-800';
+        case 'Pending': return 'bg-yellow-100 text-yellow-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+// Refresh onboarding data
+function refreshOnboardingData() {
+    loadOnboardingStatistics();
+    loadRecentActivities();
+    showNotification('Onboarding data refreshed successfully', 'success');
+}
+
+// View all onboarding
+function viewAllOnboarding() {
+    window.location.href = "{{ url_for('hr.onboarding') }}";
+}
+
+// Generate onboarding report
+function generateOnboardingReport() {
+    showNotification('Generating onboarding report...', 'info');
+    // Implementation for generating report
+}
+
+// Schedule onboarding session
+function scheduleOnboardingSession() {
+    showNotification('Onboarding session scheduling coming soon', 'info');
+    // Implementation for scheduling
+}
+
+// Show notification
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 
+        type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+{% endblock %} 

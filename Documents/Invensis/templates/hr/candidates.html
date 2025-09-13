@@ -1,0 +1,807 @@
+{% extends "base.html" %}
+
+{% block title %}Candidates List - HR Dashboard{% endblock %}
+
+{% block head %}
+<style>
+    .fade-in {
+        animation: fadeIn 0.6s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+        }
+        to {
+            opacity: 1;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">All Candidates</h1>
+                <p class="text-gray-600">View and manage all candidates</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('hr.dashboard') }}" 
+                   class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                    <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Statistics - Candidate Counts -->
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-6 mb-8">
+            <!-- All Candidates -->
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-users text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">All Candidates</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ candidates|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Selected -->
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-user-check text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Selected</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ candidates|selectattr('status', 'equalto', 'Selected')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Not Selected -->
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-red-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-user-times text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Not Selected</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ candidates|selectattr('status', 'equalto', 'Not Selected')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Reassigned -->
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-exchange-alt text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Reassigned</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ candidates|selectattr('status', 'equalto', 'Reassigned')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pending -->
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-clock text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Pending</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ candidates|selectattr('status', 'equalto', 'Pending')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Assigned -->
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-user-clock text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Assigned</p>
+                        <p class="text-3xl font-bold text-gray-900">{{ candidates|selectattr('status', 'equalto', 'Assigned')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Candidates Table -->
+        <div class="bg-white rounded-xl shadow-lg fade-in">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900">Candidates List</h2>
+            </div>
+            
+            {% if candidates %}
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <input type="checkbox" id="select-all" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2">
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Reference ID
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Name
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Email
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Status
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                HR Round Rating
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Manager Rating
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Assigned To
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Created Date
+                            </th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Actions
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        {% for candidate in candidates %}
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <input type="checkbox" class="select-item w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2" 
+                                       data-id="{{ candidate._id }}" data-name="{{ candidate.first_name }} {{ candidate.last_name }}">
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="text-sm font-medium text-gray-900">{{ candidate.reference_id }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    {% if candidate.image_path %}
+                                    <img class="h-10 w-10 rounded-full object-cover" src="{{ url_for('static', filename=candidate.image_path) }}" alt="{{ candidate.first_name }} {{ candidate.last_name }}">
+                                    {% else %}
+                                    <div class="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center">
+                                        <i class="fas fa-user text-gray-600"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">{{ candidate.first_name }} {{ candidate.last_name }}</div>
+                                        <div class="text-sm text-gray-500">{{ candidate.phone }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">{{ candidate.email }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                {% if candidate.status == 'Pending' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                                        Pending
+                                    </span>
+                                {% elif candidate.status == 'Selected' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                        Selected
+                                    </span>
+                                {% elif candidate.status == 'Not Selected' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                        Not Selected
+                                    </span>
+                                {% elif candidate.status == 'Reassigned' %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
+                                        Reassigned
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        {{ candidate.status|title }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {% if candidate.overall_rating %}
+                                        <div class="flex items-center space-x-2">
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-500 mr-1">
+                                                    {% for i in range(candidate.overall_rating|int) %}⭐{% endfor %}
+                                                </span>
+                                                <span class="text-xs text-gray-500">({{ "%.1f"|format(candidate.overall_rating) }}/5)</span>
+                                            </div>
+                                            {% if candidate.other_notes %}
+                                                <div class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                                    <i class="fas fa-sticky-note mr-1"></i>Has Notes
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        {% if candidate.communication_skills or candidate.adaptability or candidate.teamwork_collaboration or candidate.job_fit %}
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            C:{{ candidate.communication_skills|default(0) }} | A:{{ candidate.adaptability|default(0) }} | T:{{ candidate.teamwork_collaboration|default(0) }} | J:{{ candidate.job_fit|default(0) }}
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-gray-500 text-xs">Not rated</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <!-- Manager Rating Column -->
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {% if candidate.manager_overall_rating %}
+                                        <div class="flex items-center space-x-2">
+                                            <div class="flex items-center">
+                                                <span class="text-yellow-500 mr-1">
+                                                    {% for i in range(candidate.manager_overall_rating|int) %}⭐{% endfor %}
+                                                </span>
+                                                <span class="text-xs text-gray-500">({{ "%.1f"|format(candidate.manager_overall_rating) }}/5)</span>
+                                            </div>
+                                            {% if candidate.manager_feedback %}
+                                                <div class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                                                    <i class="fas fa-comment mr-1"></i>Has Feedback
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        {% if candidate.manager_communication_skills or candidate.manager_technical_skills or candidate.manager_problem_solving or candidate.manager_cultural_fit %}
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            C:{{ candidate.manager_communication_skills|default(0) }} | T:{{ candidate.manager_technical_skills|default(0) }} | P:{{ candidate.manager_problem_solving|default(0) }} | F:{{ candidate.manager_cultural_fit|default(0) }}
+                                        </div>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="text-gray-500 text-xs">Not rated</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {% if candidate.manager_email %}
+                                        {{ candidate.manager_email }}
+                                    {% else %}
+                                        <span class="text-gray-500">Not assigned</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm text-gray-900">
+                                    {{ candidate.created_at if candidate.created_at else 'N/A' }}
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex space-x-2">
+                                    <a href="{{ url_for('hr.candidate_details', candidate_id=candidate._id) }}" 
+                                       class="text-blue-600 hover:text-blue-900 btn-animate" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if candidate.resume_path %}
+                                    <a href="{{ url_for('static', filename=candidate.resume_path.replace('static/', '')) }}" 
+                                       target="_blank" class="text-green-600 hover:text-green-900 btn-animate" title="Download Resume">
+                                        <i class="fas fa-download"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if candidate.image_path %}
+                                    <a href="{{ url_for('static', filename=candidate.image_path) }}" 
+                                       target="_blank" class="text-purple-600 hover:text-purple-900 btn-animate" title="View Image">
+                                        <i class="fas fa-image"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if candidate.status == 'Pending' or candidate.status == 'New' %}
+                                    <button onclick="showAssignModal('{{ candidate._id }}', '{{ candidate.first_name }} {{ candidate.last_name }}')"
+                                            class="text-orange-600 hover:text-orange-900 btn-animate" title="Assign to Manager">
+                                        <i class="fas fa-user-plus"></i>
+                                    </button>
+                                    {% endif %}
+                                    <!-- Conditional Delete Button - Only for unassigned candidates -->
+                                    {% if candidate.status == 'Pending' and not candidate.manager_email %}
+                                    <button onclick="deleteCandidate('{{ candidate._id }}', '{{ candidate.first_name }} {{ candidate.last_name }}')"
+                                            class="text-red-600 hover:text-red-900 btn-animate" title="Delete Candidate">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="px-6 py-12 text-center">
+                <div class="text-gray-500">
+                    <i class="fas fa-users text-4xl mb-4"></i>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">No candidates found</h3>
+                    <p class="text-gray-600">Start by adding your first candidate.</p>
+                    <a href="{{ url_for('hr.dashboard') }}" 
+                       class="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        <i class="fas fa-plus mr-2"></i>Add Candidate
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Assign Candidate Modal -->
+<div id="assignModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Assign Candidate to Manager</h3>
+            <form id="assignForm" class="space-y-4">
+                <input type="hidden" id="candidateId" name="candidate_id">
+                <input type="hidden" id="candidateName" name="candidate_name">
+                
+                <div>
+                    <label for="managerEmail" class="block text-sm font-medium text-gray-700 mb-2">Manager Email *</label>
+                    <input type="email" id="managerEmail" name="manager_email" placeholder="Enter Manager Email" required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div>
+                    <label for="interviewTime" class="block text-sm font-medium text-gray-700 mb-2">Interview Date & Time *</label>
+                    <input type="datetime-local" id="interviewTime" name="interview_time" required
+                           class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button type="button" onclick="closeAssignModal()"
+                            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                            class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                        Assign
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Action Bar -->
+<div id="bulk-action-bar" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 hidden z-50">
+    <div class="flex items-center space-x-4">
+        <span id="selected-count" class="text-sm font-medium text-gray-700">0 selected</span>
+        <div class="flex items-center space-x-2">
+            <button onclick="bulkDelete()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-trash mr-1"></i>Delete
+            </button>
+            <button onclick="bulkMove('Shortlisted')" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-check mr-1"></i>Shortlist
+            </button>
+            <button onclick="bulkMove('Rejected')" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-times mr-1"></i>Reject
+            </button>
+            <button onclick="bulkMove('Assigned')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                <i class="fas fa-user-plus mr-1"></i>Assign
+            </button>
+        </div>
+        <button onclick="clearSelection()" class="text-gray-500 hover:text-gray-700 text-sm font-medium">
+            <i class="fas fa-times mr-1"></i>Clear
+        </button>
+    </div>
+</div>
+
+<!-- Bulk Action Confirmation Modal -->
+<div id="bulkActionModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex items-center mb-4">
+                <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">Confirm Action</h3>
+            </div>
+            <p class="text-gray-600 mb-6" id="modalMessage">
+                Are you sure you want to perform this action on the selected candidates?
+            </p>
+            <div class="flex justify-end space-x-3">
+                <button onclick="closeBulkActionModal()" 
+                        class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300">
+                    Cancel
+                </button>
+                <button onclick="confirmBulkAction()" 
+                        class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700" id="confirmButton">
+                    Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function showAssignModal(candidateId, candidateName) {
+    document.getElementById('candidateId').value = candidateId;
+    document.getElementById('candidateName').value = candidateName;
+    document.getElementById('assignModal').classList.remove('hidden');
+}
+
+function closeAssignModal() {
+    document.getElementById('assignModal').classList.add('hidden');
+}
+
+document.getElementById('assignForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("hr.assign_candidate") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Candidate assigned successfully!');
+            updateCandidatesPage();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while assigning the candidate.');
+    });
+    
+    closeAssignModal();
+});
+
+// Function to update the entire candidates page dynamically
+function updateCandidatesPage() {
+    // Show loading indicator
+    const contentContainer = document.querySelector('.max-w-7xl');
+    if (contentContainer) {
+        contentContainer.innerHTML = '<div class="text-center py-12"><i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i><p class="mt-2 text-gray-600">Updating candidates...</p></div>';
+    }
+    
+    // Fetch updated page content
+    fetch('{{ url_for("hr.candidates") }}', {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Create a temporary div to parse the HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = html;
+        
+        // Extract the content
+        const newContent = tempDiv.querySelector('.max-w-7xl');
+        if (newContent && contentContainer) {
+            contentContainer.innerHTML = newContent.innerHTML;
+        }
+    })
+    .catch(error => {
+        console.error('Error updating candidates page:', error);
+        // Fallback to page reload if dynamic update fails
+        location.reload();
+    });
+}
+
+// Select Mode Functionality
+let currentBulkAction = null;
+let currentBulkActionType = null;
+
+// Initialize select mode functionality
+function initializeSelectMode() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const selectItems = document.querySelectorAll('.select-item');
+    
+    // Select all functionality
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            selectItems.forEach(cb => {
+                cb.checked = this.checked;
+            });
+            updateBulkActionBar();
+        });
+    }
+    
+    // Individual checkbox functionality
+    selectItems.forEach(cb => {
+        cb.addEventListener('change', function() {
+            updateBulkActionBar();
+            updateSelectAllCheckbox();
+        });
+    });
+}
+
+// Update bulk action bar visibility and count
+function updateBulkActionBar() {
+    const selected = document.querySelectorAll('.select-item:checked');
+    const bulkActionBar = document.getElementById('bulk-action-bar');
+    const selectedCount = document.getElementById('selected-count');
+    
+    if (selectedCount) {
+        selectedCount.textContent = `${selected.length} selected`;
+    }
+    
+    if (bulkActionBar) {
+        bulkActionBar.classList.toggle('hidden', selected.length === 0);
+    }
+}
+
+// Update select all checkbox state
+function updateSelectAllCheckbox() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const selectItems = document.querySelectorAll('.select-item');
+    const checkedItems = document.querySelectorAll('.select-item:checked');
+    
+    if (selectAllCheckbox) {
+        if (checkedItems.length === 0) {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = false;
+        } else if (checkedItems.length === selectItems.length) {
+            selectAllCheckbox.checked = true;
+            selectAllCheckbox.indeterminate = false;
+        } else {
+            selectAllCheckbox.checked = false;
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
+}
+
+// Clear all selections
+function clearSelection() {
+    const selectAllCheckbox = document.getElementById('select-all');
+    const selectItems = document.querySelectorAll('.select-item');
+    
+    selectItems.forEach(cb => cb.checked = false);
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = false;
+        selectAllCheckbox.indeterminate = false;
+    }
+    updateBulkActionBar();
+}
+
+// Bulk delete functionality
+function bulkDelete() {
+    const selected = document.querySelectorAll('.select-item:checked');
+    if (selected.length === 0) return;
+    
+    currentBulkAction = 'delete';
+    showBulkActionModal(
+        'Confirm Deletion',
+        `Are you sure you want to delete ${selected.length} selected candidate(s)? This action cannot be undone.`,
+        'Delete',
+        'bg-red-600 hover:bg-red-700'
+    );
+}
+
+// Bulk move functionality
+function bulkMove(status) {
+    const selected = document.querySelectorAll('.select-item:checked');
+    if (selected.length === 0) return;
+    
+    currentBulkAction = 'move';
+    currentBulkActionType = status;
+    
+    const statusText = status === 'Shortlisted' ? 'shortlist' : 
+                      status === 'Rejected' ? 'reject' : 
+                      status === 'Assigned' ? 'assign' : status.toLowerCase();
+    
+    showBulkActionModal(
+        `Confirm ${status}`,
+        `Are you sure you want to ${statusText} ${selected.length} selected candidate(s)?`,
+        status,
+        status === 'Shortlisted' ? 'bg-green-600 hover:bg-green-700' :
+        status === 'Rejected' ? 'bg-red-600 hover:bg-red-700' :
+        status === 'Assigned' ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'
+    );
+}
+
+// Show bulk action modal
+function showBulkActionModal(title, message, buttonText, buttonClass) {
+    const modal = document.getElementById('bulkActionModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const confirmButton = document.getElementById('confirmButton');
+    
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+    confirmButton.textContent = buttonText;
+    confirmButton.className = `px-4 py-2 text-white rounded-lg ${buttonClass}`;
+    
+    modal.classList.remove('hidden');
+}
+
+// Close bulk action modal
+function closeBulkActionModal() {
+    const modal = document.getElementById('bulkActionModal');
+    modal.classList.add('hidden');
+    currentBulkAction = null;
+    currentBulkActionType = null;
+}
+
+// Confirm bulk action
+function confirmBulkAction() {
+    const selected = document.querySelectorAll('.select-item:checked');
+    const selectedIds = Array.from(selected).map(cb => cb.dataset.id);
+    const selectedNames = Array.from(selected).map(cb => cb.dataset.name);
+    
+    if (currentBulkAction === 'delete') {
+        performBulkDelete(selectedIds, selectedNames);
+    } else if (currentBulkAction === 'move') {
+        performBulkMove(selectedIds, selectedNames, currentBulkActionType);
+    }
+    
+    closeBulkActionModal();
+}
+
+// Perform bulk delete
+function performBulkDelete(ids, names) {
+    fetch('/hr/bulk_delete_candidates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ candidate_ids: ids })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove rows from table
+            ids.forEach(id => {
+                const row = document.querySelector(`[data-id="${id}"]`).closest('tr');
+                row.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => row.remove(), 300);
+            });
+            
+            showNotification(`Successfully deleted ${ids.length} candidate(s)`, 'success');
+            clearSelection();
+            updateCandidatesPage();
+        } else {
+            throw new Error(data.message || 'Failed to delete candidates');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to delete candidates', 'error');
+    });
+}
+
+// Perform bulk move
+function performBulkMove(ids, names, status) {
+    fetch('/hr/bulk_move_candidates', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+            candidate_ids: ids,
+            new_status: status
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(`Successfully moved ${ids.length} candidate(s) to ${status}`, 'success');
+            clearSelection();
+            updateCandidatesPage();
+        } else {
+            throw new Error(data.message || 'Failed to move candidates');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('Failed to move candidates', 'error');
+    });
+}
+
+// Show notification
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Initialize select mode when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeSelectMode();
+});
+
+// Add fade out animation
+const style = document.createElement('style');
+style.textContent = `
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+}
+`;
+document.head.appendChild(style);
+
+// Auto-refresh every 30 seconds
+setInterval(updateCandidatesPage, 30000);
+
+// Delete candidate function with conditional logic
+function deleteCandidate(candidateId, candidateName) {
+    // Show confirmation dialog
+    if (!confirm(`Are you sure you want to delete candidate "${candidateName}"?\n\nThis action cannot be undone.`)) {
+        return;
+    }
+    
+    // Show loading state
+    const deleteBtn = event.target.closest('button');
+    const originalContent = deleteBtn.innerHTML;
+    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    deleteBtn.disabled = true;
+    
+    // Make API call to delete candidate
+    fetch(`/hr/delete_candidate/${candidateId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Show success message
+            showNotification(data.message, 'success');
+            
+            // Remove the candidate row from the table with animation
+            const candidateRow = deleteBtn.closest('tr');
+            candidateRow.style.animation = 'fadeOut 0.5s ease-out';
+            
+            setTimeout(() => {
+                candidateRow.remove();
+                
+                // Update candidate count
+                const totalCountElement = document.querySelector('.grid > div:first-child p:last-child');
+                if (totalCountElement) {
+                    const currentCount = parseInt(totalCountElement.textContent);
+                    totalCountElement.textContent = currentCount - 1;
+                }
+            }, 500);
+        } else {
+            // Show error message
+            showNotification(data.message, 'error');
+            
+            // Reset button state
+            deleteBtn.innerHTML = originalContent;
+            deleteBtn.disabled = false;
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting candidate:', error);
+        showNotification('Failed to delete candidate. Please try again.', 'error');
+        
+        // Reset button state
+        deleteBtn.innerHTML = originalContent;
+        deleteBtn.disabled = false;
+    });
+}
+</script>
+{% endblock %} 

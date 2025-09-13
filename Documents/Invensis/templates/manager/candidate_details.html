@@ -1,0 +1,994 @@
+{% extends "base.html" %}
+
+{% block title %}Candidate Details - Manager Dashboard{% endblock %}
+
+{% block head %}
+<style>
+    /* Star Rating System */
+    .rating-container {
+        display: flex;
+        align-items: center;
+    }
+    
+    .rating {
+        display: flex;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
+    }
+    
+    .rating input {
+        display: none;
+    }
+    
+    .rating label {
+        font-size: 2rem;
+        color: #ccc;
+        cursor: pointer;
+        transition: color 0.2s;
+        margin: 0 2px;
+    }
+    
+    .rating input:checked ~ label,
+    .rating input:hover ~ label {
+        color: #fbbf24;
+    }
+    
+    .rating input:hover ~ label,
+    .rating label:hover,
+    .rating label:hover ~ label {
+        color: #fbbf24;
+    }
+    
+    /* Ensure stars are properly spaced and sized */
+    .rating label {
+        display: inline-block;
+        width: 1.5rem;
+        height: 1.5rem;
+        text-align: center;
+        line-height: 1.5rem;
+    }
+
+    /* New Star Rating System */
+    .star-rating {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .star {
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6b7280;
+        transition: all 0.2s ease;
+        user-select: none;
+    }
+    
+    .star:hover {
+        color: #fbbf24;
+        transform: scale(1.1);
+    }
+    
+    .star.filled {
+        color: #fbbf24;
+    }
+    
+    /* 3D Button Styles */
+    .btn-3d {
+        position: relative;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+        transition: all 0.1s ease;
+    }
+    
+    .btn-3d:active {
+        transform: translateY(2px);
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-manager {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+    }
+    
+    .btn-cluster {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+    }
+    
+    .btn-hr {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<style>
+    .detail-card {
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .detail-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Candidate Details</h1>
+                <p class="text-gray-600">Review candidate information and provide feedback</p>
+            </div>
+            <a href="{{ url_for('manager.dashboard') }}" 
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg btn-animate">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Candidate Information -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Personal Information -->
+        <div class="bg-white rounded-xl shadow-lg p-6 detail-card">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Personal Information</h2>
+            <div class="space-y-4">
+                <div class="flex items-center space-x-4">
+                    {% if candidate.image_path %}
+                    <img src="{{ url_for('static', filename=candidate.image_path) }}" 
+                         alt="{{ candidate.first_name }}" 
+                         class="w-16 h-16 rounded-full object-cover">
+                    {% else %}
+                    <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-gray-400 text-xl"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">
+                            {{ candidate.first_name }} {{ candidate.last_name }}
+                        </h3>
+                        <p class="text-gray-500">{{ candidate.reference_id }}</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <p class="text-gray-900">{{ candidate.email }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <p class="text-gray-900">{{ candidate.phone }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                            {% if candidate.status == 'Shortlisted' %}bg-green-100 text-green-800
+                            {% elif candidate.status == 'Hired' %}bg-purple-100 text-purple-800
+                            {% elif candidate.status == 'Pending' %}bg-yellow-100 text-yellow-800
+                            {% elif candidate.status == 'Rejected' %}bg-red-100 text-red-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ candidate.status }}
+                        </span>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Assigned HR</label>
+                        <p class="text-gray-900">{{ candidate.assigned_by or 'Not assigned' }}</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Original Manager</label>
+                        <p class="text-gray-900">
+                            {% if candidate.manager_email == current_user.email %}
+                                <span class="text-blue-600 font-medium">You</span>
+                            {% else %}
+                                {{ candidate.manager_email or 'Not assigned' }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Professional Information -->
+        <div class="bg-white rounded-xl shadow-lg p-6 detail-card">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Professional Information</h2>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Experience</label>
+                    <p class="text-gray-900">{{ candidate.experience or 'Not specified' }}</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Skills</label>
+                    <p class="text-gray-900">{{ candidate.skills or 'Not specified' }}</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Created Date</label>
+                    <p class="text-gray-900">
+                        {% if candidate.created_at %}
+                            {% if candidate.created_at is string %}
+                                {{ candidate.created_at }}
+                            {% else %}
+                                {{ candidate.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Scheduled Interview</label>
+                    <p class="text-gray-900">
+                        {% if candidate.scheduled_date %}
+                            {% if candidate.scheduled_date is string %}
+                                {{ candidate.scheduled_date }}
+                            {% else %}
+                                {{ candidate.scheduled_date.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% endif %}
+                        {% else %}
+                            Not scheduled
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Form -->
+    <div class="bg-white rounded-xl shadow-lg p-6 detail-card">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Manager Feedback</h2>
+        
+        <form id="feedbackForm" class="space-y-6">
+            <input type="hidden" name="candidate_id" value="{{ candidate._id }}">
+            
+            <!-- Status Selection -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700 mb-2">Status *</label>
+                <select id="status" name="status" required onchange="toggleFeedbackSections()"
+                        class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="" disabled selected>Select Status</option>
+                    <option value="Selected">Selected</option>
+                    <option value="Reassign to Hr">Reassign to Hr</option>
+                    <option value="Not Selected">Not Selected</option>
+                </select>
+            </div>
+
+            <!-- Manager Ratings Section - Show only when status is "Selected" -->
+            <div id="managerRatingSection" class="hidden">
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+                    <div class="text-center mb-4">
+                        <div class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-2 shadow-lg">
+                            <i class="fas fa-star text-lg text-white"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-700">Manager Round Rating</h4>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Communication Skills -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-comments mr-1 text-blue-400"></i>Communication Skills *
+                            </label>
+                            <div class="star-rating" data-field="communication_skills">
+                                <span class="star" data-rating="1">○</span>
+                                <span class="star" data-rating="2">○</span>
+                                <span class="star" data-rating="3">○</span>
+                                <span class="star" data-rating="4">○</span>
+                                <span class="star" data-rating="5">○</span>
+                            </div>
+                            <input type="hidden" id="communication_skills" name="communication_skills" value="0">
+                        </div>
+                        
+                        <!-- Technical Skills -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-cog mr-1 text-green-400"></i>Technical Skills *
+                            </label>
+                            <div class="star-rating" data-field="technical_skills">
+                                <span class="star" data-rating="1">○</span>
+                                <span class="star" data-rating="2">○</span>
+                                <span class="star" data-rating="3">○</span>
+                                <span class="star" data-rating="4">○</span>
+                                <span class="star" data-rating="5">○</span>
+                            </div>
+                            <input type="hidden" id="technical_skills" name="technical_skills" value="0">
+                        </div>
+                        
+                        <!-- Problem Solving -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-lightbulb mr-1 text-yellow-400"></i>Problem Solving *
+                            </label>
+                            <div class="star-rating" data-field="problem_solving">
+                                <span class="star" data-rating="1">○</span>
+                                <span class="star" data-rating="2">○</span>
+                                <span class="star" data-rating="3">○</span>
+                                <span class="star" data-rating="4">○</span>
+                                <span class="star" data-rating="5">○</span>
+                            </div>
+                            <input type="hidden" id="problem_solving" name="problem_solving" value="0">
+                        </div>
+                        
+                        <!-- Cultural Fit -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-users mr-1 text-purple-400"></i>Cultural Fit *
+                            </label>
+                            <div class="star-rating" data-field="cultural_fit">
+                                <span class="star" data-rating="1">○</span>
+                                <span class="star" data-rating="2">○</span>
+                                <span class="star" data-rating="3">○</span>
+                                <span class="star" data-rating="4">○</span>
+                                <span class="star" data-rating="5">○</span>
+                            </div>
+                            <input type="hidden" id="cultural_fit" name="cultural_fit" value="0">
+                        </div>
+                    </div>
+                    
+                    <!-- Overall Rating Display -->
+                    <div class="mt-4 p-3 bg-gradient-to-r from-pink-50 to-blue-50 rounded border border-pink-200">
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="text-pink-700">
+                                <i class="fas fa-brain mr-1"></i>AI calculates overall rating automatically
+                            </span>
+                            <div class="flex space-x-2">
+                                <button type="button" onclick="calculateManagerOverallRating()" 
+                                        class="btn-3d btn-manager px-3 py-1 text-xs font-semibold transform hover:scale-105 transition-all duration-300">
+                                    <i class="fas fa-calculator mr-1"></i>Calculate
+                                </button>
+                                <button type="button" onclick="resetManagerRatings()" 
+                                        class="btn-3d btn-cluster px-3 py-1 text-xs font-semibold transform hover:scale-105 transition-all duration-300">
+                                    <i class="fas fa-refresh mr-1"></i>Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Overall Rating Result -->
+                    <div class="mt-3 text-center">
+                        <div class="inline-flex items-center justify-center">
+                            <span class="text-sm font-medium text-gray-700 mr-2">Manager Rating:</span>
+                            <span id="manager_overall_rating_display" class="text-3xl font-bold text-pink-400 mb-2">--</span>
+                            <input type="hidden" id="manager_overall_rating" name="manager_rating" value="0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rejection Reasons Section - Show only when status is "Not Selected" -->
+            <div id="rejectionReasonsSection" class="hidden">
+                <div class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6 border border-red-200">
+                    <div class="text-center mb-4">
+                        <div class="inline-flex items-center justify-center w-10 h-10 bg-red-500 rounded-full mb-2 shadow-lg">
+                            <i class="fas fa-times text-xl text-white"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-700">Reasons for Not Selected</h4>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="wfh_preference" name="rejection_reasons" value="WFH preference" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="wfh_preference" class="text-sm text-gray-700">WFH preference</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="day_shift" name="rejection_reasons" value="Only Day shift preferred" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="day_shift" class="text-sm text-gray-700">Only Day shift preferred</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="night_shift" name="rejection_reasons" value="Only Night shift preferred" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="night_shift" class="text-sm text-gray-700">Only Night shift preferred</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="not_budget" name="rejection_reasons" value="Not in the budget" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="not_budget" class="text-sm text-gray-700">Not in the budget</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="failed_assessment" name="rejection_reasons" value="Failed in assessment" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="failed_assessment" class="text-sm text-gray-700">Failed in assessment</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="not_flexible" name="rejection_reasons" value="Not flexible" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="not_flexible" class="text-sm text-gray-700">Not flexible</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="not_relevant" name="rejection_reasons" value="Not relevant experience/skills" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="not_relevant" class="text-sm text-gray-700">Not relevant experience/skills</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="lack_communication" name="rejection_reasons" value="Lack communication" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="lack_communication" class="text-sm text-gray-700">Lack communication</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="poor_technical" name="rejection_reasons" value="Poor technical knowledge" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="poor_technical" class="text-sm text-gray-700">Poor technical knowledge</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="over_qualified" name="rejection_reasons" value="Over qualified" 
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="over_qualified" class="text-sm text-gray-700">Over qualified</label>
+                        </div>
+                        
+                        <div class="flex items-center space-x-3">
+                            <input type="checkbox" id="other" name="rejection_reasons" value="other" 
+                                   onchange="toggleOtherNotes()"
+                                   class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2">
+                            <label for="other" class="text-sm text-gray-700">Other</label>
+                        </div>
+                    </div>
+                    
+                    <div id="otherNotesField" class="mt-3 hidden">
+                        <label for="otherNotes" class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
+                        <textarea id="otherNotes" name="other_notes" rows="3"
+                                  class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                                  placeholder="Please specify the reason..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Next Review Date - Show only when status is "Reassign to Hr" -->
+            <div id="nextReviewSection" class="hidden">
+                <div class="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-lg p-6 border border-orange-200">
+                    <div class="text-center mb-4">
+                        <div class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-orange-500 to-yellow-600 rounded-full mb-2 shadow-lg">
+                            <i class="fas fa-calendar-alt text-lg text-white"></i>
+                        </div>
+                        <h4 class="text-lg font-bold text-gray-700">Next Review Date</h4>
+                    </div>
+                    
+                    <div>
+                        <label for="next_review_date" class="block text-sm font-medium text-gray-700 mb-2">Next Review Date</label>
+                        <input type="date" id="next_review_date" name="next_review_date"
+                               class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overall Impression -->
+            <div>
+                <label for="overall_impression" class="block text-sm font-medium text-gray-700 mb-2">Overall Impression</label>
+                <textarea name="overall_impression" id="overall_impression" rows="3" 
+                          class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Brief overall impression of the candidate...">{% if latest_feedback and latest_feedback.overall_impression %}{{ latest_feedback.overall_impression }}{% endif %}</textarea>
+            </div>
+            
+            <!-- Detailed Feedback -->
+            <div>
+                <label for="detailed_feedback" class="block text-sm font-medium text-gray-700 mb-2">
+                    Detailed Feedback <span id="feedbackRequired" class="text-red-500">*</span>
+                </label>
+                <textarea name="detailed_feedback" id="detailed_feedback" rows="4" required
+                          class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          placeholder="Provide detailed feedback about the candidate's performance, strengths, areas for improvement...">{% if latest_feedback and latest_feedback.feedback_text %}{{ latest_feedback.feedback_text }}{% endif %}</textarea>
+            </div>
+            
+            <div class="flex justify-end space-x-4">
+                <button type="button" onclick="history.back()" 
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg">
+                    Cancel
+                </button>
+                <button type="submit" id="submitButton"
+                        class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    Submit Feedback
+                </button>
+                <button type="button" onclick="reassignToHR()" 
+                        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg flex items-center">
+                    <i class="fas fa-arrow-right mr-2"></i>Reassign to HR
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Previous Feedback (if any) -->
+    <div class="bg-white rounded-xl shadow-lg p-6 detail-card">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Previous Feedback</h2>
+        
+
+        
+        {% if feedback_history %}
+        
+        <div class="space-y-4">
+            {% for feedback in feedback_history %}
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-sm font-medium text-gray-900">{{ feedback.manager_email }}</span>
+                        <span class="text-sm text-gray-500">•</span>
+                        <span class="text-sm text-gray-500">
+                            {% if feedback.timestamp %}
+                                {% if feedback.timestamp is string %}
+                                    {{ feedback.timestamp }}
+                                {% else %}
+                                    {{ feedback.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                                {% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                            {% if feedback.status == 'Selected' %}bg-green-100 text-green-800
+                            {% elif feedback.status == 'Not Selected' %}bg-red-100 text-red-800
+                            {% elif feedback.status == 'Reassign to Hr' %}bg-orange-100 text-orange-800
+                            {% elif feedback.status == 'Shortlisted' %}bg-green-100 text-green-800
+                            {% elif feedback.status == 'Hired' %}bg-purple-100 text-purple-800
+                            {% elif feedback.status == 'Rejected' %}bg-red-100 text-red-800
+                            {% elif feedback.status == 'On Hold' %}bg-yellow-100 text-yellow-800
+                            {% elif feedback.status == 'Reassigned' %}bg-orange-100 text-orange-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {{ feedback.status }}
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Detailed Ratings Display or Rejection Reasons -->
+                {% if feedback.status == 'Not Selected' or feedback.status == 'Rejected' %}
+                    <!-- Show Rejection Reasons for Not Selected/Rejected status -->
+                    <div class="mb-3">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Rejection Reasons:</h4>
+                        {% if feedback.rejection_reasons and feedback.rejection_reasons|length > 0 %}
+                            <div class="space-y-1">
+                                {% for reason in feedback.rejection_reasons %}
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-times text-red-500 text-xs"></i>
+                                        <span class="text-xs text-gray-700">{{ reason }}</span>
+                                    </div>
+                                {% endfor %}
+                                {% if feedback.rejection_notes %}
+                                    <div class="mt-2 p-2 bg-red-50 rounded border-l-2 border-red-300">
+                                        <span class="text-xs text-gray-600 font-medium">Notes:</span>
+                                        <p class="text-xs text-gray-700 mt-1">{{ feedback.rejection_notes }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% elif candidate.rejection_reasons and candidate.rejection_reasons|length > 0 %}
+                            <!-- Fallback to candidate rejection reasons if feedback doesn't have them -->
+                            <div class="space-y-1">
+                                <div class="text-xs text-gray-500 mb-1">(From candidate record)</div>
+                                {% for reason in candidate.rejection_reasons %}
+                                    <div class="flex items-center space-x-2">
+                                        <i class="fas fa-times text-red-500 text-xs"></i>
+                                        <span class="text-xs text-gray-700">{{ reason }}</span>
+                                    </div>
+                                {% endfor %}
+                                {% if candidate.rejection_notes %}
+                                    <div class="mt-2 p-2 bg-red-50 rounded border-l-2 border-red-300">
+                                        <span class="text-xs text-gray-600 font-medium">Notes:</span>
+                                        <p class="text-xs text-gray-700 mt-1">{{ candidate.rejection_notes }}</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        {% else %}
+                            <span class="text-xs text-gray-500">No specific reasons provided</span>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <!-- Show Star Ratings for Selected/Reassign to Hr status -->
+                    <div class="mb-3">
+                        <h4 class="text-sm font-medium text-gray-700 mb-2">Detailed Ratings:</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <div class="flex items-center space-x-1">
+                                <span class="text-xs text-gray-600">Communication:</span>
+                                <div class="flex">
+                                    {% for i in range(5) %}
+                                        <span class="text-sm {% if i < (feedback.communication_rating or 0) %}text-yellow-400{% else %}text-gray-300{% endif %}">&#9733;</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-1">
+                                <span class="text-xs text-gray-600">Technical:</span>
+                                <div class="flex">
+                                    {% for i in range(5) %}
+                                        <span class="text-sm {% if i < (feedback.technical_rating or 0) %}text-yellow-400{% else %}text-gray-300{% endif %}">&#9733;</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-1">
+                                <span class="text-xs text-gray-600">Problem Solving:</span>
+                                <div class="flex">
+                                    {% for i in range(5) %}
+                                        <span class="text-sm {% if i < (feedback.problem_solving_rating or 0) %}text-yellow-400{% else %}text-gray-300{% endif %}">&#9733;</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center space-x-1">
+                                <span class="text-xs text-gray-600">Cultural Fit:</span>
+                                <div class="flex">
+                                    {% for i in range(5) %}
+                                        <span class="text-sm {% if i < (feedback.cultural_fit_rating or 0) %}text-yellow-400{% else %}text-gray-300{% endif %}">&#9733;</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Manager Rating Display -->
+                        {% if feedback.manager_rating %}
+                            <div class="mt-2 pt-2 border-t border-gray-200">
+                                <div class="flex items-center">
+                                    <i class="fas fa-star mr-1 text-yellow-500"></i>
+                                    <span class="text-sm font-medium text-gray-700">Manager Rating:</span>
+                                    <span class="ml-2 text-sm font-bold text-blue-600">{{ "%.1f"|format(feedback.manager_rating) }}/5</span>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+                
+                <!-- Overall Impression -->
+                {% if feedback.overall_impression %}
+                <div class="mb-3">
+                    <h4 class="text-sm font-medium text-gray-700 mb-1">Overall Impression:</h4>
+                    <p class="text-sm text-gray-700 bg-gray-50 p-2 rounded">{{ feedback.overall_impression }}</p>
+                </div>
+                {% endif %}
+                
+                <!-- Detailed Feedback -->
+                {% if feedback.feedback_text %}
+                <div>
+                    <h4 class="text-sm font-medium text-gray-700 mb-1">Detailed Feedback:</h4>
+                    <p class="text-sm text-gray-700">{{ feedback.feedback_text }}</p>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Show message if no feedback history -->
+    {% if not feedback_history %}
+    <div class="bg-white rounded-xl shadow-lg p-6 detail-card">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">No Previous Feedback</h2>
+        <div class="p-4 bg-gray-50 border border-gray-200 rounded text-center">
+            <i class="fas fa-info-circle text-gray-400 text-2xl mb-2"></i>
+            <p class="text-gray-600">No feedback has been submitted for this candidate yet.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize star rating system
+    initializeStarRatings();
+    
+    // Star rating functionality
+    function initializeStarRating(name) {
+        const stars = document.querySelectorAll(`input[name="${name}"]`);
+        const labels = document.querySelectorAll(`label[for^="${name.split('_')[0]}-"]`);
+        
+        stars.forEach((star, index) => {
+            star.addEventListener('change', function() {
+                // Reset all stars
+                labels.forEach(label => label.classList.remove('text-yellow-400'));
+                labels.forEach(label => label.classList.add('text-gray-300'));
+                
+                // Fill stars up to selected rating
+                for (let i = 0; i <= index; i++) {
+                    labels[i].classList.remove('text-gray-300');
+                    labels[i].classList.add('text-yellow-400');
+                }
+            });
+        });
+        
+        // Hover effects
+        labels.forEach((label, index) => {
+            label.addEventListener('mouseenter', function() {
+                // Reset all stars
+                labels.forEach(l => l.classList.remove('text-yellow-400'));
+                labels.forEach(l => l.classList.add('text-gray-300'));
+                
+                // Fill stars up to hovered star
+                for (let i = 0; i <= index; i++) {
+                    labels[i].classList.remove('text-gray-300');
+                    labels[i].classList.add('text-yellow-400');
+                }
+            });
+            
+            label.addEventListener('mouseleave', function() {
+                // Reset to selected rating
+                const selectedRating = document.querySelector(`input[name="${name}"]:checked`);
+                if (selectedRating) {
+                    const selectedIndex = Array.from(stars).indexOf(selectedRating);
+                    labels.forEach((l, i) => {
+                        if (i <= selectedIndex) {
+                            l.classList.remove('text-gray-300');
+                            l.classList.add('text-yellow-400');
+                        } else {
+                            l.classList.remove('text-yellow-400');
+                            l.classList.add('text-gray-300');
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    // Initialize new star rating system
+    function initializeStarRatings() {
+        const starContainers = document.querySelectorAll('.star-rating');
+        
+        starContainers.forEach(container => {
+            const stars = container.querySelectorAll('.star');
+            const fieldName = container.dataset.field;
+            const hiddenInput = document.getElementById(fieldName);
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    setRating(container, rating, hiddenInput);
+                });
+                
+                star.addEventListener('mouseenter', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    highlightStars(container, rating);
+                });
+                
+                star.addEventListener('mouseleave', function() {
+                    const currentRating = parseInt(hiddenInput.value) || 0;
+                    highlightStars(container, currentRating);
+                });
+            });
+        });
+    }
+
+    // Set rating for a star container
+    function setRating(container, rating, hiddenInput) {
+        container.dataset.currentRating = rating;
+        hiddenInput.value = rating;
+        highlightStars(container, rating);
+    }
+
+    // Highlight stars up to the given rating
+    function highlightStars(container, rating) {
+        const stars = container.querySelectorAll('.star');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.textContent = '★';
+                star.classList.add('filled');
+                star.style.color = '#fbbf24';
+            } else {
+                star.textContent = '○';
+                star.classList.remove('filled');
+                star.style.color = '#d1d5db';
+            }
+        });
+    }
+    
+    // Toggle Other Notes field visibility
+    function toggleOtherNotes() {
+        const otherCheckbox = document.getElementById('other');
+        const otherNotesField = document.getElementById('otherNotesField');
+        
+        if (otherCheckbox.checked) {
+            otherNotesField.classList.remove('hidden');
+        } else {
+            otherNotesField.classList.add('hidden');
+            // Clear the textarea when unchecked
+            document.getElementById('otherNotes').value = '';
+        }
+    }
+
+    // Function to toggle visibility of sections based on status
+    function toggleFeedbackSections() {
+        const status = document.getElementById('status').value;
+        const managerRatingSection = document.getElementById('managerRatingSection');
+        const rejectionReasonsSection = document.getElementById('rejectionReasonsSection');
+        const nextReviewSection = document.getElementById('nextReviewSection');
+        const submitButton = document.getElementById('submitButton');
+        const feedbackRequired = document.getElementById('feedbackRequired');
+
+        if (status === 'Selected') {
+            managerRatingSection.classList.remove('hidden');
+            rejectionReasonsSection.classList.add('hidden');
+            nextReviewSection.classList.add('hidden');
+            submitButton.textContent = 'Save & Submit';
+            feedbackRequired.textContent = '*';
+        } else if (status === 'Reassign to Hr') {
+            managerRatingSection.classList.add('hidden');
+            rejectionReasonsSection.classList.add('hidden');
+            nextReviewSection.classList.remove('hidden');
+            submitButton.textContent = 'Save & Keep Reassign to Hr';
+            feedbackRequired.textContent = '';
+        } else if (status === 'Not Selected') {
+            managerRatingSection.classList.add('hidden');
+            rejectionReasonsSection.classList.remove('hidden');
+            nextReviewSection.classList.add('hidden');
+            submitButton.textContent = 'Submit Rejection';
+            feedbackRequired.textContent = '';
+        } else {
+            managerRatingSection.classList.add('hidden');
+            rejectionReasonsSection.classList.add('hidden');
+            nextReviewSection.classList.add('hidden');
+            submitButton.textContent = 'Submit Feedback';
+            feedbackRequired.textContent = '';
+        }
+    }
+
+    // Function to calculate manager overall rating
+    function calculateManagerOverallRating() {
+        const communicationRating = parseInt(document.getElementById('communication_skills').value) || 0;
+        const technicalRating = parseInt(document.getElementById('technical_skills').value) || 0;
+        const problemSolvingRating = parseInt(document.getElementById('problem_solving').value) || 0;
+        const culturalFitRating = parseInt(document.getElementById('cultural_fit').value) || 0;
+
+        if (communicationRating === 0 || technicalRating === 0 || problemSolvingRating === 0 || culturalFitRating === 0) {
+            alert('Please provide all four ratings before calculating the overall rating.');
+            return;
+        }
+
+        const overallRating = (communicationRating + technicalRating + problemSolvingRating + culturalFitRating) / 4;
+        const roundedRating = Math.round(overallRating * 10) / 10;
+
+        document.getElementById('manager_overall_rating_display').textContent = roundedRating.toFixed(1);
+        document.getElementById('manager_overall_rating').value = roundedRating.toFixed(1);
+    }
+
+    // Function to reset manager ratings
+    function resetManagerRatings() {
+        const starContainers = document.querySelectorAll('.star-rating');
+        const hiddenInputs = ['communication_skills', 'technical_skills', 'problem_solving', 'cultural_fit', 'manager_overall_rating'];
+        
+        starContainers.forEach(container => {
+            const stars = container.querySelectorAll('.star');
+            stars.forEach(star => {
+                star.textContent = '○';
+                star.classList.remove('filled');
+            });
+            container.dataset.currentRating = '0';
+        });
+        
+        hiddenInputs.forEach(fieldId => {
+            const input = document.getElementById(fieldId);
+            if (input) input.value = '0';
+        });
+        
+        const overallDisplay = document.getElementById('manager_overall_rating_display');
+        if (overallDisplay) {
+            overallDisplay.textContent = '--';
+        }
+    }
+
+    // Initial call to set correct sections on page load
+    toggleFeedbackSections();
+
+    // Form submission handling
+    document.getElementById('feedbackForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const status = document.getElementById('status').value;
+        const submitButton = document.getElementById('submitButton');
+        const feedbackRequired = document.getElementById('feedbackRequired');
+
+        // Validation based on status
+        if (status === 'Selected') {
+            const communicationRating = parseInt(document.getElementById('communication_skills').value) || 0;
+            const technicalRating = parseInt(document.getElementById('technical_skills').value) || 0;
+            const problemSolvingRating = parseInt(document.getElementById('problem_solving').value) || 0;
+            const culturalFitRating = parseInt(document.getElementById('cultural_fit').value) || 0;
+            
+            if (communicationRating === 0 || technicalRating === 0 || problemSolvingRating === 0 || culturalFitRating === 0) {
+                alert('Please provide all four ratings for Selected candidates.');
+                return;
+            }
+            
+            if (!document.getElementById('detailed_feedback').value.trim()) {
+                alert('Detailed feedback is required for Selected candidates.');
+                return;
+            }
+        } else if (status === 'Not Selected') {
+            const checkedReasons = Array.from(document.querySelectorAll('#rejectionReasonsSection input[name="rejection_reasons"]:checked'));
+            if (checkedReasons.length === 0) {
+                alert('Please select at least one rejection reason.');
+                return;
+            }
+            
+            const otherCheckbox = document.getElementById('other');
+            if (otherCheckbox.checked && !document.getElementById('otherNotes').value.trim()) {
+                alert('Please provide additional notes when selecting "Other" as a rejection reason.');
+                return;
+            }
+        }
+
+        submitButton.textContent = 'Submitting...';
+        submitButton.disabled = true;
+
+        const formData = new FormData(this);
+        fetch('/manager/add_feedback', {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Feedback submitted successfully!');
+                window.location.href = '/manager/dashboard';
+            } else {
+                alert('Error submitting feedback: ' + data.message);
+                submitButton.textContent = 'Submit Feedback';
+                submitButton.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error submitting feedback:', error);
+            alert('An error occurred while submitting feedback.');
+            submitButton.textContent = 'Submit Feedback';
+            submitButton.disabled = false;
+        });
+    });
+
+    // Make functions globally available
+    window.toggleFeedbackSections = toggleFeedbackSections;
+    window.calculateManagerOverallRating = calculateManagerOverallRating;
+    window.resetManagerRatings = resetManagerRatings;
+    window.toggleOtherNotes = toggleOtherNotes;
+    
+    // Reassign to HR function
+    window.reassignToHR = function() {
+        if (confirm('Are you sure you want to reassign this candidate to HR? This will remove the candidate from your assigned list.')) {
+            const candidateId = '{{ candidate._id }}';
+            
+            fetch('/manager/reassign_candidate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: `candidate_id=${candidateId}&note=Reassigned from manager feedback form`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Candidate successfully reassigned to HR!');
+                    window.location.href = '/manager/dashboard';
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while reassigning the candidate.');
+            });
+        }
+    };
+});
+</script>
+{% endblock %}
