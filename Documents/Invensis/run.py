@@ -41,7 +41,13 @@ def main():
     print("=" * 50)
     
     # Start the application
-    app.run(debug=True, host='0.0.0.0', port=5001)
+    port = int(os.environ.get('PORT', 5001))
+    debug = os.environ.get('FLASK_ENV') == 'development'
+    
+    print(f"🌐 Starting server on port {port}")
+    print(f"🔧 Debug mode: {debug}")
+    
+    app.run(debug=debug, host='0.0.0.0', port=port)
 
 if __name__ == '__main__':
     main() 
