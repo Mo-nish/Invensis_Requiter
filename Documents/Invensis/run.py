@@ -20,18 +20,16 @@ def main():
     print("🚀 Starting Invensis Hiring Portal...")
     print("=" * 50)
     
-    # Check if admin user exists
+    # Initialize production database with admin user
     try:
-        from models_mongo import User
-        admin_user = User.find_by_role('admin')
-        if not admin_user:
-            print("⚠️  No admin user found!")
-            print("Please create an admin user manually.")
-            print("You can still start the application, but admin features won't work.")
+        from init_production_db import init_production_database
+        print("🔧 Initializing production database...")
+        if init_production_database():
+            print("✅ Production database initialized successfully!")
         else:
-            print("✅ Admin user found")
+            print("⚠️  Could not initialize production database")
     except Exception as e:
-        print(f"⚠️  Could not check for admin user: {e}")
+        print(f"⚠️  Could not initialize production database: {e}")
         print("The application will start, but admin features may not work.")
     
     print("✅ Application ready")
