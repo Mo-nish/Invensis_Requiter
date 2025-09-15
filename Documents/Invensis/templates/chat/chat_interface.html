@@ -165,6 +165,22 @@
             background: #8696a0;
         }
         
+        .section-divider {
+            padding: 15px 20px 8px 20px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #8696a0;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-top: 1px solid #2a3942;
+            margin-top: 10px;
+        }
+        
+        .section-divider:first-child {
+            border-top: none;
+            margin-top: 0;
+        }
+        
         /* Right Side - Chat Area */
         .chat-area {
             flex: 1;
@@ -606,7 +622,12 @@
             </div>
             
             <div class="chat-list" id="chatList">
+                <!-- Previous Conversations will be loaded here -->
+                <div id="previousConversations"></div>
+                
                 <!-- Department Groups -->
+                <div class="section-divider">Departments</div>
+                
                 <div class="chat-item" onclick="selectChat('hr')" data-chat="hr">
                     <div class="chat-avatar group-avatar">👥</div>
                     <div class="chat-info">
@@ -653,6 +674,8 @@
                 </div>
                 
                 <!-- AI Assistant -->
+                <div class="section-divider">Assistant</div>
+                
                 <div class="chat-item" onclick="selectChat('ai')" data-chat="ai">
                     <div class="chat-avatar ai-avatar">🤖</div>
                     <div class="chat-info">
@@ -957,41 +980,26 @@
             headerStatus.textContent = info.status;
         }
         
-        function loadChatContent(chatType) {
+        function loadAIChatContent() {
             const messagesContainer = document.getElementById('messagesContainer');
             
-            if (chatType === 'ai') {
-                // AI Chat
-                messagesContainer.innerHTML = `
-                    <div class="message received">
-                        <div class="message-bubble">
-                            Hi! I am your Invensis AI Assistant. I can help you with:
-                            <br><br>
-                            • Candidate management and insights
-                            <br>• Real-time analytics and reports
-                            <br>• System status and performance
-                            <br>• User management and permissions
-                            <br>• Hiring pipeline optimization
-                            <br><br>
-                            What would you like to know?
-                        </div>
-                        <div class="message-time">Now</div>
+            // AI Chat
+            messagesContainer.innerHTML = `
+                <div class="message received">
+                    <div class="message-bubble">
+                        Hi! I am your Invensis AI Assistant. I can help you with:
+                        <br><br>
+                        • Candidate management and insights
+                        <br>• Real-time analytics and reports
+                        <br>• System status and performance
+                        <br>• User management and permissions
+                        <br>• Hiring pipeline optimization
+                        <br><br>
+                        What would you like to know?
                     </div>
-                `;
-            } else {
-                // Department Chat
-                messagesContainer.innerHTML = `
-                    <div class="message received">
-                        <div class="message-bubble">
-                            Welcome to ${getDepartmentName(chatType)} chat! 
-                            <br><br>
-                            This is where you can communicate with your team members. 
-                            All messages are secure and encrypted.
-                        </div>
-                        <div class="message-time">Now</div>
-                    </div>
-                `;
-            }
+                    <div class="message-time">Now</div>
+                </div>
+            `;
             
             scrollToBottom();
         }
@@ -1147,11 +1155,48 @@
             });
         });
         
+        // Load previous conversations on page load
+        async function loadPreviousConversations() {
+            try {
+                const response = await fetch('/api/chat/home');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const conversationsContainer = document.getElementById('previousConversations');
+                    
+                    if (data.conversations.length > 0) {
+                        conversationsContainer.innerHTML = `
+                            <div class="section-divider">Recent Chats</div>
+                            ${data.conversations.map(conv => `
+                                <div class="chat-item" onclick="loadConversation('${conv.id}', '${conv.participant_name}')" data-conversation="${conv.id}">
+                                    <div class="chat-avatar user-avatar">${conv.participant_name.charAt(0).toUpperCase()}</div>
+                                    <div class="chat-info">
+                                        <div class="chat-name">${conv.participant_name}</div>
+                                        <div class="chat-last-message">${conv.last_message || 'No messages yet'}</div>
+                                    </div>
+                                    <div class="chat-time">${conv.unread_count > 0 ? conv.unread_count : '●'}</div>
+                                </div>
+                            `).join('')}
+                        `;
+                    } else {
+                        conversationsContainer.innerHTML = '';
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading previous conversations:', error);
+            }
+        }
+        
+        // Load conversations when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPreviousConversations();
+        });
+        
         // Responsive behavior
         window.addEventListener('resize', function() {
             if (window.innerWidth > 768) {
                 document.getElementById('chatSidebar').classList.remove('hidden');
-                document.getElementById('chatArea').classList.remove('active');
+                document.getElementById('chatArea').classList.add('active');
             }
         });
     </script>

@@ -19,6 +19,53 @@ def chat_interface():
     """Serve the WhatsApp-like chat interface"""
     return render_template('chat/chat_interface.html')
 
+@chat_bp.route('/api/chat/home')
+@login_required
+def get_home_data():
+    """Get data for chat home screen - conversations and department counts"""
+    try:
+        # Get user's conversations
+        conversations = ChatConversation.get_user_conversations(current_user.email)
+        
+        conversation_list = []
+        for conv in conversations:
+            # Get other participant info
+            other_participants = [p for p in conv.participants if p != current_user.email]
+            other_user_email = other_participants[0] if other_participants else None
+            
+            if other_user_email:
+                from models_mongo import users_collection
+                other_user = users_collection.find_one({'email': other_user_email})
+                
+                conversation_list.append({
+                    'id': str(conv._id),
+                    'title': other_user.get('name', 'Unknown') if other_user else 'Unknown User',
+                    'last_message': conv.last_message,
+                    'last_message_time': conv.last_message_time,
+                    'unread_count': conv.unread_count.get(current_user.email, 0),
+                    'participant_email': other_user_email,
+                    'participant_name': other_user.get('name', 'Unknown') if other_user else 'Unknown User',
+                    'participant_role': other_user.get('role', 'Unknown') if other_user else 'Unknown'
+                })
+        
+        # Get department user counts
+        from models_mongo import users_collection
+        department_counts = {}
+        departments = ['hr', 'manager', 'recruiter', 'cluster', 'admin']
+        
+        for dept in departments:
+            count = users_collection.count_documents({'role': dept})
+            department_counts[dept] = count
+        
+        return jsonify({
+            'success': True,
+            'conversations': conversation_list,
+            'department_counts': department_counts
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @chat_bp.route('/api/chat/users')
 @login_required
 def get_users_by_role():
