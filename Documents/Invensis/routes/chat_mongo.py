@@ -1,7 +1,7 @@
 # Enhanced Chat Routes for Invensis Hiring Portal
 # Role-based internal chat system with AI integration
 
-from flask import Blueprint, request, jsonify, session, current_app, render_template
+from flask import Blueprint, request, jsonify, session, current_app, render_template, redirect, url_for
 from flask_login import current_user, login_required
 import json
 import uuid
@@ -18,7 +18,23 @@ chat_bp = Blueprint('chat', __name__)
 @login_required
 def chat_interface():
     """Serve the main chat interface"""
-    return render_template('chat/chat_interface.html')
+    # Check if user wants AI chat or specific conversation
+    ai_chat = request.args.get('ai', 'false').lower() == 'true'
+    conversation_id = request.args.get('conversation')
+    
+    if ai_chat:
+        return render_template('chat/chat_interface.html', ai_mode=True)
+    elif conversation_id:
+        return render_template('chat/chat_interface.html', conversation_id=conversation_id)
+    else:
+        # Redirect to chat home page
+        return redirect(url_for('chat.chat_home'))
+
+@chat_bp.route('/chat/home')
+@login_required
+def chat_home():
+    """Serve the chat home page with department listings"""
+    return render_template('chat/chat_home.html')
 
 # ============================================================================
 # CONVERSATION MANAGEMENT
@@ -506,18 +522,36 @@ def _process_ai_query(query, user_role, user_email):
         }
 
 def _process_admin_query(query, query_lower, user_email):
-    """Process admin-specific queries with real data"""
-    from models_mongo import users_collection, candidates_collection
+    """Process admin-specific queries with complete real data"""
+    from models_mongo import users_collection, candidates_collection, activity_logs_collection, candidate_requests_collection
     
     if any(word in query_lower for word in ['user', 'users', 'account', 'accounts']):
         total_users = users_collection.count_documents({})
         active_users = users_collection.count_documents({'is_active': True})
         
+        # Get users by role
+        hr_count = users_collection.count_documents({'role': 'hr'})
+        manager_count = users_collection.count_documents({'role': 'manager'})
+        recruiter_count = users_collection.count_documents({'role': 'recruiter'})
+        cluster_count = users_collection.count_documents({'role': 'cluster'})
+        admin_count = users_collection.count_documents({'role': 'admin'})
+        
         return {
-            'response': f"📊 **User Management Overview**\n\n• **Total Users**: {total_users}\n• **Active Users**: {active_users}\n• **Inactive Users**: {total_users - active_users}\n\nI can help you:\n• View user details\n• Manage permissions\n• Create new accounts\n• Deactivate users\n\nWhat would you like to do?",
-            'confidence': 0.9,
+            'response': f"📊 **Complete User Management Overview**\n\n• **Total Users**: {total_users}\n• **Active Users**: {active_users}\n• **Inactive Users**: {total_users - active_users}\n\n**Users by Role:**\n• HR: {hr_count}\n• Managers: {manager_count}\n• Recruiters: {recruiter_count}\n• Cluster: {cluster_count}\n• Admins: {admin_count}\n\nI can help you:\n• View detailed user information\n• Manage user permissions\n• Create new accounts\n• Deactivate users\n• Monitor user activity\n\nWhat specific user management task would you like to perform?",
+            'confidence': 0.95,
             'type': 'data',
-            'metadata': {'data_type': 'user_stats', 'total_users': total_users, 'active_users': active_users}
+            'metadata': {
+                'data_type': 'complete_user_stats', 
+                'total_users': total_users, 
+                'active_users': active_users,
+                'role_breakdown': {
+                    'hr': hr_count,
+                    'manager': manager_count,
+                    'recruiter': recruiter_count,
+                    'cluster': cluster_count,
+                    'admin': admin_count
+                }
+            }
         }
     
     elif any(word in query_lower for word in ['system', 'status', 'health', 'performance']):
@@ -530,31 +564,99 @@ def _process_admin_query(query, query_lower, user_email):
     
     elif any(word in query_lower for word in ['candidate', 'candidates', 'hiring']):
         total_candidates = candidates_collection.count_documents({})
+        pending_candidates = candidates_collection.count_documents({'status': 'Pending'})
+        assigned_candidates = candidates_collection.count_documents({'status': 'Assigned'})
+        selected_candidates = candidates_collection.count_documents({'status': 'Selected'})
+        rejected_candidates = candidates_collection.count_documents({'status': 'Not Selected'})
+        
+        # Get recent candidates (last 7 days)
+        from datetime import datetime, timedelta
+        week_ago = (datetime.now() - timedelta(days=7)).isoformat()
+        recent_candidates = candidates_collection.count_documents({
+            'created_at': {'$gte': week_ago}
+        })
+        
+        # Get candidate requests
+        total_requests = candidate_requests_collection.count_documents({})
+        active_requests = candidate_requests_collection.count_documents({'status': 'Active'})
+        
         return {
-            'response': f"👥 **Candidate Overview**\n\n• **Total Candidates**: {total_candidates}\n• **Active Applications**: {candidates_collection.count_documents({'status': 'Pending'})}\n• **In Review**: {candidates_collection.count_documents({'status': 'Assigned'})}\n• **Selected**: {candidates_collection.count_documents({'status': 'Selected'})}\n\nWould you like detailed analytics or specific candidate information?",
-            'confidence': 0.9,
+            'response': f"👥 **Complete Candidate & Hiring Overview**\n\n**Candidate Statistics:**\n• **Total Candidates**: {total_candidates}\n• **Pending Review**: {pending_candidates}\n• **Assigned**: {assigned_candidates}\n• **Selected**: {selected_candidates}\n• **Not Selected**: {rejected_candidates}\n• **New This Week**: {recent_candidates}\n\n**Hiring Requests:**\n• **Total Requests**: {total_requests}\n• **Active Requests**: {active_requests}\n\n**Success Rate**: {round((selected_candidates / total_candidates * 100), 1) if total_candidates > 0 else 0}%\n\nI can provide:\n• Detailed candidate analytics\n• Hiring pipeline insights\n• Performance metrics\n• Specific candidate information\n\nWhat would you like to explore?",
+            'confidence': 0.95,
             'type': 'data',
-            'metadata': {'data_type': 'candidate_stats', 'total_candidates': total_candidates}
+            'metadata': {
+                'data_type': 'complete_candidate_stats', 
+                'total_candidates': total_candidates,
+                'status_breakdown': {
+                    'pending': pending_candidates,
+                    'assigned': assigned_candidates,
+                    'selected': selected_candidates,
+                    'rejected': rejected_candidates
+                },
+                'recent_candidates': recent_candidates,
+                'requests': {
+                    'total': total_requests,
+                    'active': active_requests
+                }
+            }
         }
     
     else:
         return _get_intelligent_response(query, user_role='admin')
 
 def _process_hr_query(query, query_lower, user_email):
-    """Process HR-specific queries with real data"""
-    from models_mongo import candidates_collection
+    """Process HR-specific queries with complete real data"""
+    from models_mongo import candidates_collection, candidate_requests_collection, users_collection
     
     if any(word in query_lower for word in ['candidate', 'candidates', 'application']):
         total_candidates = candidates_collection.count_documents({})
-        new_today = candidates_collection.count_documents({
-            'created_at': {'$gte': datetime.now().strftime('%Y-%m-%d')}
-        })
+        
+        # Get candidates by status
+        pending_candidates = candidates_collection.count_documents({'status': 'Pending'})
+        assigned_candidates = candidates_collection.count_documents({'status': 'Assigned'})
+        interviewed_candidates = candidates_collection.count_documents({'status': 'Interviewed'})
+        selected_candidates = candidates_collection.count_documents({'status': 'Selected'})
+        rejected_candidates = candidates_collection.count_documents({'status': 'Not Selected'})
+        
+        # Get candidates assigned by this HR
+        hr_candidates = candidates_collection.count_documents({'assigned_by': user_email})
+        
+        # Get recent activity
+        from datetime import datetime, timedelta
+        today = datetime.now().strftime('%Y-%m-%d')
+        week_ago = (datetime.now() - timedelta(days=7)).isoformat()
+        
+        new_today = candidates_collection.count_documents({'created_at': {'$gte': today}})
+        new_this_week = candidates_collection.count_documents({'created_at': {'$gte': week_ago}})
+        
+        # Get candidate requests
+        total_requests = candidate_requests_collection.count_documents({})
+        active_requests = candidate_requests_collection.count_documents({'status': 'Active'})
         
         return {
-            'response': f"👤 **Candidate Pipeline**\n\n• **Total Candidates**: {total_candidates}\n• **New Today**: {new_today}\n• **Pending Review**: {candidates_collection.count_documents({'status': 'Pending'})}\n• **In Interview**: {candidates_collection.count_documents({'status': 'Interviewed'})}\n• **Selected**: {candidates_collection.count_documents({'status': 'Selected'})}\n\nI can help you:\n• Review new applications\n• Schedule interviews\n• Track candidate progress\n• Generate reports\n\nWhat would you like to focus on?",
-            'confidence': 0.9,
+            'response': f"👤 **Complete HR Candidate Pipeline**\n\n**Your Portfolio:**\n• **Candidates Assigned to You**: {hr_candidates}\n• **Total System Candidates**: {total_candidates}\n\n**Current Status Breakdown:**\n• **Pending Review**: {pending_candidates}\n• **Assigned**: {assigned_candidates}\n• **In Interview**: {interviewed_candidates}\n• **Selected**: {selected_candidates}\n• **Not Selected**: {rejected_candidates}\n\n**Recent Activity:**\n• **New Today**: {new_today}\n• **New This Week**: {new_this_week}\n\n**Hiring Requests:**\n• **Total Requests**: {total_requests}\n• **Active Requests**: {active_requests}\n\n**Success Rate**: {round((selected_candidates / total_candidates * 100), 1) if total_candidates > 0 else 0}%\n\nI can help you:\n• Review new applications\n• Schedule interviews\n• Track candidate progress\n• Generate detailed reports\n• Manage hiring requests\n\nWhat specific task would you like to work on?",
+            'confidence': 0.95,
             'type': 'data',
-            'metadata': {'data_type': 'candidate_pipeline', 'total_candidates': total_candidates}
+            'metadata': {
+                'data_type': 'complete_hr_pipeline', 
+                'hr_candidates': hr_candidates,
+                'total_candidates': total_candidates,
+                'status_breakdown': {
+                    'pending': pending_candidates,
+                    'assigned': assigned_candidates,
+                    'interviewed': interviewed_candidates,
+                    'selected': selected_candidates,
+                    'rejected': rejected_candidates
+                },
+                'recent_activity': {
+                    'today': new_today,
+                    'week': new_this_week
+                },
+                'requests': {
+                    'total': total_requests,
+                    'active': active_requests
+                }
+            }
         }
     
     elif any(word in query_lower for word in ['interview', 'schedule', 'meeting']):
