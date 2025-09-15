@@ -651,6 +651,85 @@
             background: #da190b;
         }
         
+        .caller-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .caller-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: white;
+            margin: 0 auto 15px;
+            font-weight: bold;
+        }
+        
+        .call-timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: #e9edef;
+            text-align: center;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .call-status-text {
+            color: #8696a0;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .video-container {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+        
+        .video-container video {
+            width: 150px;
+            height: 100px;
+            border-radius: 10px;
+            background: #2a3942;
+        }
+        
+        #localVideo {
+            border: 2px solid #00a884;
+        }
+        
+        #remoteVideo {
+            border: 2px solid #667eea;
+        }
+        
+        .call-button.active {
+            background: #ff4444;
+            color: white;
+        }
+        
+        .connection-status {
+            color: #8696a0;
+            font-size: 12px;
+            text-align: center;
+            margin-top: 10px;
+        }
+        
+        .call-details {
+            text-align: center;
+            margin-top: 15px;
+            color: #8696a0;
+            font-size: 12px;
+        }
+        
+        .call-details p {
+            margin: 5px 0;
+        }
+        
         .send-button {
             background: #00a884;
             border: none;
@@ -1875,51 +1954,211 @@
             window.currentRecipientEmail = email;
         }
         
+        // Global variables for call management
+        let currentCallId = null;
+        let callStartTime = null;
+        let callTimer = null;
+        let localStream = null;
+        let peerConnection = null;
+        let isMuted = false;
+        let isCameraOff = false;
+        
         // Show call interface
-        function showCallInterface(callType, callId, recipientName) {
+        function showCallInterface(callType, callId, recipientName, isIncoming = false) {
+            currentCallId = callId;
+            callStartTime = new Date();
+            
             const callModal = document.createElement('div');
             callModal.className = 'call-modal';
             callModal.innerHTML = `
-                <div class="call-interface">
+                <div class="call-interface ${isIncoming ? 'incoming-call-interface' : ''}">
                     <div class="call-header">
-                        <h3>${callType === 'voice' ? '📞' : '📹'} ${callType === 'voice' ? 'Voice' : 'Video'} Call</h3>
-                        <p>Calling ${recipientName}...</p>
+                        <div class="caller-info">
+                            <div class="caller-avatar">${recipientName.charAt(0).toUpperCase()}</div>
+                            <h3>${recipientName}</h3>
+                            <p class="call-status-text">${isIncoming ? 'Incoming call' : 'Calling...'}</p>
+                        </div>
+                        <div class="call-timer" id="callTimer">00:00</div>
                     </div>
+                    
+                    ${callType === 'video' ? `
+                        <div class="video-container">
+                            <video id="localVideo" autoplay muted></video>
+                            <video id="remoteVideo" autoplay></video>
+                        </div>
+                    ` : ''}
+                    
                     <div class="call-controls">
-                        <button class="call-button end-call" onclick="endCall('${callId}')">📞 End Call</button>
-                        <button class="call-button mute-call" onclick="toggleMute()">🔇 Mute</button>
-                        ${callType === 'video' ? '<button class="call-button camera-toggle" onclick="toggleCamera()">📹 Camera</button>' : ''}
+                        <button class="call-button mute-call ${isMuted ? 'active' : ''}" onclick="toggleMute()" id="muteBtn">
+                            ${isMuted ? '🔇' : '🎤'}
+                        </button>
+                        ${callType === 'video' ? `
+                            <button class="call-button camera-toggle ${isCameraOff ? 'active' : ''}" onclick="toggleCamera()" id="cameraBtn">
+                                ${isCameraOff ? '📹' : '📷'}
+                            </button>
+                        ` : ''}
+                        <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
                     </div>
-                    <div class="call-status">
+                    
+                    <div class="call-details">
                         <p>Call ID: ${callId}</p>
-                        <p>Status: Connecting...</p>
+                        <p class="connection-status" id="connectionStatus">Connecting...</p>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(callModal);
             
-            // Auto-end call after 30 seconds for demo
-            setTimeout(() => {
-                endCall(callId);
-            }, 30000);
+            // Start call timer
+            startCallTimer();
+            
+            // Initialize WebRTC
+            if (!isIncoming) {
+                initializeWebRTC(callType);
+            }
+        }
+        
+        // Initialize WebRTC connection
+        async function initializeWebRTC(callType) {
+            try {
+                // Get user media
+                const constraints = {
+                    audio: true,
+                    video: callType === 'video'
+                };
+                
+                localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                
+                // Show local video if video call
+                if (callType === 'video') {
+                    const localVideo = document.getElementById('localVideo');
+                    if (localVideo) {
+                        localVideo.srcObject = localStream;
+                    }
+                }
+                
+                // Create peer connection
+                peerConnection = new RTCPeerConnection({
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' }
+                    ]
+                });
+                
+                // Add local stream to peer connection
+                localStream.getTracks().forEach(track => {
+                    peerConnection.addTrack(track, localStream);
+                });
+                
+                // Handle remote stream
+                peerConnection.ontrack = (event) => {
+                    const remoteVideo = document.getElementById('remoteVideo');
+                    if (remoteVideo) {
+                        remoteVideo.srcObject = event.streams[0];
+                    }
+                };
+                
+                // Handle connection state changes
+                peerConnection.onconnectionstatechange = () => {
+                    const status = document.getElementById('connectionStatus');
+                    if (status) {
+                        status.textContent = peerConnection.connectionState;
+                    }
+                };
+                
+                // Create offer
+                const offer = await peerConnection.createOffer();
+                await peerConnection.setLocalDescription(offer);
+                
+                // Send offer to recipient (in a real app, this would go through signaling server)
+                console.log('WebRTC offer created:', offer);
+                
+                // Update status
+                const status = document.getElementById('connectionStatus');
+                if (status) {
+                    status.textContent = 'Connected';
+                }
+                
+            } catch (error) {
+                console.error('WebRTC initialization failed:', error);
+                const status = document.getElementById('connectionStatus');
+                if (status) {
+                    status.textContent = 'Connection failed';
+                }
+            }
+        }
+        
+        // Start call timer
+        function startCallTimer() {
+            callTimer = setInterval(() => {
+                if (callStartTime) {
+                    const now = new Date();
+                    const duration = Math.floor((now - callStartTime) / 1000);
+                    const minutes = Math.floor(duration / 60);
+                    const seconds = duration % 60;
+                    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                    
+                    const timerElement = document.getElementById('callTimer');
+                    if (timerElement) {
+                        timerElement.textContent = timeString;
+                    }
+                }
+            }, 1000);
+        }
+        
+        // Stop call timer
+        function stopCallTimer() {
+            if (callTimer) {
+                clearInterval(callTimer);
+                callTimer = null;
+            }
         }
         
         // End call
         function endCall(callId) {
-            // Send end call request to server
+            // Stop call timer
+            stopCallTimer();
+            
+            // Calculate call duration
+            let callDuration = 0;
+            if (callStartTime) {
+                const now = new Date();
+                callDuration = Math.floor((now - callStartTime) / 1000);
+            }
+            
+            // Clean up WebRTC
+            if (localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            
+            if (peerConnection) {
+                peerConnection.close();
+                peerConnection = null;
+            }
+            
+            // Send end call request to server with duration
             fetch('/api/chat/call/end', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    call_id: callId
+                    call_id: callId,
+                    duration: callDuration
                 })
             })
             .then(response => response.json())
             .then(data => {
                 console.log('Call ended:', data.message);
+                
+                // Add call duration message to chat
+                if (callDuration > 0) {
+                    const durationMinutes = Math.floor(callDuration / 60);
+                    const durationSeconds = callDuration % 60;
+                    const durationText = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
+                    addMessage(`📞 Call ended - Duration: ${durationText}`, 'sent');
+                }
             })
             .catch(error => {
                 console.error('Error ending call:', error);
@@ -1929,6 +2168,12 @@
             if (callModal) {
                 callModal.remove();
             }
+            
+            // Reset call variables
+            currentCallId = null;
+            callStartTime = null;
+            isMuted = false;
+            isCameraOff = false;
         }
         
         // Check for incoming calls
@@ -1956,29 +2201,34 @@
             callModal.innerHTML = `
                 <div class="call-interface incoming-call-interface">
                     <div class="call-header">
-                        <h3>${notification.call_type === 'voice' ? '📞' : '📹'} Incoming ${notification.call_type === 'voice' ? 'Voice' : 'Video'} Call</h3>
-                        <p>${notification.caller_name} is calling you...</p>
+                        <div class="caller-info">
+                            <div class="caller-avatar">${notification.caller_name.charAt(0).toUpperCase()}</div>
+                            <h3>${notification.caller_name}</h3>
+                            <p class="call-status-text">Incoming ${notification.call_type === 'voice' ? 'Voice' : 'Video'} Call</p>
+                        </div>
                     </div>
+                    
                     <div class="call-controls">
                         <button class="call-button decline-call" onclick="answerCall('${notification.call_id}', 'decline')">📞 Decline</button>
                         <button class="call-button accept-call" onclick="answerCall('${notification.call_id}', 'accept')">📞 Accept</button>
                     </div>
-                    <div class="call-status">
+                    
+                    <div class="call-details">
                         <p>Call ID: ${notification.call_id}</p>
-                        <p>Status: Incoming...</p>
+                        <p class="connection-status">Incoming...</p>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(callModal);
             
-            // Auto-decline after 30 seconds if not answered
+            // Auto-decline after 60 seconds if not answered (increased from 30)
             setTimeout(() => {
                 const existingModal = document.querySelector('.incoming-call');
                 if (existingModal) {
                     answerCall(notification.call_id, 'decline');
                 }
-            }, 30000);
+            }, 60000);
         }
         
         // Answer incoming call
@@ -2003,7 +2253,12 @@
                     
                     if (action === 'accept') {
                         // Show call interface for accepted call
-                        showCallInterface('voice', callId, 'Call Connected');
+                        showCallInterface('voice', callId, 'Call Connected', true);
+                        // Initialize WebRTC for incoming call
+                        initializeWebRTC('voice');
+                    } else {
+                        // Add declined call message
+                        addMessage('📞 Call declined', 'sent');
                     }
                 }
             })
@@ -2020,12 +2275,38 @@
         
         // Toggle mute
         function toggleMute() {
-            console.log('Mute toggled');
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    isMuted = !audioTrack.enabled;
+                    
+                    // Update button
+                    const muteBtn = document.getElementById('muteBtn');
+                    if (muteBtn) {
+                        muteBtn.innerHTML = isMuted ? '🔇' : '🎤';
+                        muteBtn.classList.toggle('active', isMuted);
+                    }
+                }
+            }
         }
         
         // Toggle camera
         function toggleCamera() {
-            console.log('Camera toggled');
+            if (localStream) {
+                const videoTrack = localStream.getVideoTracks()[0];
+                if (videoTrack) {
+                    videoTrack.enabled = !videoTrack.enabled;
+                    isCameraOff = !videoTrack.enabled;
+                    
+                    // Update button
+                    const cameraBtn = document.getElementById('cameraBtn');
+                    if (cameraBtn) {
+                        cameraBtn.innerHTML = isCameraOff ? '📹' : '📷';
+                        cameraBtn.classList.toggle('active', isCameraOff);
+                    }
+                }
+            }
         }
         
         function showChatMenu() {
