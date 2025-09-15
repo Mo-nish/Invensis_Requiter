@@ -497,6 +497,56 @@
             margin-bottom: 30px;
         }
         
+        .departments-button-container {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .departments-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 200px;
+            justify-content: center;
+        }
+        
+        .departments-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .departments-button:active {
+            transform: translateY(0);
+        }
+        
+        .departments-icon {
+            font-size: 20px;
+        }
+        
+        .departments-text {
+            font-size: 16px;
+        }
+        
+        .departments-arrow {
+            font-size: 18px;
+            transition: transform 0.3s ease;
+        }
+        
+        .departments-button:hover .departments-arrow {
+            transform: translateX(3px);
+        }
+        
         .welcome-features {
             display: flex;
             flex-direction: column;
@@ -753,6 +803,16 @@
                 <div class="welcome-icon">💬</div>
                 <div class="welcome-title">Welcome to Invensis Chat</div>
                 <div class="welcome-subtitle">Select a department or AI assistant to start chatting</div>
+                
+                <!-- Departments Button -->
+                <div class="departments-button-container">
+                    <button class="departments-button" onclick="showDepartments()">
+                        <span class="departments-icon">🏢</span>
+                        <span class="departments-text">Browse Departments</span>
+                        <span class="departments-arrow">→</span>
+                    </button>
+                </div>
+                
                 <div class="welcome-features">
                     <div class="feature-item">
                         <span class="feature-icon">👥</span>
@@ -1225,6 +1285,23 @@
                 sidebar.classList.add('hidden');
                 chatArea.classList.add('active');
             }
+        }
+        
+        function showDepartments() {
+            // Show the sidebar with departments
+            const sidebar = document.getElementById('chatSidebar');
+            const chatArea = document.getElementById('chatArea');
+            
+            sidebar.classList.remove('hidden');
+            chatArea.classList.remove('active');
+            
+            // Scroll to departments section
+            setTimeout(() => {
+                const departmentsSection = document.querySelector('.section-divider');
+                if (departmentsSection) {
+                    departmentsSection.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
         }
         
         // Event listeners
