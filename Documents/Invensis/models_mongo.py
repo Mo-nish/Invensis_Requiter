@@ -27,6 +27,10 @@ user_emails_collection = db.user_emails
 password_reset_tokens_collection = db.password_reset_tokens # Added for password reset tokens
 candidate_requests_collection = db.candidate_requests # Added for candidate requests
 
+def get_database():
+    """Get the database instance"""
+    return db
+
 class User(UserMixin):
     def __init__(self, email, name, role, password_hash=None, _id=None):
         self.email = email
