@@ -508,6 +508,7 @@ def end_call():
     try:
         data = request.get_json()
         call_id = data.get('call_id')
+        duration = data.get('duration', 0)
         
         if not call_id:
             return jsonify({'success': False, 'message': 'Call ID required'}), 400
@@ -515,15 +516,39 @@ def end_call():
         from models_mongo import db
         calls_collection = db.calls
         
-        # Update call status
+        # Update call status with duration
         calls_collection.update_one(
             {'call_id': call_id},
-            {'$set': {'status': 'ended', 'ended_at': datetime.utcnow()}}
+            {'$set': {
+                'status': 'ended', 
+                'ended_at': datetime.utcnow(),
+                'duration': duration
+            }}
         )
+        
+        # Add call duration message to conversation
+        call_session = calls_collection.find_one({'call_id': call_id})
+        if call_session:
+            # Create a call summary message
+            duration_minutes = duration // 60
+            duration_seconds = duration % 60
+            duration_text = f"{duration_minutes}:{duration_seconds:02d}"
+            
+            # Add call message to conversation
+            conversation_id = call_session.get('conversation_id')
+            if conversation_id:
+                call_message = ChatMessage(
+                    conversation_id=conversation_id,
+                    sender_email=current_user.email,
+                    message_text=f"📞 Call ended - Duration: {duration_text}",
+                    message_type='call_summary'
+                )
+                call_message.save()
         
         return jsonify({
             'success': True,
-            'message': 'Call ended'
+            'message': 'Call ended',
+            'duration': duration
         })
         
     except Exception as e:
