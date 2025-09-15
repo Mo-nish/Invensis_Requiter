@@ -269,18 +269,28 @@ def chat_with_ai():
         if not message:
             return jsonify({'success': False, 'message': 'Message required'}), 400
         
+        # Create or get session for user
+        session_id = f"user_{current_user.email}"
+        if session_id not in chatbot_engine.sessions:
+            chatbot_engine.create_session(
+                session_id=session_id,
+                user_id=current_user.email,
+                user_role=current_user.role,
+                user_name=getattr(current_user, 'name', 'User'),
+                current_page=request.referrer or '/'
+            )
+        
         # Process with AI
         response = chatbot_engine.process_message(
-            message=message,
-            user_email=current_user.email,
-            user_role=current_user.role,
+            session_id=session_id,
+            user_message=message,
             current_page=request.referrer or '/'
         )
         
         return jsonify({
             'success': True,
             'response': response.get('response', 'I apologize, but I encountered an error.'),
-            'message_type': response.get('type', 'text')
+            'message_type': response.get('message_type', 'text')
         })
         
     except Exception as e:

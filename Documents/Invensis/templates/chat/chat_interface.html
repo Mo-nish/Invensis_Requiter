@@ -435,6 +435,71 @@
             background: #3b4a54;
         }
         
+        .emoji-button:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .file-button:hover {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .camera-button:hover {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .call-button:hover {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .video-button:hover {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .menu-button:hover {
+            background: #9C27B0;
+            color: white;
+        }
+        
+        .emoji-picker {
+            position: absolute;
+            bottom: 80px;
+            left: 20px;
+            right: 20px;
+            background: #202c33;
+            border: 1px solid #2a3942;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .emoji-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 8px;
+        }
+        
+        .emoji-item {
+            font-size: 24px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            text-align: center;
+        }
+        
+        .emoji-item:hover {
+            background: #2a3942;
+            transform: scale(1.2);
+        }
+        
         .send-button {
             background: #00a884;
             border: none;
@@ -878,9 +943,9 @@
                     </div>
                 </div>
                 <div class="chat-header-right">
-                    <span class="header-icon">📞</span>
-                    <span class="header-icon">📹</span>
-                    <span class="header-icon">⋮</span>
+                    <span class="header-icon call-button" onclick="startCall()" title="Voice Call">📞</span>
+                    <span class="header-icon video-button" onclick="startVideoCall()" title="Video Call">📹</span>
+                    <span class="header-icon menu-button" onclick="showChatMenu()" title="More Options">⋮</span>
                 </div>
             </div>
             
@@ -900,14 +965,131 @@
             <!-- Input Area -->
             <div class="input-area" id="inputArea" style="display: none;">
                 <div class="input-container">
-                    <span class="input-icon">😊</span>
+                    <span class="input-icon emoji-button" onclick="toggleEmojiPicker()" title="Emoji">😊</span>
                     <input type="text" class="message-input" placeholder="Type a message" id="messageInput">
-                    <span class="input-icon">📎</span>
-                    <span class="input-icon">📷</span>
+                    <span class="input-icon file-button" onclick="attachFile()" title="Attach File">📎</span>
+                    <span class="input-icon camera-button" onclick="takePhoto()" title="Take Photo">📷</span>
                 </div>
                 <button class="send-button" id="sendButton" onclick="sendMessage()">
                     <span class="send-icon">➤</span>
                 </button>
+            </div>
+            
+            <!-- Emoji Picker (Hidden by default) -->
+            <div class="emoji-picker" id="emojiPicker" style="display: none;">
+                <div class="emoji-grid">
+                    <span class="emoji-item" onclick="insertEmoji('😀')">😀</span>
+                    <span class="emoji-item" onclick="insertEmoji('😃')">😃</span>
+                    <span class="emoji-item" onclick="insertEmoji('😄')">😄</span>
+                    <span class="emoji-item" onclick="insertEmoji('😁')">😁</span>
+                    <span class="emoji-item" onclick="insertEmoji('😆')">😆</span>
+                    <span class="emoji-item" onclick="insertEmoji('😅')">😅</span>
+                    <span class="emoji-item" onclick="insertEmoji('😂')">😂</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤣')">🤣</span>
+                    <span class="emoji-item" onclick="insertEmoji('😊')">😊</span>
+                    <span class="emoji-item" onclick="insertEmoji('😇')">😇</span>
+                    <span class="emoji-item" onclick="insertEmoji('🙂')">🙂</span>
+                    <span class="emoji-item" onclick="insertEmoji('🙃')">🙃</span>
+                    <span class="emoji-item" onclick="insertEmoji('😉')">😉</span>
+                    <span class="emoji-item" onclick="insertEmoji('😌')">😌</span>
+                    <span class="emoji-item" onclick="insertEmoji('😍')">😍</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥰')">🥰</span>
+                    <span class="emoji-item" onclick="insertEmoji('😘')">😘</span>
+                    <span class="emoji-item" onclick="insertEmoji('😗')">😗</span>
+                    <span class="emoji-item" onclick="insertEmoji('😙')">😙</span>
+                    <span class="emoji-item" onclick="insertEmoji('😚')">😚</span>
+                    <span class="emoji-item" onclick="insertEmoji('😋')">😋</span>
+                    <span class="emoji-item" onclick="insertEmoji('😛')">😛</span>
+                    <span class="emoji-item" onclick="insertEmoji('😝')">😝</span>
+                    <span class="emoji-item" onclick="insertEmoji('😜')">😜</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤪')">🤪</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤨')">🤨</span>
+                    <span class="emoji-item" onclick="insertEmoji('🧐')">🧐</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤓')">🤓</span>
+                    <span class="emoji-item" onclick="insertEmoji('😎')">😎</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤩')">🤩</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥳')">🥳</span>
+                    <span class="emoji-item" onclick="insertEmoji('😏')">😏</span>
+                    <span class="emoji-item" onclick="insertEmoji('😒')">😒</span>
+                    <span class="emoji-item" onclick="insertEmoji('😞')">😞</span>
+                    <span class="emoji-item" onclick="insertEmoji('😔')">😔</span>
+                    <span class="emoji-item" onclick="insertEmoji('😟')">😟</span>
+                    <span class="emoji-item" onclick="insertEmoji('😕')">😕</span>
+                    <span class="emoji-item" onclick="insertEmoji('🙁')">🙁</span>
+                    <span class="emoji-item" onclick="insertEmoji('☹️')">☹️</span>
+                    <span class="emoji-item" onclick="insertEmoji('😣')">😣</span>
+                    <span class="emoji-item" onclick="insertEmoji('😖')">😖</span>
+                    <span class="emoji-item" onclick="insertEmoji('😫')">😫</span>
+                    <span class="emoji-item" onclick="insertEmoji('😩')">😩</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥺')">🥺</span>
+                    <span class="emoji-item" onclick="insertEmoji('😢')">😢</span>
+                    <span class="emoji-item" onclick="insertEmoji('😭')">😭</span>
+                    <span class="emoji-item" onclick="insertEmoji('😤')">😤</span>
+                    <span class="emoji-item" onclick="insertEmoji('😠')">😠</span>
+                    <span class="emoji-item" onclick="insertEmoji('😡')">😡</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤬')">🤬</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤯')">🤯</span>
+                    <span class="emoji-item" onclick="insertEmoji('😳')">😳</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥵')">🥵</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥶')">🥶</span>
+                    <span class="emoji-item" onclick="insertEmoji('😱')">😱</span>
+                    <span class="emoji-item" onclick="insertEmoji('😨')">😨</span>
+                    <span class="emoji-item" onclick="insertEmoji('😰')">😰</span>
+                    <span class="emoji-item" onclick="insertEmoji('😥')">😥</span>
+                    <span class="emoji-item" onclick="insertEmoji('😓')">😓</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤗')">🤗</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤔')">🤔</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤭')">🤭</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤫')">🤫</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤥')">🤥</span>
+                    <span class="emoji-item" onclick="insertEmoji('😶')">😶</span>
+                    <span class="emoji-item" onclick="insertEmoji('😐')">😐</span>
+                    <span class="emoji-item" onclick="insertEmoji('😑')">😑</span>
+                    <span class="emoji-item" onclick="insertEmoji('😬')">😬</span>
+                    <span class="emoji-item" onclick="insertEmoji('🙄')">🙄</span>
+                    <span class="emoji-item" onclick="insertEmoji('😯')">😯</span>
+                    <span class="emoji-item" onclick="insertEmoji('😦')">😦</span>
+                    <span class="emoji-item" onclick="insertEmoji('😧')">😧</span>
+                    <span class="emoji-item" onclick="insertEmoji('😮')">😮</span>
+                    <span class="emoji-item" onclick="insertEmoji('😲')">😲</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥱')">🥱</span>
+                    <span class="emoji-item" onclick="insertEmoji('😴')">😴</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤤')">🤤</span>
+                    <span class="emoji-item" onclick="insertEmoji('😪')">😪</span>
+                    <span class="emoji-item" onclick="insertEmoji('😵')">😵</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤐')">🤐</span>
+                    <span class="emoji-item" onclick="insertEmoji('🥴')">🥴</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤢')">🤢</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤮')">🤮</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤧')">🤧</span>
+                    <span class="emoji-item" onclick="insertEmoji('😷')">😷</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤒')">🤒</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤕')">🤕</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤑')">🤑</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤠')">🤠</span>
+                    <span class="emoji-item" onclick="insertEmoji('😈')">😈</span>
+                    <span class="emoji-item" onclick="insertEmoji('👿')">👿</span>
+                    <span class="emoji-item" onclick="insertEmoji('👹')">👹</span>
+                    <span class="emoji-item" onclick="insertEmoji('👺')">👺</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤡')">🤡</span>
+                    <span class="emoji-item" onclick="insertEmoji('💩')">💩</span>
+                    <span class="emoji-item" onclick="insertEmoji('👻')">👻</span>
+                    <span class="emoji-item" onclick="insertEmoji('💀')">💀</span>
+                    <span class="emoji-item" onclick="insertEmoji('☠️')">☠️</span>
+                    <span class="emoji-item" onclick="insertEmoji('👽')">👽</span>
+                    <span class="emoji-item" onclick="insertEmoji('👾')">👾</span>
+                    <span class="emoji-item" onclick="insertEmoji('🤖')">🤖</span>
+                    <span class="emoji-item" onclick="insertEmoji('🎃')">🎃</span>
+                    <span class="emoji-item" onclick="insertEmoji('😺')">😺</span>
+                    <span class="emoji-item" onclick="insertEmoji('😸')">😸</span>
+                    <span class="emoji-item" onclick="insertEmoji('😹')">😹</span>
+                    <span class="emoji-item" onclick="insertEmoji('😻')">😻</span>
+                    <span class="emoji-item" onclick="insertEmoji('😼')">😼</span>
+                    <span class="emoji-item" onclick="insertEmoji('😽')">😽</span>
+                    <span class="emoji-item" onclick="insertEmoji('🙀')">🙀</span>
+                    <span class="emoji-item" onclick="insertEmoji('😿')">😿</span>
+                    <span class="emoji-item" onclick="insertEmoji('😾')">😾</span>
+                </div>
             </div>
         </div>
     </div>
@@ -1334,6 +1516,104 @@
             } else {
                 departmentsSection.style.display = 'none';
                 button.innerHTML = '<span>🏢</span><span>Depts</span>';
+            }
+        }
+        
+        // Emoji Picker Functions
+        function toggleEmojiPicker() {
+            const emojiPicker = document.getElementById('emojiPicker');
+            if (emojiPicker.style.display === 'none') {
+                emojiPicker.style.display = 'block';
+            } else {
+                emojiPicker.style.display = 'none';
+            }
+        }
+        
+        function insertEmoji(emoji) {
+            const messageInput = document.getElementById('messageInput');
+            messageInput.value += emoji;
+            messageInput.focus();
+            
+            // Hide emoji picker after selection
+            document.getElementById('emojiPicker').style.display = 'none';
+        }
+        
+        // File Attachment Function
+        function attachFile() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = '.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Show file info
+                    const messageInput = document.getElementById('messageInput');
+                    messageInput.value = `📎 ${file.name}`;
+                    
+                    // In a real app, you would upload the file here
+                    console.log('File selected:', file.name);
+                }
+            };
+            input.click();
+        }
+        
+        // Camera/Photo Function
+        function takePhoto() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.capture = 'camera';
+            input.onchange = function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    // Show photo info
+                    const messageInput = document.getElementById('messageInput');
+                    messageInput.value = `📷 Photo: ${file.name}`;
+                    
+                    // In a real app, you would upload the photo here
+                    console.log('Photo selected:', file.name);
+                }
+            };
+            input.click();
+        }
+        
+        // Call Functions
+        function startCall() {
+            if (currentChatType === 'user' && currentConversationId) {
+                // In a real app, this would initiate a voice call
+                alert(`Starting voice call with ${document.getElementById('headerName').textContent}`);
+                console.log('Starting voice call...');
+            } else {
+                alert('Please select a user to call');
+            }
+        }
+        
+        function startVideoCall() {
+            if (currentChatType === 'user' && currentConversationId) {
+                // In a real app, this would initiate a video call
+                alert(`Starting video call with ${document.getElementById('headerName').textContent}`);
+                console.log('Starting video call...');
+            } else {
+                alert('Please select a user for video call');
+            }
+        }
+        
+        function showChatMenu() {
+            const menuOptions = [
+                'View Contact Info',
+                'Search Messages',
+                'Mute Notifications',
+                'Clear Chat History',
+                'Block User',
+                'Report User'
+            ];
+            
+            const choice = prompt('Chat Options:\n' + menuOptions.map((opt, i) => `${i + 1}. ${opt}`).join('\n') + '\n\nEnter option number:');
+            
+            if (choice && choice >= 1 && choice <= menuOptions.length) {
+                const selectedOption = menuOptions[choice - 1];
+                alert(`Selected: ${selectedOption}`);
+                console.log('Menu option selected:', selectedOption);
             }
         }
         
