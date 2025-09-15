@@ -221,13 +221,99 @@ class ChatbotWidget {
                             </svg>
                         </button>
                     </div>
-                    <!-- Smart suggestions -->
-                    <div class="smart-suggestions" id="smartSuggestions" style="display: none;">
-                        <div class="suggestion-item">💡 Ask about candidates</div>
-                        <div class="suggestion-item">📊 Show analytics</div>
-                        <div class="suggestion-item">🗓️ Check meetings</div>
-                        <div class="suggestion-item" onclick="window.open('/chat/home', '_blank')">💬 Internal Chat</div>
+                <!-- WhatsApp-like Chat Interface -->
+                <div class="whatsapp-chat-interface" id="whatsappChatInterface" style="display: none;">
+                    <!-- Chat Header -->
+                    <div class="chat-header">
+                        <div class="chat-header-left">
+                            <div class="back-button" onclick="showMainChatbot()">←</div>
+                            <div class="chat-title">Invensis Chat</div>
+                        </div>
+                        <div class="chat-header-right">
+                            <div class="header-icon">📞</div>
+                            <div class="header-icon">📹</div>
+                            <div class="header-icon">⋮</div>
+                        </div>
                     </div>
+                    
+                    <!-- Chat List -->
+                    <div class="chat-list" id="chatList">
+                        <!-- Department Groups -->
+                        <div class="chat-item group-chat" onclick="showDepartmentUsers('hr')">
+                            <div class="chat-avatar group-avatar">👥</div>
+                            <div class="chat-info">
+                                <div class="chat-name">HR Department</div>
+                                <div class="chat-last-message">Human Resources team</div>
+                            </div>
+                            <div class="chat-time">●</div>
+                        </div>
+                        
+                        <div class="chat-item group-chat" onclick="showDepartmentUsers('manager')">
+                            <div class="chat-avatar group-avatar">👔</div>
+                            <div class="chat-info">
+                                <div class="chat-name">Manager Department</div>
+                                <div class="chat-last-message">Management team</div>
+                            </div>
+                            <div class="chat-time">●</div>
+                        </div>
+                        
+                        <div class="chat-item group-chat" onclick="showDepartmentUsers('recruiter')">
+                            <div class="chat-avatar group-avatar">🎯</div>
+                            <div class="chat-info">
+                                <div class="chat-name">Recruiter Department</div>
+                                <div class="chat-last-message">Recruitment specialists</div>
+                            </div>
+                            <div class="chat-time">●</div>
+                        </div>
+                        
+                        <div class="chat-item group-chat" onclick="showDepartmentUsers('cluster')">
+                            <div class="chat-avatar group-avatar">🏢</div>
+                            <div class="chat-info">
+                                <div class="chat-name">Cluster Department</div>
+                                <div class="chat-last-message">Cluster administrators</div>
+                            </div>
+                            <div class="chat-time">●</div>
+                        </div>
+                        
+                        <div class="chat-item group-chat" onclick="showDepartmentUsers('admin')">
+                            <div class="chat-avatar group-avatar">⚙️</div>
+                            <div class="chat-info">
+                                <div class="chat-name">Admin Department</div>
+                                <div class="chat-last-message">System administrators</div>
+                            </div>
+                            <div class="chat-time">●</div>
+                        </div>
+                        
+                        <!-- AI Assistant -->
+                        <div class="chat-item ai-chat" onclick="startAIChat()">
+                            <div class="chat-avatar ai-avatar">🤖</div>
+                            <div class="chat-info">
+                                <div class="chat-name">Invensis AI Assistant</div>
+                                <div class="chat-last-message">Your intelligent assistant</div>
+                            </div>
+                            <div class="chat-time">●</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Department Users List -->
+                <div class="department-users" id="departmentUsers" style="display: none;">
+                    <div class="users-header">
+                        <div class="back-button" onclick="showChatList()">←</div>
+                        <div class="users-title" id="departmentTitle">Department Users</div>
+                    </div>
+                    <div class="users-list" id="usersList">
+                        <!-- Users will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Smart suggestions -->
+                <div class="smart-suggestions" id="smartSuggestions" style="display: none;">
+                    <div class="suggestion-item">💡 Ask about candidates</div>
+                    <div class="suggestion-item">📊 Show analytics</div>
+                    <div class="suggestion-item">🗓️ Check meetings</div>
+                    <div class="suggestion-item" onclick="showWhatsAppChat()">💬 Internal Chat</div>
+                </div>
                 </div>
                 
                 <!-- Enhanced Typing Indicator -->
@@ -244,6 +330,9 @@ class ChatbotWidget {
                 </div>
             </div>
         `;
+        
+        // Add WhatsApp-like CSS styles
+        this.addWhatsAppStyles();
         
         // Store references to important elements
         this.toggle = this.widget.querySelector('#chatbotToggle');
@@ -1347,6 +1436,352 @@ class ChatbotWidget {
         
         console.log('🤖 Advanced AI Chatbot destroyed');
     }
+    
+    addWhatsAppStyles() {
+        const style = document.createElement('style');
+        style.textContent = `
+            /* WhatsApp-like Chat Interface Styles */
+            .whatsapp-chat-interface {
+                position: absolute;
+                bottom: 80px;
+                right: 20px;
+                width: 350px;
+                height: 500px;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                overflow: hidden;
+                z-index: 1000;
+            }
+            
+            .chat-header {
+                background: #075e54;
+                color: white;
+                padding: 15px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .chat-header-left {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .back-button {
+                cursor: pointer;
+                font-size: 18px;
+                padding: 5px;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+            
+            .back-button:hover {
+                background: rgba(255,255,255,0.2);
+            }
+            
+            .chat-title {
+                font-weight: 600;
+                font-size: 16px;
+            }
+            
+            .chat-header-right {
+                display: flex;
+                gap: 15px;
+            }
+            
+            .header-icon {
+                cursor: pointer;
+                font-size: 16px;
+                padding: 5px;
+                border-radius: 50%;
+                transition: background 0.2s;
+            }
+            
+            .header-icon:hover {
+                background: rgba(255,255,255,0.2);
+            }
+            
+            .chat-list {
+                height: 400px;
+                overflow-y: auto;
+                background: #f0f0f0;
+            }
+            
+            .chat-item {
+                display: flex;
+                align-items: center;
+                padding: 15px;
+                border-bottom: 1px solid #e0e0e0;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .chat-item:hover {
+                background: #e8f5e8;
+            }
+            
+            .chat-avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                margin-right: 15px;
+            }
+            
+            .group-avatar {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+            }
+            
+            .ai-avatar {
+                background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+                color: white;
+            }
+            
+            .chat-info {
+                flex: 1;
+            }
+            
+            .chat-name {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 3px;
+            }
+            
+            .chat-last-message {
+                color: #666;
+                font-size: 14px;
+            }
+            
+            .chat-time {
+                color: #999;
+                font-size: 12px;
+            }
+            
+            .department-users {
+                position: absolute;
+                bottom: 80px;
+                right: 20px;
+                width: 350px;
+                height: 500px;
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+                overflow: hidden;
+                z-index: 1000;
+            }
+            
+            .users-header {
+                background: #075e54;
+                color: white;
+                padding: 15px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+            
+            .users-title {
+                font-weight: 600;
+                font-size: 16px;
+            }
+            
+            .users-list {
+                height: 400px;
+                overflow-y: auto;
+                background: #f0f0f0;
+            }
+            
+            .user-item {
+                display: flex;
+                align-items: center;
+                padding: 15px;
+                border-bottom: 1px solid #e0e0e0;
+                cursor: pointer;
+                transition: background 0.2s;
+            }
+            
+            .user-item:hover {
+                background: #e8f5e8;
+            }
+            
+            .user-avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                color: white;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 600;
+                font-size: 18px;
+                margin-right: 15px;
+            }
+            
+            .user-info {
+                flex: 1;
+            }
+            
+            .user-name {
+                font-weight: 600;
+                color: #333;
+                margin-bottom: 3px;
+            }
+            
+            .user-email {
+                color: #666;
+                font-size: 14px;
+            }
+            
+            .user-status {
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                background: #10b981;
+                margin-left: 10px;
+            }
+            
+            .user-status.offline {
+                background: #94a3b8;
+            }
+            
+            .empty-department {
+                text-align: center;
+                color: #666;
+                padding: 40px 20px;
+                font-style: italic;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+// WhatsApp-like Chat Functions
+function showWhatsAppChat() {
+    const chatbotWindow = document.getElementById('chatbotWindow');
+    const whatsappInterface = document.getElementById('whatsappChatInterface');
+    const smartSuggestions = document.getElementById('smartSuggestions');
+    
+    if (chatbotWindow) chatbotWindow.style.display = 'none';
+    if (smartSuggestions) smartSuggestions.style.display = 'none';
+    if (whatsappInterface) whatsappInterface.style.display = 'block';
+}
+
+function showMainChatbot() {
+    const chatbotWindow = document.getElementById('chatbotWindow');
+    const whatsappInterface = document.getElementById('whatsappChatInterface');
+    const departmentUsers = document.getElementById('departmentUsers');
+    
+    if (whatsappInterface) whatsappInterface.style.display = 'none';
+    if (departmentUsers) departmentUsers.style.display = 'none';
+    if (chatbotWindow) chatbotWindow.style.display = 'block';
+}
+
+function showChatList() {
+    const whatsappInterface = document.getElementById('whatsappChatInterface');
+    const departmentUsers = document.getElementById('departmentUsers');
+    
+    if (departmentUsers) departmentUsers.style.display = 'none';
+    if (whatsappInterface) whatsappInterface.style.display = 'block';
+}
+
+async function showDepartmentUsers(department) {
+    const whatsappInterface = document.getElementById('whatsappChatInterface');
+    const departmentUsers = document.getElementById('departmentUsers');
+    const departmentTitle = document.getElementById('departmentTitle');
+    const usersList = document.getElementById('usersList');
+    
+    if (!whatsappInterface || !departmentUsers || !departmentTitle || !usersList) return;
+    
+    // Hide chat list, show users list
+    whatsappInterface.style.display = 'none';
+    departmentUsers.style.display = 'block';
+    
+    // Set department title
+    const departmentNames = {
+        'hr': 'HR Department',
+        'manager': 'Manager Department',
+        'recruiter': 'Recruiter Department',
+        'cluster': 'Cluster Department',
+        'admin': 'Admin Department'
+    };
+    departmentTitle.textContent = departmentNames[department] || 'Department Users';
+    
+    // Load users for this department
+    usersList.innerHTML = '<div class="empty-department">Loading users...</div>';
+    
+    try {
+        const response = await fetch(`/api/chat/users?role=${department}`);
+        const data = await response.json();
+        
+        if (data.success && data.users.length > 0) {
+            usersList.innerHTML = '';
+            data.users.forEach(user => {
+                const userElement = createUserElement(user);
+                usersList.appendChild(userElement);
+            });
+        } else {
+            usersList.innerHTML = '<div class="empty-department">No users in this department</div>';
+        }
+    } catch (error) {
+        console.error('Error loading users:', error);
+        usersList.innerHTML = '<div class="empty-department">Error loading users</div>';
+    }
+}
+
+function createUserElement(user) {
+    const userDiv = document.createElement('div');
+    userDiv.className = 'user-item';
+    userDiv.onclick = () => startChatWithUser(user);
+    
+    userDiv.innerHTML = `
+        <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
+        <div class="user-info">
+            <div class="user-name">${user.name}</div>
+            <div class="user-email">${user.email}</div>
+        </div>
+        <div class="user-status ${user.is_online ? '' : 'offline'}"></div>
+    `;
+    
+    return userDiv;
+}
+
+async function startChatWithUser(user) {
+    try {
+        // Create or get conversation with this user
+        const response = await fetch('/api/chat/conversations', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                participants: [user.email],
+                type: 'direct'
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Redirect to chat interface with this conversation
+            window.location.href = `/chat?conversation=${data.conversation_id}`;
+        } else {
+            alert('Failed to start chat. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error starting chat:', error);
+        alert('Error starting chat. Please try again.');
+    }
+}
+
+function startAIChat() {
+    // Redirect to AI chat
+    window.location.href = '/chat?ai=true';
 }
 
 // Initialize chatbot widget when DOM is ready
