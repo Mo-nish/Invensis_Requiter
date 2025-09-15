@@ -685,7 +685,7 @@ class CandidateRequest:
 
     @property
     def remaining_count(self):
-        return self.quantity_needed - self.assigned_count
+        return self.quantity_needed - self.onboarded_count
 
     @remaining_count.setter
     def remaining_count(self, value):
