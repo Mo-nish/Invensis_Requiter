@@ -4,6 +4,7 @@
 from flask import Blueprint, request, jsonify, render_template, session
 from flask_login import current_user, login_required
 import json
+import uuid
 from datetime import datetime
 from models_chat import ChatConversation, ChatMessage, ChatUser, init_chat_collections
 
