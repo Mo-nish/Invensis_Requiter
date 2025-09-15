@@ -43,6 +43,38 @@
             background: #202c33;
             padding: 20px;
             border-bottom: 1px solid #2a3942;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .sidebar-title-container {
+            flex: 1;
+        }
+        
+        .departments-toggle-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .departments-toggle-button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        .departments-toggle-button:active {
+            transform: translateY(0);
         }
         
         .sidebar-title {
@@ -720,10 +752,16 @@
     <div class="chat-container">
         <!-- Left Sidebar - Chat List -->
         <div class="chat-sidebar" id="chatSidebar">
-            <div class="sidebar-header">
+        <div class="sidebar-header">
+            <div class="sidebar-title-container">
                 <div class="sidebar-title">Invensis Chat</div>
                 <div class="sidebar-subtitle">Connect with your team</div>
             </div>
+            <button class="departments-toggle-button" onclick="toggleDepartments()">
+                <span>🏢</span>
+                <span>Depts</span>
+            </button>
+        </div>
             
             <div class="search-bar">
                 <input type="text" class="search-input" placeholder="Search or start new chat" id="searchInput">
@@ -734,52 +772,54 @@
                 <!-- Previous Conversations will be loaded here -->
                 <div id="previousConversations"></div>
                 
-                <!-- Department Groups -->
-                <div class="section-divider">Departments</div>
-                
-                <div class="chat-item" onclick="selectChat('hr')" data-chat="hr">
-                    <div class="chat-avatar group-avatar">👥</div>
-                    <div class="chat-info">
-                        <div class="chat-name">HR Department</div>
-                        <div class="chat-last-message">Human Resources team</div>
+                <!-- Department Groups (Hidden by default) -->
+                <div id="departmentsSection" style="display: none;">
+                    <div class="section-divider">Departments</div>
+                    
+                    <div class="chat-item" onclick="selectChat('hr')" data-chat="hr">
+                        <div class="chat-avatar group-avatar">👥</div>
+                        <div class="chat-info">
+                            <div class="chat-name">HR Department</div>
+                            <div class="chat-last-message">Human Resources team</div>
+                        </div>
+                        <div class="chat-time">●</div>
                     </div>
-                    <div class="chat-time">●</div>
-                </div>
-                
-                <div class="chat-item" onclick="selectChat('manager')" data-chat="manager">
-                    <div class="chat-avatar group-avatar">👔</div>
-                    <div class="chat-info">
-                        <div class="chat-name">Manager Department</div>
-                        <div class="chat-last-message">Management team</div>
+                    
+                    <div class="chat-item" onclick="selectChat('manager')" data-chat="manager">
+                        <div class="chat-avatar group-avatar">👔</div>
+                        <div class="chat-info">
+                            <div class="chat-name">Manager Department</div>
+                            <div class="chat-last-message">Management team</div>
+                        </div>
+                        <div class="chat-time">●</div>
                     </div>
-                    <div class="chat-time">●</div>
-                </div>
-                
-                <div class="chat-item" onclick="selectChat('recruiter')" data-chat="recruiter">
-                    <div class="chat-avatar group-avatar">🎯</div>
-                    <div class="chat-info">
-                        <div class="chat-name">Recruiter Department</div>
-                        <div class="chat-last-message">Recruitment specialists</div>
+                    
+                    <div class="chat-item" onclick="selectChat('recruiter')" data-chat="recruiter">
+                        <div class="chat-avatar group-avatar">🎯</div>
+                        <div class="chat-info">
+                            <div class="chat-name">Recruiter Department</div>
+                            <div class="chat-last-message">Recruitment specialists</div>
+                        </div>
+                        <div class="chat-time">●</div>
                     </div>
-                    <div class="chat-time">●</div>
-                </div>
-                
-                <div class="chat-item" onclick="selectChat('cluster')" data-chat="cluster">
-                    <div class="chat-avatar group-avatar">🏢</div>
-                    <div class="chat-info">
-                        <div class="chat-name">Cluster Department</div>
-                        <div class="chat-last-message">Cluster administrators</div>
+                    
+                    <div class="chat-item" onclick="selectChat('cluster')" data-chat="cluster">
+                        <div class="chat-avatar group-avatar">🏢</div>
+                        <div class="chat-info">
+                            <div class="chat-name">Cluster Department</div>
+                            <div class="chat-last-message">Cluster administrators</div>
+                        </div>
+                        <div class="chat-time">●</div>
                     </div>
-                    <div class="chat-time">●</div>
-                </div>
-                
-                <div class="chat-item" onclick="selectChat('admin')" data-chat="admin">
-                    <div class="chat-avatar group-avatar">⚙️</div>
-                    <div class="chat-info">
-                        <div class="chat-name">Admin Department</div>
-                        <div class="chat-last-message">System administrators</div>
+                    
+                    <div class="chat-item" onclick="selectChat('admin')" data-chat="admin">
+                        <div class="chat-avatar group-avatar">⚙️</div>
+                        <div class="chat-info">
+                            <div class="chat-name">Admin Department</div>
+                            <div class="chat-last-message">System administrators</div>
+                        </div>
+                        <div class="chat-time">●</div>
                     </div>
-                    <div class="chat-time">●</div>
                 </div>
                 
                 <!-- AI Assistant -->
@@ -804,14 +844,6 @@
                 <div class="welcome-title">Welcome to Invensis Chat</div>
                 <div class="welcome-subtitle">Select a department or AI assistant to start chatting</div>
                 
-                <!-- Departments Button -->
-                <div class="departments-button-container">
-                    <button class="departments-button" onclick="showDepartments()">
-                        <span class="departments-icon">🏢</span>
-                        <span class="departments-text">Browse Departments</span>
-                        <span class="departments-arrow">→</span>
-                    </button>
-                </div>
                 
                 <div class="welcome-features">
                     <div class="feature-item">
@@ -1287,21 +1319,22 @@
             }
         }
         
-        function showDepartments() {
-            // Show the sidebar with departments
-            const sidebar = document.getElementById('chatSidebar');
-            const chatArea = document.getElementById('chatArea');
+        function toggleDepartments() {
+            const departmentsSection = document.getElementById('departmentsSection');
+            const button = document.querySelector('.departments-toggle-button');
             
-            sidebar.classList.remove('hidden');
-            chatArea.classList.remove('active');
-            
-            // Scroll to departments section
-            setTimeout(() => {
-                const departmentsSection = document.querySelector('.section-divider');
-                if (departmentsSection) {
+            if (departmentsSection.style.display === 'none') {
+                departmentsSection.style.display = 'block';
+                button.innerHTML = '<span>🏢</span><span>Hide</span>';
+                
+                // Scroll to departments section
+                setTimeout(() => {
                     departmentsSection.scrollIntoView({ behavior: 'smooth' });
-                }
-            }, 100);
+                }, 100);
+            } else {
+                departmentsSection.style.display = 'none';
+                button.innerHTML = '<span>🏢</span><span>Depts</span>';
+            }
         }
         
         // Event listeners
