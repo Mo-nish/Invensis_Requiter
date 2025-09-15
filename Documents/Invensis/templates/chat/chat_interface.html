@@ -203,6 +203,28 @@
             justify-content: space-between;
         }
         
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+        
+        .hamburger-menu:hover {
+            background: #2a3942;
+        }
+        
+        .hamburger-line {
+            width: 20px;
+            height: 2px;
+            background: #e9edef;
+            margin: 2px 0;
+            border-radius: 1px;
+            transition: all 0.3s;
+        }
+        
         .chat-header-left {
             display: flex;
             align-items: center;
@@ -608,10 +630,15 @@
         @media (max-width: 768px) {
             .chat-sidebar {
                 width: 100%;
+                position: absolute;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 1000;
             }
             
             .chat-area {
-                display: none;
+                display: flex;
             }
             
             .chat-area.active {
@@ -620,6 +647,21 @@
             
             .chat-sidebar.hidden {
                 display: none;
+            }
+            
+            .hamburger-menu {
+                display: flex !important;
+            }
+            
+            .back-button {
+                display: none;
+            }
+        }
+        
+        /* Desktop - Hide hamburger menu */
+        @media (min-width: 769px) {
+            .hamburger-menu {
+                display: none !important;
             }
         }
     </style>
@@ -730,7 +772,11 @@
             <!-- Chat Header -->
             <div class="chat-header" id="chatHeader" style="display: none;">
                 <div class="chat-header-left">
-                    <button class="back-button" onclick="showSidebar()">←</button>
+                    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleSidebar()">
+                        <div class="hamburger-line"></div>
+                        <div class="hamburger-line"></div>
+                        <div class="hamburger-line"></div>
+                    </div>
                     <div class="chat-header-info">
                         <div class="header-avatar" id="headerAvatar">👥</div>
                         <div class="header-info">
@@ -1166,6 +1212,19 @@
         function showSidebar() {
             document.getElementById('chatSidebar').classList.remove('hidden');
             document.getElementById('chatArea').classList.remove('active');
+        }
+        
+        function toggleSidebar() {
+            const sidebar = document.getElementById('chatSidebar');
+            const chatArea = document.getElementById('chatArea');
+            
+            if (sidebar.classList.contains('hidden')) {
+                sidebar.classList.remove('hidden');
+                chatArea.classList.remove('active');
+            } else {
+                sidebar.classList.add('hidden');
+                chatArea.classList.add('active');
+            }
         }
         
         // Event listeners
