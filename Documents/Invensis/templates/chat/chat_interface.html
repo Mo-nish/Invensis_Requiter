@@ -22,12 +22,17 @@
         .chat-container {
             display: flex;
             height: 100vh;
+            width: 100vw;
             background: #111b21;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
         }
         
         /* Left Sidebar - Chat List */
         .chat-sidebar {
-            width: 350px;
+            width: 400px;
             background: #202c33;
             border-right: 1px solid #2a3942;
             display: flex;
@@ -41,14 +46,14 @@
         }
         
         .sidebar-title {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 600;
             color: #e9edef;
             margin-bottom: 5px;
         }
         
         .sidebar-subtitle {
-            font-size: 14px;
+            font-size: 16px;
             color: #8696a0;
         }
         
@@ -88,7 +93,7 @@
         .chat-item {
             display: flex;
             align-items: center;
-            padding: 12px 10px;
+            padding: 18px 20px;
             border-radius: 8px;
             margin: 2px 0;
             cursor: pointer;
@@ -104,14 +109,14 @@
         }
         
         .chat-avatar {
-            width: 50px;
-            height: 50px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            margin-right: 12px;
+            font-size: 24px;
+            margin-right: 18px;
             color: white;
         }
         
@@ -136,12 +141,12 @@
             font-weight: 600;
             color: #e9edef;
             margin-bottom: 2px;
-            font-size: 16px;
+            font-size: 18px;
         }
         
         .chat-last-message {
             color: #8696a0;
-            font-size: 14px;
+            font-size: 16px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -293,9 +298,9 @@
         
         .message-bubble {
             max-width: 70%;
-            padding: 8px 12px;
+            padding: 12px 16px;
             border-radius: 18px;
-            font-size: 14px;
+            font-size: 16px;
             line-height: 1.4;
             word-wrap: break-word;
         }
@@ -321,11 +326,11 @@
         
         .input-area {
             background: #202c33;
-            padding: 20px;
+            padding: 25px;
             border-top: 1px solid #2a3942;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 15px;
         }
         
         .input-container {
@@ -343,8 +348,9 @@
             background: none;
             border: none;
             color: #e9edef;
-            font-size: 14px;
+            font-size: 16px;
             outline: none;
+            padding: 8px 12px;
         }
         
         .message-input::placeholder {
@@ -904,30 +910,10 @@
         
         async function loadConversation(conversationId, userName) {
             currentConversationId = conversationId;
-            currentChatType = 'user'; // Set chat type for individual user chat
-            
-            // Update sidebar - highlight the conversation
-            document.querySelectorAll('.chat-item').forEach(item => {
-                item.classList.remove('active');
-            });
-            document.querySelector(`[data-conversation="${conversationId}"]`).classList.add('active');
-            
-            // Show chat area
-            document.getElementById('welcomeScreen').style.display = 'none';
-            document.getElementById('chatHeader').style.display = 'flex';
-            document.getElementById('messagesArea').style.display = 'flex';
-            document.getElementById('inputArea').style.display = 'flex';
             
             // Update header
             document.getElementById('headerName').textContent = userName;
             document.getElementById('headerStatus').textContent = 'Online';
-            document.getElementById('headerAvatar').textContent = userName.charAt(0).toUpperCase();
-            
-            // Hide sidebar on mobile
-            if (window.innerWidth <= 768) {
-                document.getElementById('chatSidebar').classList.add('hidden');
-                document.getElementById('chatArea').classList.add('active');
-            }
             
             // Load messages
             await loadMessages(conversationId);
@@ -1081,11 +1067,6 @@
                 if (data.success) {
                     // Message sent successfully
                     console.log('Message sent successfully');
-                    
-                    // Refresh conversation list to update last message
-                    setTimeout(() => {
-                        loadPreviousConversations();
-                    }, 500);
                 } else {
                     addMessage('Failed to send message. Please try again.', 'received');
                 }
