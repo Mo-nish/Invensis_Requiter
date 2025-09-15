@@ -461,6 +461,116 @@
             font-size: 20px;
         }
         
+        /* User Cards */
+        .users-list-container {
+            padding: 20px;
+        }
+        
+        .users-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e9edef;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .users-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .user-card {
+            background: #202c33;
+            border-radius: 12px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 1px solid #2a3942;
+        }
+        
+        .user-card:hover {
+            background: #2a3942;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        
+        .user-card .user-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        
+        .user-card .user-name {
+            font-weight: 600;
+            color: #e9edef;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        
+        .user-card .user-email {
+            color: #8696a0;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .user-card .user-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+        
+        .user-card .user-status.online {
+            background: #10b981;
+            color: white;
+        }
+        
+        .user-card .user-status.offline {
+            background: #8696a0;
+            color: white;
+        }
+        
+        /* Loading and Error States */
+        .loading-message, .no-users-message, .error-message, .no-messages {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            text-align: center;
+            color: #8696a0;
+        }
+        
+        .loading-message {
+            font-size: 16px;
+        }
+        
+        .no-users-icon, .error-icon, .no-messages-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+        
+        .no-users-title, .error-title, .no-messages-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e9edef;
+            margin-bottom: 8px;
+        }
+        
+        .no-users-subtitle, .error-subtitle, .no-messages-subtitle {
+            font-size: 14px;
+            color: #8696a0;
+        }
+        
         /* Responsive Design */
         @media (max-width: 768px) {
             .chat-sidebar {
@@ -627,15 +737,26 @@
     <script>
         let currentChat = null;
         let currentChatType = null;
+        let currentConversationId = null;
         
         function selectChat(chatType) {
             currentChatType = chatType;
             
+            if (chatType === 'ai') {
+                // Handle AI chat
+                selectAIChat();
+            } else {
+                // Handle department chat - show users
+                showDepartmentUsers(chatType);
+            }
+        }
+        
+        function selectAIChat() {
             // Update sidebar
             document.querySelectorAll('.chat-item').forEach(item => {
                 item.classList.remove('active');
             });
-            document.querySelector(`[data-chat="${chatType}"]`).classList.add('active');
+            document.querySelector('[data-chat="ai"]').classList.add('active');
             
             // Show chat area
             document.getElementById('welcomeScreen').style.display = 'none';
@@ -644,15 +765,175 @@
             document.getElementById('inputArea').style.display = 'flex';
             
             // Update header
-            updateChatHeader(chatType);
+            updateChatHeader('ai');
             
-            // Load chat content
-            loadChatContent(chatType);
+            // Load AI chat content
+            loadAIChatContent();
             
             // Hide sidebar on mobile
             if (window.innerWidth <= 768) {
                 document.getElementById('chatSidebar').classList.add('hidden');
                 document.getElementById('chatArea').classList.add('active');
+            }
+        }
+        
+        async function showDepartmentUsers(department) {
+            // Update sidebar
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-chat="${department}"]`).classList.add('active');
+            
+            // Show chat area
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatHeader').style.display = 'flex';
+            document.getElementById('messagesArea').style.display = 'flex';
+            document.getElementById('inputArea').style.display = 'flex';
+            
+            // Update header
+            updateChatHeader(department);
+            
+            // Load users for this department
+            await loadDepartmentUsers(department);
+            
+            // Hide sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('chatSidebar').classList.add('hidden');
+                document.getElementById('chatArea').classList.add('active');
+            }
+        }
+        
+        async function loadDepartmentUsers(department) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '<div class="loading-message">Loading users...</div>';
+            
+            try {
+                const response = await fetch(`/api/chat/users?role=${department}`);
+                const data = await response.json();
+                
+                if (data.success && data.users.length > 0) {
+                    messagesContainer.innerHTML = `
+                        <div class="users-list-container">
+                            <div class="users-title">Select a user to start chatting:</div>
+                            <div class="users-grid">
+                                ${data.users.map(user => `
+                                    <div class="user-card" onclick="startChatWithUser('${user.email}', '${user.name}')">
+                                        <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
+                                        <div class="user-info">
+                                            <div class="user-name">${user.name}</div>
+                                            <div class="user-email">${user.email}</div>
+                                            <div class="user-status ${user.is_online ? 'online' : 'offline'}">
+                                                ${user.is_online ? 'Online' : 'Offline'}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    messagesContainer.innerHTML = `
+                        <div class="no-users-message">
+                            <div class="no-users-icon">👥</div>
+                            <div class="no-users-title">No users found</div>
+                            <div class="no-users-subtitle">No other users in ${getDepartmentName(department)}</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+                messagesContainer.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">⚠️</div>
+                        <div class="error-title">Error loading users</div>
+                        <div class="error-subtitle">Please try again later</div>
+                    </div>
+                `;
+            }
+        }
+        
+        async function startChatWithUser(userEmail, userName) {
+            try {
+                // Create or get conversation
+                const response = await fetch('/api/chat/conversations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        participant_email: userEmail
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Load the conversation
+                    await loadConversation(data.conversation_id, userName);
+                } else {
+                    alert('Failed to start chat. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error starting chat:', error);
+                alert('Error starting chat. Please try again.');
+            }
+        }
+        
+        async function loadConversation(conversationId, userName) {
+            currentConversationId = conversationId;
+            
+            // Update header
+            document.getElementById('headerName').textContent = userName;
+            document.getElementById('headerStatus').textContent = 'Online';
+            
+            // Load messages
+            await loadMessages(conversationId);
+        }
+        
+        async function loadMessages(conversationId) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            messagesContainer.innerHTML = '<div class="loading-message">Loading messages...</div>';
+            
+            try {
+                const response = await fetch(`/api/chat/messages/${conversationId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    messagesContainer.innerHTML = '';
+                    
+                    if (data.messages.length === 0) {
+                        messagesContainer.innerHTML = `
+                            <div class="no-messages">
+                                <div class="no-messages-icon">💬</div>
+                                <div class="no-messages-title">No messages yet</div>
+                                <div class="no-messages-subtitle">Start the conversation!</div>
+                            </div>
+                        `;
+                    } else {
+                        data.messages.forEach(message => {
+                            addMessage(message.message_text, message.is_sent_by_me ? 'sent' : 'received');
+                        });
+                    }
+                    
+                    scrollToBottom();
+                } else {
+                    messagesContainer.innerHTML = `
+                        <div class="error-message">
+                            <div class="error-icon">⚠️</div>
+                            <div class="error-title">Error loading messages</div>
+                            <div class="error-subtitle">Please try again later</div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                messagesContainer.innerHTML = `
+                    <div class="error-message">
+                        <div class="error-icon">⚠️</div>
+                        <div class="error-title">Error loading messages</div>
+                        <div class="error-subtitle">Please try again later</div>
+                    </div>
+                `;
             }
         }
         
@@ -742,12 +1023,42 @@
             // Send to AI if it's AI chat
             if (currentChatType === 'ai') {
                 sendToAI(message);
+            } else if (currentConversationId) {
+                // Send to real user
+                sendToUser(message);
             } else {
-                // For department chats, simulate response
-                setTimeout(() => {
-                    hideTypingIndicator();
-                    addMessage('This is a demo response. In a real implementation, this would be sent to department members.', 'received');
-                }, 1500);
+                // No conversation selected
+                hideTypingIndicator();
+                addMessage('Please select a user to chat with.', 'received');
+            }
+        }
+        
+        async function sendToUser(message) {
+            try {
+                const response = await fetch('/api/chat/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        conversation_id: currentConversationId,
+                        message_text: message
+                    })
+                });
+                
+                const data = await response.json();
+                
+                hideTypingIndicator();
+                
+                if (data.success) {
+                    // Message sent successfully
+                    console.log('Message sent successfully');
+                } else {
+                    addMessage('Failed to send message. Please try again.', 'received');
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('Error sending message. Please try again.', 'received');
             }
         }
         
