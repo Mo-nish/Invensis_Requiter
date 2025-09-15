@@ -904,10 +904,30 @@
         
         async function loadConversation(conversationId, userName) {
             currentConversationId = conversationId;
+            currentChatType = 'user'; // Set chat type for individual user chat
+            
+            // Update sidebar - highlight the conversation
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-conversation="${conversationId}"]`).classList.add('active');
+            
+            // Show chat area
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatHeader').style.display = 'flex';
+            document.getElementById('messagesArea').style.display = 'flex';
+            document.getElementById('inputArea').style.display = 'flex';
             
             // Update header
             document.getElementById('headerName').textContent = userName;
             document.getElementById('headerStatus').textContent = 'Online';
+            document.getElementById('headerAvatar').textContent = userName.charAt(0).toUpperCase();
+            
+            // Hide sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('chatSidebar').classList.add('hidden');
+                document.getElementById('chatArea').classList.add('active');
+            }
             
             // Load messages
             await loadMessages(conversationId);
@@ -1061,6 +1081,11 @@
                 if (data.success) {
                     // Message sent successfully
                     console.log('Message sent successfully');
+                    
+                    // Refresh conversation list to update last message
+                    setTimeout(() => {
+                        loadPreviousConversations();
+                    }, 500);
                 } else {
                     addMessage('Failed to send message. Please try again.', 'received');
                 }
