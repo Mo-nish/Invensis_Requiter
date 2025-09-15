@@ -377,15 +377,153 @@ def initiate_call():
         # Create call session
         call_id = str(uuid.uuid4())
         
-        # In a real app, you would integrate with WebRTC or a calling service
-        # For now, we'll create a call notification system
+        # Store call session in database
+        from models_mongo import db
+        call_session = {
+            'call_id': call_id,
+            'caller_email': current_user.email,
+            'caller_name': getattr(current_user, 'name', 'Unknown'),
+            'recipient_email': recipient_email,
+            'recipient_name': recipient.get('name', 'Unknown'),
+            'call_type': call_type,
+            'status': 'ringing',
+            'created_at': datetime.utcnow(),
+            'answered_at': None,
+            'ended_at': None
+        }
+        
+        # Store in MongoDB
+        calls_collection = db.calls
+        calls_collection.insert_one(call_session)
+        
+        # Send notification to recipient (in a real app, use WebSockets or push notifications)
+        # For now, we'll store the notification in the database
+        notification = {
+            'type': 'incoming_call',
+            'call_id': call_id,
+            'caller_name': getattr(current_user, 'name', 'Unknown'),
+            'call_type': call_type,
+            'recipient_email': recipient_email,
+            'created_at': datetime.utcnow(),
+            'read': False
+        }
+        
+        notifications_collection = db.notifications
+        notifications_collection.insert_one(notification)
         
         return jsonify({
             'success': True,
             'call_id': call_id,
             'call_type': call_type,
             'recipient_name': recipient.get('name', 'Unknown'),
-            'message': f'{call_type.title()} call initiated with {recipient.get("name", "Unknown")}'
+            'message': f'{call_type.title()} call initiated with {recipient.get("name", "Unknown")}',
+            'notification_sent': True
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@chat_bp.route('/api/chat/notifications')
+@login_required
+def get_notifications():
+    """Get pending notifications for current user"""
+    try:
+        from models_mongo import db
+        notifications_collection = db.notifications
+        
+        # Get unread notifications for current user
+        notifications = list(notifications_collection.find({
+            'recipient_email': current_user.email,
+            'read': False
+        }).sort('created_at', -1))
+        
+        notification_list = []
+        for notif in notifications:
+            notification_list.append({
+                'id': str(notif['_id']),
+                'type': notif['type'],
+                'call_id': notif.get('call_id'),
+                'caller_name': notif.get('caller_name'),
+                'call_type': notif.get('call_type'),
+                'created_at': notif['created_at'].isoformat()
+            })
+        
+        return jsonify({
+            'success': True,
+            'notifications': notification_list
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@chat_bp.route('/api/chat/call/answer', methods=['POST'])
+@login_required
+def answer_call():
+    """Answer an incoming call"""
+    try:
+        data = request.get_json()
+        call_id = data.get('call_id')
+        action = data.get('action')  # 'accept' or 'decline'
+        
+        if not call_id:
+            return jsonify({'success': False, 'message': 'Call ID required'}), 400
+        
+        from models_mongo import db
+        calls_collection = db.calls
+        
+        # Update call status
+        if action == 'accept':
+            calls_collection.update_one(
+                {'call_id': call_id, 'recipient_email': current_user.email},
+                {'$set': {'status': 'answered', 'answered_at': datetime.utcnow()}}
+            )
+            message = 'Call answered'
+        else:
+            calls_collection.update_one(
+                {'call_id': call_id, 'recipient_email': current_user.email},
+                {'$set': {'status': 'declined', 'ended_at': datetime.utcnow()}}
+            )
+            message = 'Call declined'
+        
+        # Mark notification as read
+        notifications_collection = db.notifications
+        notifications_collection.update_one(
+            {'call_id': call_id, 'recipient_email': current_user.email},
+            {'$set': {'read': True}}
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'action': action
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@chat_bp.route('/api/chat/call/end', methods=['POST'])
+@login_required
+def end_call():
+    """End a call"""
+    try:
+        data = request.get_json()
+        call_id = data.get('call_id')
+        
+        if not call_id:
+            return jsonify({'success': False, 'message': 'Call ID required'}), 400
+        
+        from models_mongo import db
+        calls_collection = db.calls
+        
+        # Update call status
+        calls_collection.update_one(
+            {'call_id': call_id},
+            {'$set': {'status': 'ended', 'ended_at': datetime.utcnow()}}
+        )
+        
+        return jsonify({
+            'success': True,
+            'message': 'Call ended'
         })
         
     except Exception as e:

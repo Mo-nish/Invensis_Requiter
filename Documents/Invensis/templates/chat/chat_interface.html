@@ -620,6 +620,37 @@
             background: #008f6b;
         }
         
+        .incoming-call-interface {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .incoming-call-interface .call-header h3 {
+            color: white;
+        }
+        
+        .incoming-call-interface .call-header p {
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .accept-call {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .accept-call:hover {
+            background: #45a049;
+        }
+        
+        .decline-call {
+            background: #f44336;
+            color: white;
+        }
+        
+        .decline-call:hover {
+            background: #da190b;
+        }
+        
         .send-button {
             background: #00a884;
             border: none;
@@ -1876,11 +1907,115 @@
         
         // End call
         function endCall(callId) {
+            // Send end call request to server
+            fetch('/api/chat/call/end', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    call_id: callId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Call ended:', data.message);
+            })
+            .catch(error => {
+                console.error('Error ending call:', error);
+            });
+            
             const callModal = document.querySelector('.call-modal');
             if (callModal) {
                 callModal.remove();
             }
-            console.log('Call ended:', callId);
+        }
+        
+        // Check for incoming calls
+        function checkForIncomingCalls() {
+            fetch('/api/chat/notifications')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.notifications.length > 0) {
+                    data.notifications.forEach(notification => {
+                        if (notification.type === 'incoming_call') {
+                            showIncomingCallModal(notification);
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error checking notifications:', error);
+            });
+        }
+        
+        // Show incoming call modal
+        function showIncomingCallModal(notification) {
+            const callModal = document.createElement('div');
+            callModal.className = 'call-modal incoming-call';
+            callModal.innerHTML = `
+                <div class="call-interface incoming-call-interface">
+                    <div class="call-header">
+                        <h3>${notification.call_type === 'voice' ? '📞' : '📹'} Incoming ${notification.call_type === 'voice' ? 'Voice' : 'Video'} Call</h3>
+                        <p>${notification.caller_name} is calling you...</p>
+                    </div>
+                    <div class="call-controls">
+                        <button class="call-button decline-call" onclick="answerCall('${notification.call_id}', 'decline')">📞 Decline</button>
+                        <button class="call-button accept-call" onclick="answerCall('${notification.call_id}', 'accept')">📞 Accept</button>
+                    </div>
+                    <div class="call-status">
+                        <p>Call ID: ${notification.call_id}</p>
+                        <p>Status: Incoming...</p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(callModal);
+            
+            // Auto-decline after 30 seconds if not answered
+            setTimeout(() => {
+                const existingModal = document.querySelector('.incoming-call');
+                if (existingModal) {
+                    answerCall(notification.call_id, 'decline');
+                }
+            }, 30000);
+        }
+        
+        // Answer incoming call
+        function answerCall(callId, action) {
+            fetch('/api/chat/call/answer', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    call_id: callId,
+                    action: action
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const callModal = document.querySelector('.call-modal');
+                    if (callModal) {
+                        callModal.remove();
+                    }
+                    
+                    if (action === 'accept') {
+                        // Show call interface for accepted call
+                        showCallInterface('voice', callId, 'Call Connected');
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error answering call:', error);
+            });
+        }
+        
+        // Start checking for incoming calls
+        function startCallNotificationCheck() {
+            // Check for calls every 3 seconds
+            setInterval(checkForIncomingCalls, 3000);
         }
         
         // Toggle mute
@@ -1971,6 +2106,7 @@
         // Load conversations when page loads
         document.addEventListener('DOMContentLoaded', function() {
             loadPreviousConversations();
+            startCallNotificationCheck();
         });
         
         // Responsive behavior
