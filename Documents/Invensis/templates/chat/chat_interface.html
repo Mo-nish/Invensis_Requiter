@@ -1219,6 +1219,9 @@
         let currentChatType = null;
         let currentConversationId = null;
         
+        // Set current user email (this should be passed from the backend)
+        window.currentUserEmail = '{{ current_user.email }}';
+        
         function selectChat(chatType) {
             currentChatType = chatType;
             
@@ -1349,7 +1352,7 @@
                 
                 if (data.success) {
                     // Load the conversation
-                    await loadConversation(data.conversation_id, userName);
+                    await loadConversation(data.conversation_id, userName, userEmail);
                 } else {
                     alert('Failed to start chat. Please try again.');
                 }
@@ -1359,9 +1362,28 @@
             }
         }
         
-        async function loadConversation(conversationId, userName) {
+        async function loadConversation(conversationId, userName, recipientEmail = null) {
             currentConversationId = conversationId;
             currentChatType = 'user'; // Set chat type for individual user chat
+            
+            // Store recipient email for call functionality
+            if (recipientEmail) {
+                setCurrentRecipientEmail(recipientEmail);
+            } else {
+                // Try to get recipient email from conversation data
+                try {
+                    const response = await fetch(`/api/chat/conversation/${conversationId}`);
+                    const data = await response.json();
+                    if (data.success && data.conversation) {
+                        const otherParticipants = data.conversation.participants.filter(p => p !== window.currentUserEmail);
+                        if (otherParticipants.length > 0) {
+                            setCurrentRecipientEmail(otherParticipants[0]);
+                        }
+                    }
+                } catch (error) {
+                    console.log('Could not fetch recipient email:', error);
+                }
+            }
             
             // Update sidebar - highlight the conversation
             document.querySelectorAll('.chat-item').forEach(item => {
@@ -1814,8 +1836,12 @@
         
         // Get current recipient email
         function getCurrentRecipientEmail() {
-            // This would need to be stored when conversation is loaded
             return window.currentRecipientEmail || null;
+        }
+        
+        // Store recipient email when conversation is loaded
+        function setCurrentRecipientEmail(email) {
+            window.currentRecipientEmail = email;
         }
         
         // Show call interface
@@ -1923,7 +1949,7 @@
                         conversationsContainer.innerHTML = `
                             <div class="section-divider">Recent Chats</div>
                             ${data.conversations.map(conv => `
-                                <div class="chat-item" onclick="loadConversation('${conv.id}', '${conv.participant_name}')" data-conversation="${conv.id}">
+                                <div class="chat-item" onclick="loadConversation('${conv.id}', '${conv.participant_name}', '${conv.participant_email}')" data-conversation="${conv.id}">
                                     <div class="chat-avatar user-avatar">${conv.participant_name.charAt(0).toUpperCase()}</div>
                                     <div class="chat-info">
                                         <div class="chat-name">${conv.participant_name}</div>

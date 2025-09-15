@@ -333,6 +333,28 @@ def upload_file():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@chat_bp.route('/api/chat/conversation/<conversation_id>')
+@login_required
+def get_conversation_details(conversation_id):
+    """Get conversation details including participants"""
+    try:
+        conversation = ChatConversation.find_by_id(conversation_id)
+        if not conversation or current_user.email not in conversation.participants:
+            return jsonify({'success': False, 'message': 'Conversation not found'}), 404
+        
+        return jsonify({
+            'success': True,
+            'conversation': {
+                'id': str(conversation._id),
+                'participants': conversation.participants,
+                'last_message': conversation.last_message,
+                'last_message_time': conversation.last_message_time
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @chat_bp.route('/api/chat/call', methods=['POST'])
 @login_required
 def initiate_call():
