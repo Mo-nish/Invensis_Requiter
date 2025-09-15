@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invensis Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #111b21;
+            color: #e9edef;
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .chat-container {
+            display: flex;
+            height: 100vh;
+            background: #111b21;
+        }
+        
+        /* Left Sidebar - Chat List */
+        .chat-sidebar {
+            width: 350px;
+            background: #202c33;
+            border-right: 1px solid #2a3942;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            background: #202c33;
+            padding: 20px;
+            border-bottom: 1px solid #2a3942;
+        }
+        
+        .sidebar-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #e9edef;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-subtitle {
+            font-size: 14px;
+            color: #8696a0;
+        }
+        
+        .search-bar {
+            margin: 15px 20px;
+            position: relative;
+        }
+        
+        .search-input {
+            width: 100%;
+            background: #2a3942;
+            border: none;
+            border-radius: 8px;
+            padding: 12px 40px 12px 16px;
+            color: #e9edef;
+            font-size: 14px;
+        }
+        
+        .search-input::placeholder {
+            color: #8696a0;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #8696a0;
+        }
+        
+        .chat-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 10px;
+        }
+        
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin: 2px 0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .chat-item:hover {
+            background: #2a3942;
+        }
+        
+        .chat-item.active {
+            background: #2a3942;
+        }
+        
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            margin-right: 12px;
+            color: white;
+        }
+        
+        .group-avatar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .ai-avatar {
+            background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+        }
+        
+        .user-avatar {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+        
+        .chat-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .chat-name {
+            font-weight: 600;
+            color: #e9edef;
+            margin-bottom: 2px;
+            font-size: 16px;
+        }
+        
+        .chat-last-message {
+            color: #8696a0;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .chat-time {
+            color: #8696a0;
+            font-size: 12px;
+            margin-left: 8px;
+        }
+        
+        .chat-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #10b981;
+            margin-left: 8px;
+        }
+        
+        .chat-status.offline {
+            background: #8696a0;
+        }
+        
+        /* Right Side - Chat Area */
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: #0b141a;
+        }
+        
+        .chat-header {
+            background: #202c33;
+            padding: 20px;
+            border-bottom: 1px solid #2a3942;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-header-left {
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-button {
+            background: none;
+            border: none;
+            color: #8696a0;
+            font-size: 20px;
+            cursor: pointer;
+            margin-right: 15px;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .back-button:hover {
+            background: #2a3942;
+        }
+        
+        .chat-header-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            margin-right: 12px;
+            color: white;
+        }
+        
+        .header-info {
+            flex: 1;
+        }
+        
+        .header-name {
+            font-weight: 600;
+            color: #e9edef;
+            font-size: 16px;
+        }
+        
+        .header-status {
+            color: #8696a0;
+            font-size: 13px;
+        }
+        
+        .chat-header-right {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .header-icon {
+            color: #8696a0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .header-icon:hover {
+            background: #2a3942;
+        }
+        
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #0b141a;
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        }
+        
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-end;
+        }
+        
+        .message.sent {
+            justify-content: flex-end;
+        }
+        
+        .message.received {
+            justify-content: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        
+        .message.sent .message-bubble {
+            background: #005c4b;
+            color: #e9edef;
+            border-bottom-right-radius: 4px;
+        }
+        
+        .message.received .message-bubble {
+            background: #202c33;
+            color: #e9edef;
+            border-bottom-left-radius: 4px;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            color: #8696a0;
+            margin: 0 8px;
+            align-self: flex-end;
+        }
+        
+        .input-area {
+            background: #202c33;
+            padding: 20px;
+            border-top: 1px solid #2a3942;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .input-container {
+            flex: 1;
+            background: #2a3942;
+            border-radius: 21px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .message-input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #e9edef;
+            font-size: 14px;
+            outline: none;
+        }
+        
+        .message-input::placeholder {
+            color: #8696a0;
+        }
+        
+        .input-icon {
+            color: #8696a0;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.2s;
+        }
+        
+        .input-icon:hover {
+            background: #3b4a54;
+        }
+        
+        .send-button {
+            background: #00a884;
+            border: none;
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .send-button:hover {
+            background: #008f6f;
+        }
+        
+        .send-button:disabled {
+            background: #2a3942;
+            cursor: not-allowed;
+        }
+        
+        .send-icon {
+            color: white;
+            font-size: 18px;
+        }
+        
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            color: #8696a0;
+            font-size: 14px;
+        }
+        
+        .typing-dots {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .typing-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #8696a0;
+            animation: typing 1.4s infinite;
+        }
+        
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+        
+        .welcome-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+        }
+        
+        .welcome-title {
+            font-size: 24px;
+            font-weight: 600;
+            color: #e9edef;
+            margin-bottom: 10px;
+        }
+        
+        .welcome-subtitle {
+            font-size: 16px;
+            color: #8696a0;
+            margin-bottom: 30px;
+        }
+        
+        .welcome-features {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 300px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #8696a0;
+            font-size: 14px;
+        }
+        
+        .feature-icon {
+            font-size: 20px;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .chat-sidebar {
+                width: 100%;
+            }
+            
+            .chat-area {
+                display: none;
+            }
+            
+            .chat-area.active {
+                display: flex;
+            }
+            
+            .chat-sidebar.hidden {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Left Sidebar - Chat List -->
+        <div class="chat-sidebar" id="chatSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-title">Invensis Chat</div>
+                <div class="sidebar-subtitle">Connect with your team</div>
+            </div>
+            
+            <div class="search-bar">
+                <input type="text" class="search-input" placeholder="Search or start new chat" id="searchInput">
+                <span class="search-icon">🔍</span>
+            </div>
+            
+            <div class="chat-list" id="chatList">
+                <!-- Department Groups -->
+                <div class="chat-item" onclick="selectChat('hr')" data-chat="hr">
+                    <div class="chat-avatar group-avatar">👥</div>
+                    <div class="chat-info">
+                        <div class="chat-name">HR Department</div>
+                        <div class="chat-last-message">Human Resources team</div>
+                    </div>
+                    <div class="chat-time">●</div>
+                </div>
+                
+                <div class="chat-item" onclick="selectChat('manager')" data-chat="manager">
+                    <div class="chat-avatar group-avatar">👔</div>
+                    <div class="chat-info">
+                        <div class="chat-name">Manager Department</div>
+                        <div class="chat-last-message">Management team</div>
+                    </div>
+                    <div class="chat-time">●</div>
+                </div>
+                
+                <div class="chat-item" onclick="selectChat('recruiter')" data-chat="recruiter">
+                    <div class="chat-avatar group-avatar">🎯</div>
+                    <div class="chat-info">
+                        <div class="chat-name">Recruiter Department</div>
+                        <div class="chat-last-message">Recruitment specialists</div>
+                    </div>
+                    <div class="chat-time">●</div>
+                </div>
+                
+                <div class="chat-item" onclick="selectChat('cluster')" data-chat="cluster">
+                    <div class="chat-avatar group-avatar">🏢</div>
+                    <div class="chat-info">
+                        <div class="chat-name">Cluster Department</div>
+                        <div class="chat-last-message">Cluster administrators</div>
+                    </div>
+                    <div class="chat-time">●</div>
+                </div>
+                
+                <div class="chat-item" onclick="selectChat('admin')" data-chat="admin">
+                    <div class="chat-avatar group-avatar">⚙️</div>
+                    <div class="chat-info">
+                        <div class="chat-name">Admin Department</div>
+                        <div class="chat-last-message">System administrators</div>
+                    </div>
+                    <div class="chat-time">●</div>
+                </div>
+                
+                <!-- AI Assistant -->
+                <div class="chat-item" onclick="selectChat('ai')" data-chat="ai">
+                    <div class="chat-avatar ai-avatar">🤖</div>
+                    <div class="chat-info">
+                        <div class="chat-name">Invensis AI Assistant</div>
+                        <div class="chat-last-message">Your intelligent assistant</div>
+                    </div>
+                    <div class="chat-time">●</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Side - Chat Area -->
+        <div class="chat-area" id="chatArea">
+            <!-- Welcome Screen -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">💬</div>
+                <div class="welcome-title">Welcome to Invensis Chat</div>
+                <div class="welcome-subtitle">Select a department or AI assistant to start chatting</div>
+                <div class="welcome-features">
+                    <div class="feature-item">
+                        <span class="feature-icon">👥</span>
+                        <span>Chat with department members</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">🤖</span>
+                        <span>Get AI assistance with real data</span>
+                    </div>
+                    <div class="feature-item">
+                        <span class="feature-icon">💡</span>
+                        <span>Real-time notifications and insights</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Chat Header -->
+            <div class="chat-header" id="chatHeader" style="display: none;">
+                <div class="chat-header-left">
+                    <button class="back-button" onclick="showSidebar()">←</button>
+                    <div class="chat-header-info">
+                        <div class="header-avatar" id="headerAvatar">👥</div>
+                        <div class="header-info">
+                            <div class="header-name" id="headerName">Department</div>
+                            <div class="header-status" id="headerStatus">Online</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="chat-header-right">
+                    <span class="header-icon">📞</span>
+                    <span class="header-icon">📹</span>
+                    <span class="header-icon">⋮</span>
+                </div>
+            </div>
+            
+            <!-- Messages Area -->
+            <div class="messages-area" id="messagesArea" style="display: none;">
+                <div id="messagesContainer"></div>
+                <div class="typing-indicator" id="typingIndicator">
+                    <span>AI is typing</span>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Input Area -->
+            <div class="input-area" id="inputArea" style="display: none;">
+                <div class="input-container">
+                    <span class="input-icon">😊</span>
+                    <input type="text" class="message-input" placeholder="Type a message" id="messageInput">
+                    <span class="input-icon">📎</span>
+                    <span class="input-icon">📷</span>
+                </div>
+                <button class="send-button" id="sendButton" onclick="sendMessage()">
+                    <span class="send-icon">➤</span>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentChat = null;
+        let currentChatType = null;
+        
+        function selectChat(chatType) {
+            currentChatType = chatType;
+            
+            // Update sidebar
+            document.querySelectorAll('.chat-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-chat="${chatType}"]`).classList.add('active');
+            
+            // Show chat area
+            document.getElementById('welcomeScreen').style.display = 'none';
+            document.getElementById('chatHeader').style.display = 'flex';
+            document.getElementById('messagesArea').style.display = 'flex';
+            document.getElementById('inputArea').style.display = 'flex';
+            
+            // Update header
+            updateChatHeader(chatType);
+            
+            // Load chat content
+            loadChatContent(chatType);
+            
+            // Hide sidebar on mobile
+            if (window.innerWidth <= 768) {
+                document.getElementById('chatSidebar').classList.add('hidden');
+                document.getElementById('chatArea').classList.add('active');
+            }
+        }
+        
+        function updateChatHeader(chatType) {
+            const headerAvatar = document.getElementById('headerAvatar');
+            const headerName = document.getElementById('headerName');
+            const headerStatus = document.getElementById('headerStatus');
+            
+            const chatInfo = {
+                'hr': { icon: '👥', name: 'HR Department', status: 'Online' },
+                'manager': { icon: '👔', name: 'Manager Department', status: 'Online' },
+                'recruiter': { icon: '🎯', name: 'Recruiter Department', status: 'Online' },
+                'cluster': { icon: '🏢', name: 'Cluster Department', status: 'Online' },
+                'admin': { icon: '⚙️', name: 'Admin Department', status: 'Online' },
+                'ai': { icon: '🤖', name: 'Invensis AI Assistant', status: 'Online' }
+            };
+            
+            const info = chatInfo[chatType];
+            headerAvatar.textContent = info.icon;
+            headerName.textContent = info.name;
+            headerStatus.textContent = info.status;
+        }
+        
+        function loadChatContent(chatType) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            
+            if (chatType === 'ai') {
+                // AI Chat
+                messagesContainer.innerHTML = `
+                    <div class="message received">
+                        <div class="message-bubble">
+                            Hi! I'm your Invensis AI Assistant. I can help you with:
+                            <br><br>
+                            • Candidate management and insights
+                            <br>• Real-time analytics and reports
+                            <br>• System status and performance
+                            <br>• User management and permissions
+                            <br>• Hiring pipeline optimization
+                            <br><br>
+                            What would you like to know?
+                        </div>
+                        <div class="message-time">Now</div>
+                    </div>
+                `;
+            } else {
+                // Department Chat
+                messagesContainer.innerHTML = `
+                    <div class="message received">
+                        <div class="message-bubble">
+                            Welcome to ${getDepartmentName(chatType)} chat! 
+                            <br><br>
+                            This is where you can communicate with your team members. 
+                            All messages are secure and encrypted.
+                        </div>
+                        <div class="message-time">Now</div>
+                    </div>
+                `;
+            }
+            
+            scrollToBottom();
+        }
+        
+        function getDepartmentName(chatType) {
+            const names = {
+                'hr': 'HR Department',
+                'manager': 'Manager Department',
+                'recruiter': 'Recruiter Department',
+                'cluster': 'Cluster Department',
+                'admin': 'Admin Department'
+            };
+            return names[chatType] || 'Department';
+        }
+        
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) return;
+            
+            // Add user message
+            addMessage(message, 'sent');
+            messageInput.value = '';
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Send to AI if it's AI chat
+            if (currentChatType === 'ai') {
+                sendToAI(message);
+            } else {
+                // For department chats, simulate response
+                setTimeout(() => {
+                    hideTypingIndicator();
+                    addMessage('This is a demo response. In a real implementation, this would be sent to department members.', 'received');
+                }, 1500);
+            }
+        }
+        
+        async function sendToAI(message) {
+            try {
+                const response = await fetch('/api/chat/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+                
+                const data = await response.json();
+                
+                hideTypingIndicator();
+                
+                if (data.success) {
+                    addMessage(data.response, 'received');
+                } else {
+                    addMessage('Sorry, I encountered an error. Please try again.', 'received');
+                }
+            } catch (error) {
+                hideTypingIndicator();
+                addMessage('Sorry, I'm having trouble connecting. Please try again.', 'received');
+            }
+        }
+        
+        function addMessage(text, type) {
+            const messagesContainer = document.getElementById('messagesContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}`;
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            messageDiv.innerHTML = `
+                <div class="message-bubble">${text}</div>
+                <div class="message-time">${timeString}</div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+        
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+            scrollToBottom();
+        }
+        
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+        
+        function scrollToBottom() {
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+        
+        function showSidebar() {
+            document.getElementById('chatSidebar').classList.remove('hidden');
+            document.getElementById('chatArea').classList.remove('active');
+        }
+        
+        // Event listeners
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const chatItems = document.querySelectorAll('.chat-item');
+            
+            chatItems.forEach(item => {
+                const name = item.querySelector('.chat-name').textContent.toLowerCase();
+                const message = item.querySelector('.chat-last-message').textContent.toLowerCase();
+                
+                if (name.includes(searchTerm) || message.includes(searchTerm)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+        
+        // Responsive behavior
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 768) {
+                document.getElementById('chatSidebar').classList.remove('hidden');
+                document.getElementById('chatArea').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>

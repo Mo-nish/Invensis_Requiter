@@ -179,6 +179,7 @@ from routes.recruiter_mongo import recruiter_bp
 from routes.manager_mongo import manager_bp
 from routes.cluster_mongo import cluster_bp
 from routes.chatbot_mongo import chatbot_bp
+from routes.chat_mongo import chat_bp
 
 # Import email service functions
 from email_service import send_password_reset_email, send_password_changed_confirmation_email
@@ -355,6 +356,7 @@ app.register_blueprint(recruiter_bp, url_prefix='/recruiter')
 app.register_blueprint(manager_bp, url_prefix='/manager')
 app.register_blueprint(cluster_bp, url_prefix='/cluster')
 app.register_blueprint(chatbot_bp, url_prefix='/')
+app.register_blueprint(chat_bp, url_prefix='/')
 
 if __name__ == '__main__':
     # Ensure a single intended admin user exists (configurable via env)

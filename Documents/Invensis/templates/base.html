@@ -1082,9 +1082,78 @@
         Created by Monish Reddy
     </div>
     
-    <!-- Chatbot Widget -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot_widget.css') }}">
-    <script src="{{ url_for('static', filename='js/chatbot_widget.js') }}"></script>
+    <!-- Simple Chat Button -->
+    <div class="chat-button-container">
+        <button class="chat-button" onclick="openWhatsAppChat()" title="Open Chat">
+            <span class="chat-emoji">💬</span>
+            <span class="chat-text">Chat</span>
+        </button>
+    </div>
+    
+    <style>
+        .chat-button-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .chat-button {
+            background: linear-gradient(135deg, #25D366 0%, #128C7E 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            padding: 15px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 80px;
+        }
+        
+        .chat-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+        }
+        
+        .chat-button:active {
+            transform: translateY(0);
+        }
+        
+        .chat-emoji {
+            font-size: 20px;
+        }
+        
+        .chat-text {
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .chat-button {
+                padding: 12px 16px;
+                font-size: 14px;
+            }
+            
+            .chat-text {
+                display: none;
+            }
+            
+            .chat-button {
+                min-width: 50px;
+                justify-content: center;
+            }
+        }
+    </style>
+    
+    <script>
+        function openWhatsAppChat() {
+            window.open('/chat', '_blank', 'width=400,height=600,scrollbars=yes,resizable=yes');
+        }
+    </script>
     
     <script>
         // Watermark click handler
