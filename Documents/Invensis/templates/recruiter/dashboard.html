@@ -3188,10 +3188,10 @@ function hideChartLoading(tabName) {
 function renderOverviewCharts(data) {
     console.log('Rendering overview charts with data:', data);
     
-    // Status Distribution Pie Chart
+    // Status Distribution Pie Chart - Use real data only
     const statusCounts = data.status_counts || {};
-    const statusLabels = Object.keys(statusCounts).length > 0 ? Object.keys(statusCounts) : ['Selected', 'Not Selected', 'Pending', 'Assigned'];
-    const statusData = Object.keys(statusCounts).length > 0 ? Object.values(statusCounts) : [15, 8, 12, 25];
+    const statusLabels = Object.keys(statusCounts);
+    const statusData = Object.values(statusCounts);
     const statusColors = ['#10B981', '#EF4444', '#F59E0B', '#3B82F6', '#8B5CF6', '#F97316'];
     
     renderPieChart('statusChart', {
@@ -3200,10 +3200,10 @@ function renderOverviewCharts(data) {
         colors: statusColors.slice(0, statusLabels.length)
     });
     
-    // Monthly Candidates Bar Chart
+    // Monthly Candidates Bar Chart - Use real data only
     const monthlyData = data.monthly_data || {};
-    const monthLabels = Object.keys(monthlyData).length > 0 ? Object.keys(monthlyData) : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-    const monthValues = Object.keys(monthlyData).length > 0 ? Object.values(monthlyData) : [12, 19, 15, 25, 22, 30];
+    const monthLabels = Object.keys(monthlyData);
+    const monthValues = Object.values(monthlyData);
     
     renderBarChart('monthlyChart', {
         labels: monthLabels,
@@ -3228,28 +3228,37 @@ function renderOverviewCharts(data) {
 }
 
 function renderTrendCharts(data) {
-    // Trend Line Chart
+    // Trend Line Chart - Use real data from API
+    const weeklyData = data.weekly_trends || {};
+    const weekLabels = Object.keys(weeklyData).length > 0 ? Object.keys(weeklyData) : [];
+    const applicationsData = Object.keys(weeklyData).length > 0 ? Object.values(weeklyData).map(w => w.applications || 0) : [];
+    const selectionsData = Object.keys(weeklyData).length > 0 ? Object.values(weeklyData).map(w => w.selections || 0) : [];
+    
     renderLineChart('trendChart', {
-        labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+        labels: weekLabels.length > 0 ? weekLabels : ['No Data'],
         datasets: [{
             label: 'Applications Received',
-            data: [10, 15, 12, 18],
+            data: applicationsData.length > 0 ? applicationsData : [0],
             borderColor: '#8B5CF6',
             backgroundColor: 'rgba(139, 92, 246, 0.1)'
         }, {
             label: 'Selections Made',
-            data: [3, 5, 4, 7],
+            data: selectionsData.length > 0 ? selectionsData : [0],
             borderColor: '#10B981',
             backgroundColor: 'rgba(16, 185, 129, 0.1)'
         }]
     });
     
-    // Success Rate Chart
+    // Success Rate Chart - Use real data from API
+    const monthlySuccess = data.monthly_success || {};
+    const successLabels = Object.keys(monthlySuccess);
+    const successData = Object.values(monthlySuccess);
+    
     renderLineChart('successChart', {
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+        labels: successLabels.length > 0 ? successLabels : ['No Data'],
         datasets: [{
             label: 'Success Rate %',
-            data: [25, 30, 28, 35, 32, 40],
+            data: successData.length > 0 ? successData : [0],
             borderColor: '#F59E0B',
             backgroundColor: 'rgba(245, 158, 11, 0.1)'
         }]
@@ -3257,11 +3266,11 @@ function renderTrendCharts(data) {
 }
 
 function renderPerformanceCharts(data) {
-    // HR Performance Comparison
+    // HR Performance Comparison - Use real data only
     const hrPerformance = data.hr_performance || [];
-    const hrNames = hrPerformance.length > 0 ? hrPerformance.map(hr => hr.name) : ['John Smith', 'Sarah Johnson', 'Mike Davis'];
-    const candidatesAdded = hrPerformance.length > 0 ? hrPerformance.map(hr => hr.candidates_added) : [25, 30, 20];
-    const successfulPlacements = hrPerformance.length > 0 ? hrPerformance.map(hr => hr.successful_placements) : [8, 12, 6];
+    const hrNames = hrPerformance.map(hr => hr.name || 'Unknown');
+    const candidatesAdded = hrPerformance.map(hr => hr.candidates_added || 0);
+    const successfulPlacements = hrPerformance.map(hr => hr.successful_placements || 0);
     
     renderBarChart('hrChart', {
         labels: hrNames,
@@ -3290,23 +3299,19 @@ function renderPerformanceCharts(data) {
 }
 
 function renderReportCharts(data) {
-    // Department wise distribution
-    const departments = data.departments || {
-        'Engineering': 35,
-        'Marketing': 20,
-        'Sales': 15,
-        'HR': 10,
-        'Operations': 20
-    };
+    // Department wise distribution - Use real data only
+    const departments = data.departments || {};
+    const deptLabels = Object.keys(departments);
+    const deptData = Object.values(departments);
     
     renderPieChart('departmentChart', {
-        labels: Object.keys(departments),
-        data: Object.values(departments),
+        labels: deptLabels.length > 0 ? deptLabels : ['No Data'],
+        data: deptData.length > 0 ? deptData : [1],
         colors: ['#8B5CF6', '#10B981', '#F59E0B', '#EF4444', '#3B82F6']
     });
     
-    // Experience Level Distribution
-    const experienceLevels = data.experience_levels || [12, 25, 18, 15];
+    // Experience Level Distribution - Use real data only
+    const experienceLevels = data.experience_levels || [];
     renderBarChart('experienceChart', {
         labels: ['0-1 years', '1-3 years', '3-5 years', '5+ years'],
         datasets: [{
@@ -3488,7 +3493,162 @@ function applyDateFilter() {
 
 function exportAnalytics(format) {
     showNotification(`Exporting analytics in ${format.toUpperCase()} format...`, 'info');
-    // Implement export functionality
+    
+    // Get current analytics data
+    const activeTab = document.querySelector('.tab-button.bg-blue-600');
+    const tabName = activeTab ? activeTab.id.replace('Button', '') : 'overview';
+    
+    // Create export data based on current tab
+    let exportData = {};
+    let filename = `recruiter_analytics_${tabName}`;
+    
+    try {
+        // Get chart data from current tab
+        if (tabName === 'overview') {
+            exportData = {
+                title: 'Recruiter Analytics - Overview',
+                status_distribution: getChartData('statusChart'),
+                monthly_trends: getChartData('monthlyChart'),
+                metrics: {
+                    total_candidates: document.getElementById('totalCandidatesMetric')?.textContent || '0',
+                    selected: document.getElementById('selectedMetric')?.textContent || '0',
+                    pending: document.getElementById('pendingMetric')?.textContent || '0',
+                    success_rate: document.getElementById('successRateMetric')?.textContent || '0%'
+                }
+            };
+        } else if (tabName === 'trends') {
+            exportData = {
+                title: 'Recruiter Analytics - Trends',
+                application_trends: getChartData('trendChart'),
+                success_rate_trends: getChartData('successChart')
+            };
+        } else if (tabName === 'performance') {
+            exportData = {
+                title: 'Recruiter Analytics - Performance',
+                hr_performance: getChartData('hrChart'),
+                response_times: getChartData('responseChart')
+            };
+        } else if (tabName === 'reports') {
+            exportData = {
+                title: 'Recruiter Analytics - Reports',
+                department_distribution: getChartData('departmentChart'),
+                experience_distribution: getChartData('experienceChart')
+            };
+        }
+        
+        // Add metadata
+        exportData.exported_at = new Date().toISOString();
+        exportData.recruiter = '{{ current_user.name }}';
+        
+        if (format === 'pdf') {
+            exportToPDF(exportData, filename);
+        } else if (format === 'excel') {
+            exportToExcel(exportData, filename);
+        }
+        
+    } catch (error) {
+        console.error('Export error:', error);
+        showNotification('Export failed: ' + error.message, 'error');
+    }
+}
+
+function getChartData(chartId) {
+    const canvas = document.getElementById(chartId);
+    if (!canvas) return null;
+    
+    const chart = Chart.getChart(canvas);
+    if (!chart) return null;
+    
+    return {
+        labels: chart.data.labels,
+        datasets: chart.data.datasets.map(dataset => ({
+            label: dataset.label,
+            data: dataset.data
+        }))
+    };
+}
+
+function exportToPDF(data, filename) {
+    // Create a simple PDF using browser's print functionality
+    const printWindow = window.open('', '_blank');
+    const htmlContent = `
+        <html>
+        <head>
+            <title>${data.title}</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                h1 { color: #333; border-bottom: 2px solid #8B5CF6; }
+                h2 { color: #666; margin-top: 30px; }
+                table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+                th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+                th { background-color: #f2f2f2; }
+                .metric { display: inline-block; margin: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px; }
+            </style>
+        </head>
+        <body>
+            <h1>${data.title}</h1>
+            <p><strong>Exported:</strong> ${new Date(data.exported_at).toLocaleString()}</p>
+            <p><strong>Recruiter:</strong> ${data.recruiter}</p>
+            
+            ${data.metrics ? `
+                <h2>Key Metrics</h2>
+                <div class="metric"><strong>Total Candidates:</strong> ${data.metrics.total_candidates}</div>
+                <div class="metric"><strong>Selected:</strong> ${data.metrics.selected}</div>
+                <div class="metric"><strong>Pending:</strong> ${data.metrics.pending}</div>
+                <div class="metric"><strong>Success Rate:</strong> ${data.metrics.success_rate}</div>
+            ` : ''}
+            
+            ${Object.keys(data).filter(key => key !== 'title' && key !== 'exported_at' && key !== 'recruiter' && key !== 'metrics').map(key => `
+                <h2>${key.replace(/_/g, ' ').toUpperCase()}</h2>
+                <pre>${JSON.stringify(data[key], null, 2)}</pre>
+            `).join('')}
+        </body>
+        </html>
+    `;
+    
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
+    
+    showNotification('PDF export initiated. Check your print dialog.', 'success');
+}
+
+function exportToExcel(data, filename) {
+    // Create CSV format for Excel compatibility
+    let csvContent = `${data.title}\n`;
+    csvContent += `Exported: ${new Date(data.exported_at).toLocaleString()}\n`;
+    csvContent += `Recruiter: ${data.recruiter}\n\n`;
+    
+    // Add metrics if available
+    if (data.metrics) {
+        csvContent += 'Key Metrics\n';
+        csvContent += 'Metric,Value\n';
+        csvContent += `Total Candidates,${data.metrics.total_candidates}\n`;
+        csvContent += `Selected,${data.metrics.selected}\n`;
+        csvContent += `Pending,${data.metrics.pending}\n`;
+        csvContent += `Success Rate,${data.metrics.success_rate}\n\n`;
+    }
+    
+    // Add chart data
+    Object.keys(data).forEach(key => {
+        if (key !== 'title' && key !== 'exported_at' && key !== 'recruiter' && key !== 'metrics') {
+            csvContent += `${key.replace(/_/g, ' ').toUpperCase()}\n`;
+            csvContent += JSON.stringify(data[key], null, 2) + '\n\n';
+        }
+    });
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showNotification('Excel export completed successfully!', 'success');
 }
 
 function showNotification(message, type = 'info') {

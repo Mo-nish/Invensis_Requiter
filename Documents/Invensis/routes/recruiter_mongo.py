@@ -1260,17 +1260,128 @@ def parse_resume():
 def api_analytics():
     """API endpoint for analytics data"""
     try:
-        from models_mongo import candidates_collection
+        from models_mongo import candidates_collection, users_collection
+        from collections import defaultdict
+        from datetime import datetime, timedelta
         
         # Get candidates for this recruiter
         candidates = list(candidates_collection.find({'recruiter_email': current_user.email}))
         
+        # Status distribution
+        status_counts = defaultdict(int)
+        for candidate in candidates:
+            status = candidate.get('status', 'Unknown')
+            status_counts[status] += 1
+        
+        # Monthly data (last 6 months)
+        monthly_data = defaultdict(int)
+        for candidate in candidates:
+            created_at = candidate.get('created_at', '')
+            if created_at:
+                try:
+                    if isinstance(created_at, str):
+                        clean_date = created_at.replace('Z', '+00:00')
+                        dt = datetime.fromisoformat(clean_date)
+                    elif hasattr(created_at, 'strftime'):
+                        dt = created_at
+                    else:
+                        continue
+                    month_key = dt.strftime('%Y-%m')
+                    monthly_data[month_key] += 1
+                except Exception as e:
+                    print(f"Date parsing error: {e}")
+                    continue
+        
+        # Weekly trends (last 4 weeks)
+        weekly_trends = defaultdict(lambda: {'applications': 0, 'selections': 0})
+        for candidate in candidates:
+            created_at = candidate.get('created_at', '')
+            if created_at:
+                try:
+                    if isinstance(created_at, str):
+                        clean_date = created_at.replace('Z', '+00:00')
+                        dt = datetime.fromisoformat(clean_date)
+                    elif hasattr(created_at, 'strftime'):
+                        dt = created_at
+                    else:
+                        continue
+                    
+                    # Calculate week number
+                    week_start = dt - timedelta(days=dt.weekday())
+                    week_key = f"Week {((dt - week_start).days // 7) + 1}"
+                    weekly_trends[week_key]['applications'] += 1
+                    
+                    if candidate.get('status') == 'Selected':
+                        weekly_trends[week_key]['selections'] += 1
+                except Exception as e:
+                    print(f"Weekly trend error: {e}")
+                    continue
+        
+        # Monthly success rates
+        monthly_success = defaultdict(float)
+        for candidate in candidates:
+            created_at = candidate.get('created_at', '')
+            if created_at:
+                try:
+                    if isinstance(created_at, str):
+                        clean_date = created_at.replace('Z', '+00:00')
+                        dt = datetime.fromisoformat(clean_date)
+                    elif hasattr(created_at, 'strftime'):
+                        dt = created_at
+                    else:
+                        continue
+                    
+                    month_key = dt.strftime('%Y-%m')
+                    if candidate.get('status') == 'Selected':
+                        monthly_success[month_key] += 1
+                except Exception as e:
+                    print(f"Success rate error: {e}")
+                    continue
+        
+        # Calculate success rates as percentages
+        for month in monthly_success:
+            total_in_month = monthly_data.get(month, 1)
+            monthly_success[month] = round((monthly_success[month] / total_in_month) * 100, 1)
+        
+        # HR Performance (if applicable)
+        hr_performance = []
+        hr_users = list(users_collection.find({'role': 'hr'}))
+        for hr in hr_users:
+            hr_candidates = [c for c in candidates if c.get('hr_email') == hr.get('email')]
+            hr_performance.append({
+                'name': hr.get('name', 'Unknown HR'),
+                'candidates_added': len(hr_candidates),
+                'successful_placements': len([c for c in hr_candidates if c.get('status') == 'Selected'])
+            })
+        
+        # Department distribution
+        departments = defaultdict(int)
+        for candidate in candidates:
+            dept = candidate.get('department', 'General')
+            departments[dept] += 1
+        
+        # Experience level distribution
+        experience_levels = [0, 0, 0, 0]  # 0-1, 1-3, 3-5, 5+ years
+        for candidate in candidates:
+            exp_years = candidate.get('experience_years', 0)
+            if exp_years <= 1:
+                experience_levels[0] += 1
+            elif exp_years <= 3:
+                experience_levels[1] += 1
+            elif exp_years <= 5:
+                experience_levels[2] += 1
+            else:
+                experience_levels[3] += 1
+        
         return jsonify({
             'success': True,
-            'status_counts': {'Pending': len([c for c in candidates if c.get('status') == 'Pending']),
-                             'Selected': len([c for c in candidates if c.get('status') == 'Selected']),
-                             'Interviewed': len([c for c in candidates if c.get('status') == 'Interviewed'])},
-            'monthly_data': {'2024-08': len(candidates)},
+            'status_counts': dict(status_counts),
+            'monthly_data': dict(monthly_data),
+            'weekly_trends': dict(weekly_trends),
+            'monthly_success': dict(monthly_success),
+            'hr_performance': hr_performance,
+            'departments': dict(departments),
+            'experience_levels': experience_levels,
             'total_candidates': len(candidates)
         })
     except Exception as e:
