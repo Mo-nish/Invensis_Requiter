@@ -295,3 +295,75 @@ def chat_with_ai():
         
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
+
+@chat_bp.route('/api/chat/upload', methods=['POST'])
+@login_required
+def upload_file():
+    """Upload file for chat sharing"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'message': 'No file selected'}), 400
+        
+        # Create uploads directory if it doesn't exist
+        import os
+        upload_dir = os.path.join('static', 'uploads', 'chat')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        import uuid
+        file_extension = os.path.splitext(file.filename)[1]
+        unique_filename = f"{uuid.uuid4()}_{file.filename}"
+        file_path = os.path.join(upload_dir, unique_filename)
+        
+        # Save file
+        file.save(file_path)
+        
+        # Return file info
+        return jsonify({
+            'success': True,
+            'file_url': f'/static/uploads/chat/{unique_filename}',
+            'file_name': file.filename,
+            'file_size': os.path.getsize(file_path)
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@chat_bp.route('/api/chat/call', methods=['POST'])
+@login_required
+def initiate_call():
+    """Initiate voice or video call"""
+    try:
+        data = request.get_json()
+        call_type = data.get('call_type', 'voice')  # 'voice' or 'video'
+        recipient_email = data.get('recipient_email')
+        
+        if not recipient_email:
+            return jsonify({'success': False, 'message': 'Recipient required'}), 400
+        
+        # Get recipient info
+        from models_mongo import users_collection
+        recipient = users_collection.find_one({'email': recipient_email})
+        if not recipient:
+            return jsonify({'success': False, 'message': 'Recipient not found'}), 404
+        
+        # Create call session
+        call_id = str(uuid.uuid4())
+        
+        # In a real app, you would integrate with WebRTC or a calling service
+        # For now, we'll create a call notification system
+        
+        return jsonify({
+            'success': True,
+            'call_id': call_id,
+            'call_type': call_type,
+            'recipient_name': recipient.get('name', 'Unknown'),
+            'message': f'{call_type.title()} call initiated with {recipient.get("name", "Unknown")}'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500

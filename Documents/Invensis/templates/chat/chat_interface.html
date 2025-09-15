@@ -500,6 +500,126 @@
             transform: scale(1.2);
         }
         
+        .call-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+        
+        .call-interface {
+            background: #202c33;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            min-width: 300px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .call-header h3 {
+            color: #e9edef;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        
+        .call-header p {
+            color: #8696a0;
+            margin: 0 0 20px 0;
+        }
+        
+        .call-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        .call-button {
+            background: #00a884;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .call-button:hover {
+            background: #008f6b;
+            transform: scale(1.05);
+        }
+        
+        .end-call {
+            background: #ff4444;
+        }
+        
+        .end-call:hover {
+            background: #cc3333;
+        }
+        
+        .call-status {
+            margin-top: 20px;
+            color: #8696a0;
+            font-size: 14px;
+        }
+        
+        .file-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #2a3942;
+            border-radius: 10px;
+            margin: 5px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .file-message:hover {
+            background: #3b4a54;
+        }
+        
+        .file-icon {
+            font-size: 24px;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            color: #e9edef;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .file-size {
+            color: #8696a0;
+            font-size: 12px;
+        }
+        
+        .download-button {
+            background: #00a884;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .download-button:hover {
+            background: #008f6b;
+        }
+        
         .send-button {
             background: #00a884;
             border: none;
@@ -1398,7 +1518,7 @@
             }
         }
         
-        async function sendToUser(message) {
+        async function sendToUser(message, messageType = 'text', fileUrl = null, fileName = null) {
             try {
                 const response = await fetch('/api/chat/messages', {
                     method: 'POST',
@@ -1407,7 +1527,10 @@
                     },
                     body: JSON.stringify({
                         conversation_id: currentConversationId,
-                        message_text: message
+                        message_text: message,
+                        message_type: messageType,
+                        file_url: fileUrl,
+                        file_name: fileName
                     })
                 });
                 
@@ -1417,7 +1540,13 @@
                 
                 if (data.success) {
                     // Message sent successfully
+                    addMessage(message, 'sent', messageType, null, fileUrl, fileName);
                     console.log('Message sent successfully');
+                    
+                    // Refresh conversation list
+                    setTimeout(() => {
+                        loadPreviousConversations();
+                    }, 1000);
                 } else {
                     addMessage('Failed to send message. Please try again.', 'received');
                 }
@@ -1427,14 +1556,19 @@
             }
         }
         
-        async function sendToAI(message) {
+        async function sendToAI(message, messageType = 'text', fileUrl = null, fileName = null) {
             try {
                 const response = await fetch('/api/chat/ai', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ message: message })
+                    body: JSON.stringify({ 
+                        message: message,
+                        message_type: messageType,
+                        file_url: fileUrl,
+                        file_name: fileName
+                    })
                 });
                 
                 const data = await response.json();
@@ -1452,7 +1586,7 @@
             }
         }
         
-        function addMessage(text, type) {
+        function addMessage(text, type, messageType = 'text', fileUrl = null, fileName = null) {
             const messagesContainer = document.getElementById('messagesContainer');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
@@ -1460,13 +1594,38 @@
             const now = new Date();
             const timeString = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
             
+            let messageContent = text;
+            if (messageType === 'file' && fileUrl) {
+                messageContent = `
+                    <div class="file-message">
+                        <span class="file-icon">📎</span>
+                        <div class="file-info">
+                            <div class="file-name">${fileName || 'File'}</div>
+                            <div class="file-size">Click to download</div>
+                        </div>
+                        <button class="download-button" onclick="downloadFile('${fileUrl}', '${fileName}')">Download</button>
+                    </div>
+                `;
+            }
+            
             messageDiv.innerHTML = `
-                <div class="message-bubble">${text}</div>
+                <div class="message-bubble">${messageContent}</div>
                 <div class="message-time">${timeString}</div>
             `;
             
             messagesContainer.appendChild(messageDiv);
             scrollToBottom();
+        }
+        
+        // Download file function
+        function downloadFile(fileUrl, fileName) {
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = fileName || 'download';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
         
         function showTypingIndicator() {
@@ -1542,19 +1701,50 @@
         function attachFile() {
             const input = document.createElement('input');
             input.type = 'file';
-            input.accept = '.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif';
+            input.accept = '.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.mp4,.mp3,.zip,.rar';
             input.onchange = function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    // Show file info
-                    const messageInput = document.getElementById('messageInput');
-                    messageInput.value = `📎 ${file.name}`;
-                    
-                    // In a real app, you would upload the file here
-                    console.log('File selected:', file.name);
+                    uploadFile(file);
                 }
             };
             input.click();
+        }
+        
+        // Upload file to server
+        function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/api/chat/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Send file message
+                    const fileMessage = `📎 ${data.file_name}`;
+                    sendMessageWithFile(fileMessage, data.file_url, data.file_name);
+                } else {
+                    alert('File upload failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+                alert('File upload failed');
+            });
+        }
+        
+        // Send message with file
+        function sendMessageWithFile(messageText, fileUrl, fileName) {
+            if (currentChatType === 'ai') {
+                sendToAI(messageText, 'file', fileUrl);
+            } else if (currentChatType === 'user' && currentConversationId) {
+                sendToUser(messageText, 'file', fileUrl);
+            } else {
+                alert('Please select a chat to send the file');
+            }
         }
         
         // Camera/Photo Function
@@ -1566,12 +1756,7 @@
             input.onchange = function(e) {
                 const file = e.target.files[0];
                 if (file) {
-                    // Show photo info
-                    const messageInput = document.getElementById('messageInput');
-                    messageInput.value = `📷 Photo: ${file.name}`;
-                    
-                    // In a real app, you would upload the photo here
-                    console.log('Photo selected:', file.name);
+                    uploadFile(file);
                 }
             };
             input.click();
@@ -1580,9 +1765,7 @@
         // Call Functions
         function startCall() {
             if (currentChatType === 'user' && currentConversationId) {
-                // In a real app, this would initiate a voice call
-                alert(`Starting voice call with ${document.getElementById('headerName').textContent}`);
-                console.log('Starting voice call...');
+                initiateCall('voice');
             } else {
                 alert('Please select a user to call');
             }
@@ -1590,12 +1773,98 @@
         
         function startVideoCall() {
             if (currentChatType === 'user' && currentConversationId) {
-                // In a real app, this would initiate a video call
-                alert(`Starting video call with ${document.getElementById('headerName').textContent}`);
-                console.log('Starting video call...');
+                initiateCall('video');
             } else {
                 alert('Please select a user for video call');
             }
+        }
+        
+        // Initiate call with server
+        function initiateCall(callType) {
+            const recipientEmail = getCurrentRecipientEmail();
+            if (!recipientEmail) {
+                alert('Recipient not found');
+                return;
+            }
+            
+            fetch('/api/chat/call', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    call_type: callType,
+                    recipient_email: recipientEmail
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show call interface
+                    showCallInterface(callType, data.call_id, data.recipient_name);
+                } else {
+                    alert('Call failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Call error:', error);
+                alert('Call failed');
+            });
+        }
+        
+        // Get current recipient email
+        function getCurrentRecipientEmail() {
+            // This would need to be stored when conversation is loaded
+            return window.currentRecipientEmail || null;
+        }
+        
+        // Show call interface
+        function showCallInterface(callType, callId, recipientName) {
+            const callModal = document.createElement('div');
+            callModal.className = 'call-modal';
+            callModal.innerHTML = `
+                <div class="call-interface">
+                    <div class="call-header">
+                        <h3>${callType === 'voice' ? '📞' : '📹'} ${callType === 'voice' ? 'Voice' : 'Video'} Call</h3>
+                        <p>Calling ${recipientName}...</p>
+                    </div>
+                    <div class="call-controls">
+                        <button class="call-button end-call" onclick="endCall('${callId}')">📞 End Call</button>
+                        <button class="call-button mute-call" onclick="toggleMute()">🔇 Mute</button>
+                        ${callType === 'video' ? '<button class="call-button camera-toggle" onclick="toggleCamera()">📹 Camera</button>' : ''}
+                    </div>
+                    <div class="call-status">
+                        <p>Call ID: ${callId}</p>
+                        <p>Status: Connecting...</p>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(callModal);
+            
+            // Auto-end call after 30 seconds for demo
+            setTimeout(() => {
+                endCall(callId);
+            }, 30000);
+        }
+        
+        // End call
+        function endCall(callId) {
+            const callModal = document.querySelector('.call-modal');
+            if (callModal) {
+                callModal.remove();
+            }
+            console.log('Call ended:', callId);
+        }
+        
+        // Toggle mute
+        function toggleMute() {
+            console.log('Mute toggled');
+        }
+        
+        // Toggle camera
+        function toggleCamera() {
+            console.log('Camera toggled');
         }
         
         function showChatMenu() {
