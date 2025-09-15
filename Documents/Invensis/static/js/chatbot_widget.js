@@ -226,6 +226,7 @@ class ChatbotWidget {
                         <div class="suggestion-item">💡 Ask about candidates</div>
                         <div class="suggestion-item">📊 Show analytics</div>
                         <div class="suggestion-item">🗓️ Check meetings</div>
+                        <div class="suggestion-item" onclick="window.open('/chat', '_blank')">💬 Internal Chat</div>
                     </div>
                 </div>
                 

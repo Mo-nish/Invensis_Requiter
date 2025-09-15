@@ -223,7 +223,7 @@ def _handle_quick_action(context, action: str) -> dict:
             'metadata': {'action_type': 'get_started'}
         },
         'contact_support': {
-            'content': "I'd be happy to connect you with our support team:\n\n• **Email**: support@invensis.com\n• **Phone**: +1-555-0123\n• **Live Chat**: Available 24/7\n• **Response Time**: Usually within 2 hours\n\nWhat's the best way to reach you, or would you like me to help you with something specific first?",
+            'content': "I'd be happy to connect you with our support team:\n\n• **Email**: monish.reddy@invensis.net\n• **Phone**: 7013984388\n• **Response Time**: Usually within 2 hours\n• **Availability**: Monday-Friday, 9 AM - 6 PM\n\nWhat's the best way to reach you, or would you like me to help you with something specific first?",
             'metadata': {'action_type': 'contact_support'}
         },
         'view_services': {
