@@ -492,10 +492,15 @@ def answer_call():
             {'$set': {'read': True}}
         )
         
+        # Get call type from call session
+        call_session = calls_collection.find_one({'call_id': call_id})
+        call_type = call_session.get('call_type', 'voice') if call_session else 'voice'
+        
         return jsonify({
             'success': True,
             'message': message,
-            'action': action
+            'action': action,
+            'call_type': call_type
         })
         
     except Exception as e:

@@ -2445,13 +2445,7 @@
             .then(data => {
                 console.log('Call ended:', data.message);
                 
-                // Add call duration message to chat
-                if (callDuration > 0) {
-                    const durationMinutes = Math.floor(callDuration / 60);
-                    const durationSeconds = callDuration % 60;
-                    const durationText = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
-                    addMessage(`📞 Call ended - Duration: ${durationText}`, 'sent');
-                }
+                // Call duration message is saved by backend
             })
             .catch(error => {
                 console.error('Error ending call:', error);
@@ -2565,8 +2559,7 @@
                 currentCallId = null;
                 callStartTime = null;
                 
-                // Add call ended message to chat
-                addMessage(`📞 Call ended by ${notification.caller_name} - Duration: ${notification.duration}`, 'received');
+                // Call ended message is saved by backend
                 
                 console.log('📞 Call cleanup completed');
             }
@@ -2593,11 +2586,13 @@
                     }
                     
                     if (action === 'accept') {
+                        // Get call type from notification data
+                        const callType = data.call_type || 'voice';
                         // Show call interface for accepted call
-                        showCallInterface('voice', callId, 'Call Connected', true);
+                        showCallInterface(callType, callId, 'Call Connected', true);
                         // Initialize WebRTC for incoming call
                         setTimeout(() => {
-                            initializeWebRTC('voice', true);
+                            initializeWebRTC(callType, true);
                         }, 500);
                     } else {
                         // Add declined call message
