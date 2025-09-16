@@ -220,6 +220,52 @@ def search_messages():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@chat_bp.route('/api/modern-chat/ai', methods=['POST'])
+@login_required
+def chat_with_ai():
+    """Chat with Invensis AI"""
+    try:
+        from chatbot_engine import ChatbotEngine
+        
+        data = request.get_json()
+        message = data.get('message', '')
+        conversation_id = data.get('conversation_id')
+        
+        if not message:
+            return jsonify({'success': False, 'error': 'Message is required'}), 400
+        
+        # Initialize chatbot engine
+        chatbot = ChatbotEngine()
+        
+        # Process the message
+        response = chatbot.process_message(
+            message=message,
+            user_id=current_user.id,
+            user_role=current_user.role,
+            session_id=conversation_id or f"ai_chat_{current_user.id}"
+        )
+        
+        # Save AI response to database if conversation_id provided
+        if conversation_id:
+            messages_collection = db.messages
+            ai_message = {
+                'conversation_id': conversation_id,
+                'sender_id': 'ai_assistant',
+                'content': response,
+                'message_type': 'text',
+                'timestamp': datetime.utcnow(),
+                'status': 'sent'
+            }
+            messages_collection.insert_one(ai_message)
+        
+        return jsonify({
+            'success': True,
+            'response': response,
+            'sender': 'ai_assistant'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 def get_user_conversation_ids():
     """Get conversation IDs where user is a participant"""
     conversations_collection = db.conversations
