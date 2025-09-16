@@ -2144,11 +2144,14 @@
                     }
                 };
                 
-                // Handle ICE candidates - SIMPLE APPROACH
+                // Handle ICE candidates - MINIMAL SIGNALING
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
                         console.log('ICE candidate generated:', event.candidate);
-                        // Don't send to server - just log for debugging
+                        // Send ICE candidate to server
+                        sendSignalingData('ice-candidate', event.candidate).catch(e => {
+                            console.log('ICE candidate send failed (continuing anyway):', e);
+                        });
                     } else {
                         console.log('ICE gathering complete');
                     }
@@ -2164,18 +2167,24 @@
                 };
                 
                 if (!isIncoming) {
-                    // Create offer for outgoing call - SIMPLE APPROACH
+                    // Create offer for outgoing call - MINIMAL SIGNALING
                     console.log('Creating offer for outgoing call...');
                     
                     const offer = await peerConnection.createOffer();
                     await peerConnection.setLocalDescription(offer);
                     console.log('Offer created and set as local description');
                     
-                    // Don't send to server - just log
-                    console.log('Offer created locally - no server signaling');
+                    // Send offer to recipient
+                    sendSignalingData('offer', offer).catch(e => {
+                        console.log('Offer send failed (continuing anyway):', e);
+                    });
+                    
+                    // Start checking for answers
+                    startSignalingCheck();
                 } else {
-                    // For incoming calls, just log
-                    console.log('Incoming call WebRTC initialized - no server signaling');
+                    // Start checking for offers for incoming call
+                    console.log('Starting signaling check for incoming call...');
+                    startSignalingCheck();
                 }
                 
                 // Update status
@@ -2196,7 +2205,7 @@
         // Send signaling data
         async function sendSignalingData(type, data) {
             try {
-                console.log(`Sending ${type} signaling data:`, data);
+                console.log(`📤 Sending ${type} signaling data`);
                 
                 const response = await fetch('/api/chat/call/signaling', {
                     method: 'POST',
@@ -2211,14 +2220,19 @@
                     })
                 });
                 
+                if (!response.ok) {
+                    console.log(`📤 Signaling failed (${response.status}) - continuing anyway`);
+                    return;
+                }
+                
                 const result = await response.json();
                 if (!result.success) {
-                    console.error('Failed to send signaling data:', result.message);
+                    console.log('📤 Signaling failed - continuing anyway:', result.message);
                 } else {
-                    console.log(`Successfully sent ${type} signaling data`);
+                    console.log('📤 Signaling sent successfully');
                 }
             } catch (error) {
-                console.error('Error sending signaling data:', error);
+                console.log('📤 Signaling error - continuing anyway:', error.message);
             }
         }
         
