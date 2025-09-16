@@ -20,6 +20,12 @@ def chat_interface():
     """Serve the WhatsApp-like chat interface"""
     return render_template('chat/chat_interface.html')
 
+@chat_bp.route('/modern-chat')
+@login_required
+def modern_chat_interface():
+    """Serve the modern chat interface"""
+    return render_template('chat/modern_chat.html')
+
 @chat_bp.route('/api/chat/home')
 @login_required
 def get_home_data():
