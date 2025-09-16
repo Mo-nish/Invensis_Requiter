@@ -785,6 +785,112 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* File Message Styles */
+        .file-message {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .file-icon {
+            font-size: 24px;
+        }
+
+        .file-info {
+            flex: 1;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .file-download a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 12px;
+        }
+
+        .file-download a:hover {
+            text-decoration: underline;
+        }
+
+        /* Image Message Styles */
+        .image-message img {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .image-message img:hover {
+            transform: scale(1.05);
+        }
+
+        /* Message Actions */
+        .message-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 5px;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .message:hover .message-actions {
+            opacity: 1;
+        }
+
+        .reaction-btn {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+            border-radius: 15px;
+            padding: 4px 8px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .reaction-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Notification Styles */
+        .notification {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Dark mode file styles */
+        body.dark-mode .file-message {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: rgba(102, 126, 234, 0.3);
+        }
+
+        body.dark-mode .file-name {
+            color: #e9edef;
+        }
+
+        body.dark-mode .file-download a {
+            color: #667eea;
+        }
     </style>
 </head>
 <body>
@@ -920,6 +1026,7 @@
     <input type="file" id="fileInput" style="display: none;" multiple>
     <input type="file" id="imageInput" style="display: none;" accept="image/*">
 
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script>
         // Global variables
         let currentUser = {
@@ -936,6 +1043,7 @@
         let messages = [];
         let users = [];
         let conversations = [];
+        let onlineUsers = new Set();
 
         // Initialize the chat
         document.addEventListener('DOMContentLoaded', function() {
@@ -956,12 +1064,62 @@
             // Setup search functionality
             setupSearch();
             
+            // Load users
+            loadUsers();
+            
             console.log('✅ Chat initialized successfully');
         }
 
         function initializeSocket() {
-            // Socket.IO will be implemented here
-            console.log('🔌 Socket.IO connection will be established');
+            console.log('🔌 Connecting to Socket.IO...');
+            
+            socket = io({
+                transports: ['websocket', 'polling'],
+                timeout: 10000
+            });
+            
+            socket.on('connect', () => {
+                console.log('✅ Socket.IO connected:', socket.id);
+                
+                // Notify server that user is online
+                socket.emit('user_online', {
+                    user_id: currentUser.id
+                });
+            });
+            
+            socket.on('disconnect', () => {
+                console.log('❌ Socket.IO disconnected');
+            });
+            
+            socket.on('new_message', (data) => {
+                console.log('📨 New message received:', data);
+                handleNewMessage(data);
+            });
+            
+            socket.on('user_typing', (data) => {
+                console.log('⌨️ User typing:', data);
+                handleTypingIndicator(data);
+            });
+            
+            socket.on('message_reaction_added', (data) => {
+                console.log('😀 Reaction added:', data);
+                handleMessageReaction(data);
+            });
+            
+            socket.on('message_read_status', (data) => {
+                console.log('👁️ Message read:', data);
+                handleMessageRead(data);
+            });
+            
+            socket.on('user_online_status', (data) => {
+                console.log('🟢 User online status:', data);
+                handleUserOnlineStatus(data);
+            });
+            
+            socket.on('user_joined', (data) => {
+                console.log('👤 User joined:', data);
+                showNotification(`${data.user_id} joined the conversation`);
+            });
         }
 
         function loadEmojiPicker() {
@@ -992,39 +1150,69 @@
             messageInput.addEventListener('blur', stopTyping);
         }
 
-        function loadConversations() {
-            // Mock data for now - will be replaced with API calls
+        async function loadConversations() {
+            try {
+                const response = await fetch('/api/modern-chat/conversations');
+                const data = await response.json();
+                
+                if (data.success) {
+                    conversations = data.conversations;
+                    renderConversations();
+                } else {
+                    console.error('Failed to load conversations:', data.error);
+                    // Fallback to mock data
+                    loadMockConversations();
+                }
+            } catch (error) {
+                console.error('Error loading conversations:', error);
+                loadMockConversations();
+            }
+        }
+
+        function loadMockConversations() {
             conversations = [
                 {
-                    id: 1,
+                    _id: '1',
                     name: 'Monish Reddy',
-                    lastMessage: 'Hey, how are you doing?',
-                    time: '2:30 PM',
-                    unreadCount: 2,
+                    last_message: { content: 'Hey, how are you doing?', timestamp: new Date() },
+                    unread_count: 2,
                     avatar: 'M',
                     online: true
                 },
                 {
-                    id: 2,
+                    _id: '2',
                     name: 'HR Team',
-                    lastMessage: 'Meeting at 3 PM today',
-                    time: '1:45 PM',
-                    unreadCount: 0,
+                    last_message: { content: 'Meeting at 3 PM today', timestamp: new Date() },
+                    unread_count: 0,
                     avatar: 'H',
                     online: true
                 },
                 {
-                    id: 3,
+                    _id: '3',
                     name: 'Development Team',
-                    lastMessage: 'Code review completed',
-                    time: '12:20 PM',
-                    unreadCount: 5,
+                    last_message: { content: 'Code review completed', timestamp: new Date() },
+                    unread_count: 5,
                     avatar: 'D',
                     online: false
                 }
             ];
-
             renderConversations();
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/api/modern-chat/users');
+                const data = await response.json();
+                
+                if (data.success) {
+                    users = data.users;
+                    console.log('👥 Users loaded:', users.length);
+                } else {
+                    console.error('Failed to load users:', data.error);
+                }
+            } catch (error) {
+                console.error('Error loading users:', error);
+            }
         }
 
         function renderConversations() {
@@ -1036,18 +1224,25 @@
                 chatItem.className = 'chat-item';
                 chatItem.onclick = () => selectChat(conversation);
 
+                const lastMessage = conversation.last_message ? conversation.last_message.content : 'No messages yet';
+                const time = conversation.last_message ? 
+                    new Date(conversation.last_message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : 
+                    new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                const avatar = conversation.name ? conversation.name.charAt(0).toUpperCase() : 'U';
+                const online = onlineUsers.has(conversation._id);
+
                 chatItem.innerHTML = `
                     <div class="chat-avatar">
-                        ${conversation.avatar}
-                        ${conversation.online ? '<div class="online-indicator"></div>' : ''}
+                        ${avatar}
+                        ${online ? '<div class="online-indicator"></div>' : ''}
                     </div>
                     <div class="chat-info">
-                        <div class="chat-name">${conversation.name}</div>
-                        <div class="chat-last-message">${conversation.lastMessage}</div>
+                        <div class="chat-name">${conversation.name || 'Unknown User'}</div>
+                        <div class="chat-last-message">${lastMessage}</div>
                     </div>
                     <div class="chat-meta">
-                        <div class="chat-time">${conversation.time}</div>
-                        ${conversation.unreadCount > 0 ? `<div class="unread-count">${conversation.unreadCount}</div>` : ''}
+                        <div class="chat-time">${time}</div>
+                        ${conversation.unread_count > 0 ? `<div class="unread-count">${conversation.unread_count}</div>` : ''}
                     </div>
                 `;
 
@@ -1055,7 +1250,7 @@
             });
         }
 
-        function selectChat(conversation) {
+        async function selectChat(conversation) {
             currentChat = conversation;
             
             // Update UI
@@ -1063,11 +1258,14 @@
             document.getElementById('chatInterface').style.display = 'flex';
             
             // Update header
-            document.getElementById('chatHeaderName').textContent = conversation.name;
-            document.getElementById('chatHeaderAvatar').textContent = conversation.avatar;
+            const avatar = conversation.name ? conversation.name.charAt(0).toUpperCase() : 'U';
+            const online = onlineUsers.has(conversation._id);
+            
+            document.getElementById('chatHeaderName').textContent = conversation.name || 'Unknown User';
+            document.getElementById('chatHeaderAvatar').textContent = avatar;
             document.getElementById('chatHeaderStatus').innerHTML = `
                 <span class="online-indicator"></span>
-                ${conversation.online ? 'Online' : 'Offline'}
+                ${online ? 'Online' : 'Offline'}
             `;
 
             // Update active chat in sidebar
@@ -1076,43 +1274,72 @@
             });
             event.currentTarget.classList.add('active');
 
+            // Join conversation room
+            if (socket) {
+                socket.emit('join_chat', {
+                    user_id: currentUser.id,
+                    conversation_id: conversation._id
+                });
+            }
+
             // Load messages for this conversation
-            loadMessages(conversation.id);
+            await loadMessages(conversation._id);
         }
 
-        function loadMessages(conversationId) {
-            // Mock messages - will be replaced with API calls
+        async function loadMessages(conversationId) {
+            try {
+                const response = await fetch(`/api/modern-chat/conversations/${conversationId}/messages`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    messages = data.messages;
+                    renderMessages();
+                } else {
+                    console.error('Failed to load messages:', data.error);
+                    // Fallback to mock data
+                    loadMockMessages();
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                loadMockMessages();
+            }
+        }
+
+        function loadMockMessages() {
             messages = [
                 {
-                    id: 1,
-                    sender: 'other',
+                    _id: '1',
+                    sender_id: 'other',
                     content: 'Hey! How are you doing?',
-                    time: '2:25 PM',
-                    status: 'read'
+                    timestamp: new Date(),
+                    status: 'read',
+                    message_type: 'text'
                 },
                 {
-                    id: 2,
-                    sender: 'me',
+                    _id: '2',
+                    sender_id: currentUser.id,
                     content: 'I\'m doing great! Thanks for asking. How about you?',
-                    time: '2:26 PM',
-                    status: 'read'
+                    timestamp: new Date(),
+                    status: 'read',
+                    message_type: 'text'
                 },
                 {
-                    id: 3,
-                    sender: 'other',
+                    _id: '3',
+                    sender_id: 'other',
                     content: 'Pretty good! Just working on some new features for the chat system.',
-                    time: '2:27 PM',
-                    status: 'read'
+                    timestamp: new Date(),
+                    status: 'read',
+                    message_type: 'text'
                 },
                 {
-                    id: 4,
-                    sender: 'me',
+                    _id: '4',
+                    sender_id: currentUser.id,
                     content: 'That sounds exciting! What kind of features are you working on?',
-                    time: '2:28 PM',
-                    status: 'delivered'
+                    timestamp: new Date(),
+                    status: 'delivered',
+                    message_type: 'text'
                 }
             ];
-
             renderMessages();
         }
 
@@ -1122,7 +1349,9 @@
 
             messages.forEach(message => {
                 const messageDiv = document.createElement('div');
-                messageDiv.className = `message ${message.sender === 'me' ? 'sent' : 'received'}`;
+                const isOwnMessage = message.sender_id === currentUser.id;
+                messageDiv.className = `message ${isOwnMessage ? 'sent' : 'received'}`;
+                messageDiv.setAttribute('data-message-id', message._id);
 
                 const statusIcons = {
                     'sent': '<i class="fas fa-check status-icon"></i>',
@@ -1130,11 +1359,46 @@
                     'read': '<i class="fas fa-check-double status-icon read"></i>'
                 };
 
+                const time = new Date(message.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                let messageContent = message.content;
+                if (message.message_type === 'file') {
+                    messageContent = `
+                        <div class="file-message">
+                            <div class="file-icon">📎</div>
+                            <div class="file-info">
+                                <div class="file-name">${message.file_name || 'File'}</div>
+                                <div class="file-download">
+                                    <a href="${message.file_url}" download>Download</a>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else if (message.message_type === 'image') {
+                    messageContent = `
+                        <div class="image-message">
+                            <img src="${message.file_url}" alt="Image" onclick="openImageModal('${message.file_url}')">
+                        </div>
+                    `;
+                }
+
                 messageDiv.innerHTML = `
                     <div class="message-bubble">
-                        ${message.content}
-                        <div class="message-time">${message.time}</div>
-                        ${message.sender === 'me' ? `<div class="message-status">${statusIcons[message.status]}</div>` : ''}
+                        ${messageContent}
+                        <div class="message-time">${time}</div>
+                        ${isOwnMessage ? `<div class="message-status">${statusIcons[message.status]}</div>` : ''}
+                        ${message.reactions && message.reactions.length > 0 ? `
+                            <div class="message-reactions">
+                                ${message.reactions.map(r => `<span class="reaction">${r.reaction}</span>`).join('')}
+                            </div>
+                        ` : ''}
+                        ${!isOwnMessage ? `
+                            <div class="message-actions">
+                                <button class="reaction-btn" onclick="addReaction('${message._id}', '👍')">👍</button>
+                                <button class="reaction-btn" onclick="addReaction('${message._id}', '❤️')">❤️</button>
+                                <button class="reaction-btn" onclick="addReaction('${message._id}', '😂')">😂</button>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
 
@@ -1145,19 +1409,20 @@
             messagesArea.scrollTop = messagesArea.scrollHeight;
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const messageInput = document.getElementById('messageInput');
             const content = messageInput.value.trim();
 
-            if (!content) return;
+            if (!content || !currentChat) return;
 
             // Add message to UI immediately
             const newMessage = {
-                id: Date.now(),
-                sender: 'me',
+                _id: Date.now().toString(),
+                sender_id: currentUser.id,
                 content: content,
-                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-                status: 'sent'
+                timestamp: new Date(),
+                status: 'sent',
+                message_type: 'text'
             };
 
             messages.push(newMessage);
@@ -1166,8 +1431,15 @@
             // Clear input
             messageInput.value = '';
 
-            // Send via Socket.IO (will be implemented)
-            console.log('📤 Sending message:', content);
+            // Send via Socket.IO
+            if (socket) {
+                socket.emit('send_message', {
+                    user_id: currentUser.id,
+                    conversation_id: currentChat._id,
+                    content: content,
+                    type: 'text'
+                });
+            }
 
             // Update conversation list
             updateLastMessage(content);
@@ -1257,12 +1529,238 @@
             });
         }
 
+        // Socket.IO Event Handlers
+        function handleNewMessage(data) {
+            if (data.conversation_id === currentChat._id) {
+                messages.push(data);
+                renderMessages();
+            }
+            // Update conversation list
+            loadConversations();
+        }
+
+        function handleTypingIndicator(data) {
+            if (data.conversation_id === currentChat._id) {
+                showTypingIndicator(data.user_id, data.typing);
+            }
+        }
+
+        function handleMessageReaction(data) {
+            const messageElement = document.querySelector(`[data-message-id="${data.message_id}"]`);
+            if (messageElement) {
+                const reactionsDiv = messageElement.querySelector('.message-reactions');
+                if (reactionsDiv) {
+                    reactionsDiv.innerHTML += `<span class="reaction">${data.reaction}</span>`;
+                } else {
+                    const messageBubble = messageElement.querySelector('.message-bubble');
+                    messageBubble.innerHTML += `
+                        <div class="message-reactions">
+                            <span class="reaction">${data.reaction}</span>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        function handleMessageRead(data) {
+            const messageElement = document.querySelector(`[data-message-id="${data.message_id}"]`);
+            if (messageElement) {
+                const statusIcon = messageElement.querySelector('.status-icon');
+                if (statusIcon) {
+                    statusIcon.className = 'fas fa-check-double status-icon read';
+                }
+            }
+        }
+
+        function handleUserOnlineStatus(data) {
+            if (data.online) {
+                onlineUsers.add(data.user_id);
+            } else {
+                onlineUsers.delete(data.user_id);
+            }
+            renderConversations();
+        }
+
+        // Typing Indicator Functions
+        function showTypingIndicator(userId, isTyping) {
+            const messagesArea = document.getElementById('messagesArea');
+            let typingDiv = document.getElementById('typingIndicator');
+            
+            if (isTyping) {
+                if (!typingDiv) {
+                    typingDiv = document.createElement('div');
+                    typingDiv.id = 'typingIndicator';
+                    typingDiv.className = 'typing-indicator';
+                    typingDiv.innerHTML = `
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                        <span>${userId} is typing...</span>
+                    `;
+                    messagesArea.appendChild(typingDiv);
+                }
+            } else {
+                if (typingDiv) {
+                    typingDiv.remove();
+                }
+            }
+        }
+
+        // Message Reaction Functions
+        function addReaction(messageId, reaction) {
+            if (socket && currentChat) {
+                socket.emit('message_reaction', {
+                    user_id: currentUser.id,
+                    message_id: messageId,
+                    reaction: reaction,
+                    conversation_id: currentChat._id
+                });
+            }
+        }
+
+        // File Upload Functions
+        async function uploadFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch('/api/modern-chat/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    return data;
+                } else {
+                    throw new Error(data.error);
+                }
+            } catch (error) {
+                console.error('File upload error:', error);
+                showNotification('Failed to upload file', 'error');
+                return null;
+            }
+        }
+
+        async function sendFileMessage(file, messageType) {
+            const uploadResult = await uploadFile(file);
+            if (!uploadResult) return;
+
+            const newMessage = {
+                _id: Date.now().toString(),
+                sender_id: currentUser.id,
+                content: `📎 ${uploadResult.file_name}`,
+                timestamp: new Date(),
+                status: 'sent',
+                message_type: messageType,
+                file_url: uploadResult.file_url,
+                file_name: uploadResult.file_name
+            };
+
+            messages.push(newMessage);
+            renderMessages();
+
+            // Send via Socket.IO
+            if (socket && currentChat) {
+                socket.emit('send_message', {
+                    user_id: currentUser.id,
+                    conversation_id: currentChat._id,
+                    content: newMessage.content,
+                    type: messageType,
+                    file_url: uploadResult.file_url,
+                    file_name: uploadResult.file_name
+                });
+            }
+
+            updateLastMessage(newMessage.content);
+        }
+
+        // Search Functions
+        async function searchMessages(query) {
+            if (!query.trim()) return;
+            
+            try {
+                const response = await fetch(`/api/modern-chat/search?q=${encodeURIComponent(query)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displaySearchResults(data.messages);
+                } else {
+                    console.error('Search failed:', data.error);
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+            }
+        }
+
+        function displaySearchResults(searchResults) {
+            // This would show search results in a modal or sidebar
+            console.log('Search results:', searchResults);
+            showNotification(`Found ${searchResults.length} messages`, 'info');
+        }
+
+        // Utility Functions
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
+                color: white;
+                padding: 12px 20px;
+                border-radius: 8px;
+                z-index: 10000;
+                animation: slideIn 0.3s ease-out;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        function openImageModal(imageUrl) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 10000;
+                cursor: pointer;
+            `;
+            
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.style.cssText = `
+                max-width: 90%;
+                max-height: 90%;
+                border-radius: 8px;
+            `;
+            
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
+            modal.onclick = () => modal.remove();
+        }
+
         // File input handlers
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
             files.forEach(file => {
                 console.log('📎 File selected:', file.name);
-                // Handle file upload
+                sendFileMessage(file, 'file');
             });
         });
 
@@ -1270,8 +1768,16 @@
             const files = Array.from(e.target.files);
             files.forEach(file => {
                 console.log('🖼️ Image selected:', file.name);
-                // Handle image upload
+                sendFileMessage(file, 'image');
             });
+        });
+
+        // Enhanced search functionality
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            if (query.length > 2) {
+                searchMessages(query);
+            }
         });
     </script>
 </body>

@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
 from flask_socketio import SocketIO, emit, join_room, leave_room
+from datetime import datetime
+from bson import ObjectId
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime, timedelta
@@ -391,7 +393,7 @@ if __name__ == '__main__':
     print("🔧 Admin Portal: http://localhost:5001/admin/login")
     print("=" * 50)
     
-    # WebSocket event handlers
+    # WebSocket event handlers for modern chat
     @socketio.on('connect')
     def handle_connect():
         print(f"🔌 Socket.IO connected: {request.sid}")
@@ -400,75 +402,156 @@ if __name__ == '__main__':
     @socketio.on('disconnect')
     def handle_disconnect():
         print(f"🔌 Socket.IO disconnected: {request.sid}")
+        # Update user online status
+        if hasattr(request, 'user_id'):
+            emit('user_offline', {'user_id': request.user_id}, broadcast=True)
     
-    @socketio.on('join_call')
-    def handle_join_call(data):
-        call_id = data.get('call_id')
-        user_email = data.get('user_email')
-        join_room(call_id)
-        print(f"👤 {user_email} joined call room: {call_id}")
-        emit('joined_call', {'call_id': call_id, 'user_email': user_email})
+    @socketio.on('join_chat')
+    def handle_join_chat(data):
+        """User joins a chat conversation"""
+        user_id = data.get('user_id')
+        conversation_id = data.get('conversation_id')
+        
+        if user_id and conversation_id:
+            join_room(f"conversation_{conversation_id}")
+            request.user_id = user_id
+            print(f"👤 User {user_id} joined conversation {conversation_id}")
+            
+            # Notify others in the conversation
+            emit('user_joined', {
+                'user_id': user_id,
+                'conversation_id': conversation_id
+            }, room=f"conversation_{conversation_id}", include_self=False)
     
-    @socketio.on('call_offer')
-    def handle_call_offer(data):
-        call_id = data.get('call_id')
-        recipient_email = data.get('recipient_email')
-        offer = data.get('offer')
-        call_type = data.get('call_type', 'voice')
-        
-        print(f"📞 Call offer from {request.sid} to {recipient_email} in room {call_id}")
-        
-        # Send offer to all in call room (including sender for debugging)
-        emit('call_offer', {
-            'call_id': call_id,
-            'offer': offer,
-            'call_type': call_type,
-            'from': request.sid
-        }, room=call_id)
+    @socketio.on('leave_chat')
+    def handle_leave_chat(data):
+        """User leaves a chat conversation"""
+        conversation_id = data.get('conversation_id')
+        if conversation_id:
+            leave_room(f"conversation_{conversation_id}")
+            print(f"👤 User left conversation {conversation_id}")
     
-    @socketio.on('call_answer')
-    def handle_call_answer(data):
-        call_id = data.get('call_id')
-        answer = data.get('answer')
+    @socketio.on('send_message')
+    def handle_send_message(data):
+        """Handle new message"""
+        user_id = data.get('user_id')
+        conversation_id = data.get('conversation_id')
+        content = data.get('content')
+        message_type = data.get('type', 'text')
+        file_url = data.get('file_url')
+        file_name = data.get('file_name')
         
-        print(f"📞 Call answer from {request.sid} in room {call_id}")
-        
-        # Send answer to all in call room
-        emit('call_answer', {
-            'call_id': call_id,
-            'answer': answer,
-            'from': request.sid
-        }, room=call_id)
+        if user_id and conversation_id and content:
+            # Save message to database
+            message_data = {
+                'conversation_id': conversation_id,
+                'sender_id': user_id,
+                'content': content,
+                'message_type': message_type,
+                'file_url': file_url,
+                'file_name': file_name,
+                'timestamp': datetime.utcnow(),
+                'status': 'sent'
+            }
+            
+            # Add to messages collection
+            messages_collection = db.messages
+            result = messages_collection.insert_one(message_data)
+            message_data['_id'] = str(result.inserted_id)
+            
+            # Broadcast to all users in conversation
+            emit('new_message', message_data, room=f"conversation_{conversation_id}")
+            
+            print(f"📤 Message sent by {user_id} in conversation {conversation_id}")
     
-    @socketio.on('ice_candidate')
-    def handle_ice_candidate(data):
-        call_id = data.get('call_id')
-        candidate = data.get('candidate')
+    @socketio.on('typing_start')
+    def handle_typing_start(data):
+        """User starts typing"""
+        user_id = data.get('user_id')
+        conversation_id = data.get('conversation_id')
         
-        print(f"🧊 ICE candidate from {request.sid} in room {call_id}")
-        
-        # Send ICE candidate to all in call room
-        emit('ice_candidate', {
-            'call_id': call_id,
-            'candidate': candidate,
-            'from': request.sid
-        }, room=call_id)
+        if user_id and conversation_id:
+            emit('user_typing', {
+                'user_id': user_id,
+                'conversation_id': conversation_id,
+                'typing': True
+            }, room=f"conversation_{conversation_id}", include_self=False)
     
-    @socketio.on('call_end')
-    def handle_call_end(data):
-        call_id = data.get('call_id')
-        duration = data.get('duration', 0)
+    @socketio.on('typing_stop')
+    def handle_typing_stop(data):
+        """User stops typing"""
+        user_id = data.get('user_id')
+        conversation_id = data.get('conversation_id')
         
-        print(f"📞 Call ended: {call_id}, duration: {duration}")
+        if user_id and conversation_id:
+            emit('user_typing', {
+                'user_id': user_id,
+                'conversation_id': conversation_id,
+                'typing': False
+            }, room=f"conversation_{conversation_id}", include_self=False)
+    
+    @socketio.on('message_reaction')
+    def handle_message_reaction(data):
+        """Handle message reactions (👍❤️😂)"""
+        user_id = data.get('user_id')
+        message_id = data.get('message_id')
+        reaction = data.get('reaction')
+        conversation_id = data.get('conversation_id')
         
-        # Send call end to all in call room
-        emit('call_end', {
-            'call_id': call_id,
-            'duration': duration,
-            'from': request.sid
-        }, room=call_id)
+        if user_id and message_id and reaction and conversation_id:
+            # Update message with reaction
+            messages_collection = db.messages
+            messages_collection.update_one(
+                {'_id': ObjectId(message_id)},
+                {'$addToSet': {'reactions': {'user_id': user_id, 'reaction': reaction}}}
+            )
+            
+            # Broadcast reaction to conversation
+            emit('message_reaction_added', {
+                'message_id': message_id,
+                'user_id': user_id,
+                'reaction': reaction
+            }, room=f"conversation_{conversation_id}")
+            
+            print(f"😀 Reaction {reaction} added by {user_id} to message {message_id}")
+    
+    @socketio.on('message_read')
+    def handle_message_read(data):
+        """Mark message as read"""
+        user_id = data.get('user_id')
+        message_id = data.get('message_id')
+        conversation_id = data.get('conversation_id')
         
-        # Leave room
-        leave_room(call_id)
+        if user_id and message_id and conversation_id:
+            # Update message status
+            messages_collection = db.messages
+            messages_collection.update_one(
+                {'_id': ObjectId(message_id)},
+                {'$set': {'status': 'read', 'read_by': user_id, 'read_at': datetime.utcnow()}}
+            )
+            
+            # Broadcast read status
+            emit('message_read_status', {
+                'message_id': message_id,
+                'user_id': user_id,
+                'status': 'read'
+            }, room=f"conversation_{conversation_id}")
+    
+    @socketio.on('user_online')
+    def handle_user_online(data):
+        """User comes online"""
+        user_id = data.get('user_id')
+        if user_id:
+            request.user_id = user_id
+            emit('user_online_status', {'user_id': user_id, 'online': True}, broadcast=True)
+            print(f"🟢 User {user_id} is online")
+    
+    @socketio.on('user_offline')
+    def handle_user_offline(data):
+        """User goes offline"""
+        user_id = data.get('user_id')
+        if user_id:
+            emit('user_online_status', {'user_id': user_id, 'online': False}, broadcast=True)
+            print(f"🔴 User {user_id} is offline")
     
     socketio.run(app, debug=True, host='0.0.0.0', port=5001) 

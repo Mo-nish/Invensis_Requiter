@@ -26,6 +26,208 @@ def modern_chat_interface():
     """Serve the modern chat interface"""
     return render_template('chat/modern_chat.html')
 
+# Modern Chat API Endpoints
+@chat_bp.route('/api/modern-chat/conversations')
+@login_required
+def get_conversations():
+    """Get all conversations for the current user"""
+    try:
+        conversations_collection = db.conversations
+        messages_collection = db.messages
+        
+        # Get conversations where user is a participant
+        conversations = list(conversations_collection.find({
+            'participants': current_user.id
+        }).sort('last_message_time', -1))
+        
+        # Get last message and unread count for each conversation
+        for conv in conversations:
+            # Get last message
+            last_message = messages_collection.find_one(
+                {'conversation_id': str(conv['_id'])},
+                sort=[('timestamp', -1)]
+            )
+            
+            if last_message:
+                conv['last_message'] = {
+                    'content': last_message['content'],
+                    'timestamp': last_message['timestamp'],
+                    'sender_id': last_message['sender_id']
+                }
+            
+            # Get unread count
+            unread_count = messages_collection.count_documents({
+                'conversation_id': str(conv['_id']),
+                'sender_id': {'$ne': current_user.id},
+                'status': {'$ne': 'read'}
+            })
+            conv['unread_count'] = unread_count
+        
+        return jsonify({
+            'success': True,
+            'conversations': conversations
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/modern-chat/conversations/<conversation_id>/messages')
+@login_required
+def get_messages(conversation_id):
+    """Get messages for a specific conversation"""
+    try:
+        messages_collection = db.messages
+        
+        # Get messages for conversation
+        messages = list(messages_collection.find({
+            'conversation_id': conversation_id
+        }).sort('timestamp', 1))
+        
+        # Mark messages as read
+        messages_collection.update_many(
+            {
+                'conversation_id': conversation_id,
+                'sender_id': {'$ne': current_user.id},
+                'status': {'$ne': 'read'}
+            },
+            {'$set': {'status': 'read', 'read_by': current_user.id, 'read_at': datetime.utcnow()}}
+        )
+        
+        return jsonify({
+            'success': True,
+            'messages': messages
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/modern-chat/users')
+@login_required
+def get_users():
+    """Get all users for chat"""
+    try:
+        users_collection = db.users
+        
+        # Get all users except current user
+        users = list(users_collection.find(
+            {'_id': {'$ne': current_user.id}},
+            {'name': 1, 'email': 1, 'role': 1, 'profile_picture': 1}
+        ))
+        
+        return jsonify({
+            'success': True,
+            'users': users
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/modern-chat/conversations', methods=['POST'])
+@login_required
+def create_conversation():
+    """Create a new conversation"""
+    try:
+        data = request.get_json()
+        participants = data.get('participants', [])
+        participants.append(current_user.id)
+        
+        conversations_collection = db.conversations
+        
+        # Check if conversation already exists
+        existing_conv = conversations_collection.find_one({
+            'participants': {'$all': participants, '$size': len(participants)}
+        })
+        
+        if existing_conv:
+            return jsonify({
+                'success': True,
+                'conversation_id': str(existing_conv['_id']),
+                'existing': True
+            })
+        
+        # Create new conversation
+        conversation_data = {
+            'participants': participants,
+            'created_by': current_user.id,
+            'created_at': datetime.utcnow(),
+            'last_message_time': datetime.utcnow()
+        }
+        
+        result = conversations_collection.insert_one(conversation_data)
+        
+        return jsonify({
+            'success': True,
+            'conversation_id': str(result.inserted_id),
+            'existing': False
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/modern-chat/upload', methods=['POST'])
+@login_required
+def upload_file():
+    """Upload file for chat"""
+    try:
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'error': 'No file provided'}), 400
+        
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'success': False, 'error': 'No file selected'}), 400
+        
+        # Create uploads directory if it doesn't exist
+        upload_dir = os.path.join(app.root_path, 'static', 'uploads', 'chat')
+        os.makedirs(upload_dir, exist_ok=True)
+        
+        # Generate unique filename
+        filename = secure_filename(file.filename)
+        unique_filename = f"{uuid.uuid4()}_{filename}"
+        file_path = os.path.join(upload_dir, unique_filename)
+        
+        # Save file
+        file.save(file_path)
+        
+        # Return file URL
+        file_url = f"/static/uploads/chat/{unique_filename}"
+        
+        return jsonify({
+            'success': True,
+            'file_url': file_url,
+            'file_name': filename,
+            'file_size': os.path.getsize(file_path)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/modern-chat/search')
+@login_required
+def search_messages():
+    """Search messages in conversations"""
+    try:
+        query = request.args.get('q', '').strip()
+        if not query:
+            return jsonify({'success': True, 'messages': []})
+        
+        messages_collection = db.messages
+        
+        # Search in message content
+        messages = list(messages_collection.find({
+            'content': {'$regex': query, '$options': 'i'},
+            'conversation_id': {'$in': get_user_conversation_ids()}
+        }).sort('timestamp', -1).limit(50))
+        
+        return jsonify({
+            'success': True,
+            'messages': messages
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+def get_user_conversation_ids():
+    """Get conversation IDs where user is a participant"""
+    conversations_collection = db.conversations
+    conversations = conversations_collection.find({
+        'participants': current_user.id
+    })
+    return [str(conv['_id']) for conv in conversations]
+
 @chat_bp.route('/api/chat/home')
 @login_required
 def get_home_data():
