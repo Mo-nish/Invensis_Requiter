@@ -2009,8 +2009,7 @@
             
             document.body.appendChild(callModal);
             
-            // Start call timer
-            startCallTimer();
+            // Timer will start when call is connected
             
             // Initialize WebRTC
             if (!isIncoming) {
@@ -2122,8 +2121,15 @@
                         status.textContent = peerConnection.connectionState;
                     }
                     
+                    // Start timer when connected
+                    if (peerConnection.connectionState === 'connected') {
+                        startCallTimer();
+                        console.log('⏰ Call connected - starting timer');
+                    }
+                    
                     // If connection fails, end the call
                     if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+                        stopCallTimer();
                         setTimeout(() => {
                             if (currentCallId) {
                                 endCall(currentCallId);
@@ -2361,6 +2367,7 @@
                 clearInterval(callTimer);
             }
             
+            callStartTime = new Date();
             callTimer = setInterval(() => {
                 if (callStartTime) {
                     const now = new Date();
@@ -2375,13 +2382,15 @@
                     }
                 }
             }, 1000);
+            
+            console.log('⏰ Call timer started');
         }
         
-        // Stop call timer
         function stopCallTimer() {
             if (callTimer) {
                 clearInterval(callTimer);
                 callTimer = null;
+                console.log('⏰ Call timer stopped');
             }
         }
         
@@ -2469,6 +2478,8 @@
                     data.notifications.forEach(notification => {
                         if (notification.type === 'incoming_call') {
                             showIncomingCallModal(notification);
+                        } else if (notification.type === 'call_ended') {
+                            handleCallEndedNotification(notification);
                         }
                     });
                 }
@@ -2513,6 +2524,52 @@
                     answerCall(notification.call_id, 'decline');
                 }
             }, 60000);
+        }
+        
+        // Handle call ended notification
+        function handleCallEndedNotification(notification) {
+            console.log('📞 Call ended notification received:', notification);
+            
+            // If we're in a call, end it
+            if (currentCallId && currentCallId === notification.call_id) {
+                console.log('📞 Ending call due to remote user ending it');
+                
+                // Stop timer and cleanup
+                stopCallTimer();
+                
+                // Clean up WebRTC
+                if (localStream) {
+                    localStream.getTracks().forEach(track => track.stop());
+                    localStream = null;
+                }
+                
+                if (peerConnection) {
+                    peerConnection.close();
+                    peerConnection = null;
+                }
+                
+                // Clean up remote audio element
+                const remoteAudio = document.getElementById('remoteAudio');
+                if (remoteAudio) {
+                    remoteAudio.srcObject = null;
+                    remoteAudio.remove();
+                }
+                
+                // Remove call modal
+                const callModal = document.getElementById('callModal');
+                if (callModal) {
+                    callModal.remove();
+                }
+                
+                // Reset call state
+                currentCallId = null;
+                callStartTime = null;
+                
+                // Add call ended message to chat
+                addMessage(`📞 Call ended by ${notification.caller_name} - Duration: ${notification.duration}`, 'received');
+                
+                console.log('📞 Call cleanup completed');
+            }
         }
         
         // Answer incoming call
