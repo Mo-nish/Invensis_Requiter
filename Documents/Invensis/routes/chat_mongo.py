@@ -7,7 +7,6 @@ import json
 import uuid
 from datetime import datetime
 from models_chat import ChatConversation, ChatMessage, ChatUser, init_chat_collections
-from app_mongo import db
 
 # Create blueprint
 chat_bp = Blueprint('chat', __name__)
@@ -33,6 +32,8 @@ def modern_chat_interface():
 def get_conversations():
     """Get all conversations for the current user"""
     try:
+        from flask import current_app
+        db = current_app.mongo.db
         conversations_collection = db.conversations
         messages_collection = db.messages
         
@@ -76,6 +77,8 @@ def get_conversations():
 def get_messages(conversation_id):
     """Get messages for a specific conversation"""
     try:
+        from flask import current_app
+        db = current_app.mongo.db
         messages_collection = db.messages
         
         # Get messages for conversation
@@ -105,6 +108,8 @@ def get_messages(conversation_id):
 def get_users():
     """Get all users for chat"""
     try:
+        from flask import current_app
+        db = current_app.mongo.db
         users_collection = db.users
         
         # Get all users except current user
@@ -125,6 +130,8 @@ def get_users():
 def create_conversation():
     """Create a new conversation"""
     try:
+        from flask import current_app
+        db = current_app.mongo.db
         data = request.get_json()
         participants = data.get('participants', [])
         participants.append(current_user.id)
@@ -206,6 +213,8 @@ def search_messages():
         if not query:
             return jsonify({'success': True, 'messages': []})
         
+        from flask import current_app
+        db = current_app.mongo.db
         messages_collection = db.messages
         
         # Search in message content
@@ -248,6 +257,8 @@ def chat_with_ai():
         
         # Save AI response to database if conversation_id provided
         if conversation_id:
+            from flask import current_app
+            db = current_app.mongo.db
             messages_collection = db.messages
             ai_message = {
                 'conversation_id': conversation_id,
@@ -269,6 +280,8 @@ def chat_with_ai():
 
 def get_user_conversation_ids():
     """Get conversation IDs where user is a participant"""
+    from flask import current_app
+    db = current_app.mongo.db
     conversations_collection = db.conversations
     conversations = conversations_collection.find({
         'participants': current_user.id
