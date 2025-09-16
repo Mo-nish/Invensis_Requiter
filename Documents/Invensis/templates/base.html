@@ -358,70 +358,6 @@
             }
         }
         
-        /* ===== FOOTER BRANDING STAMP ===== */
-        .footer-branding-stamp {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 1000;
-        }
-        
-        .stamp-content {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.1) 0%, rgba(59, 130, 246, 0.1) 100%);
-            border: 1px solid rgba(147, 51, 234, 0.3);
-            border-radius: 20px;
-            padding: 6px 12px;
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .stamp-content:hover {
-            background: linear-gradient(135deg, rgba(147, 51, 234, 0.2) 0%, rgba(59, 130, 246, 0.2) 100%);
-            border-color: rgba(147, 51, 234, 0.5);
-            transform: translateY(-1px);
-        }
-        
-        .stamp-icon {
-            font-size: 12px;
-            color: rgba(147, 51, 234, 0.8);
-        }
-        
-        .stamp-text {
-            font-size: 11px;
-            color: rgba(147, 51, 234, 0.8);
-            font-weight: 500;
-            letter-spacing: 0.3px;
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .footer-branding-stamp {
-                bottom: 15px;
-                right: 15px;
-            }
-            
-            .stamp-content {
-                padding: 5px 10px;
-                gap: 5px;
-            }
-            
-            .stamp-icon {
-                font-size: 11px;
-            }
-            
-            .stamp-text {
-                font-size: 10px;
-            }
-        }
-        
-        /* Remove body padding since we're not interfering with content */
-        body {
-            padding-bottom: 0;
-        }
         
         /* ===== 3D ANIMATION STYLES ===== */
         @keyframes float-slow {
@@ -604,6 +540,36 @@
         
         .btn-3d:active {
             transform: translateY(-1px) scale(1.02);
+        }
+        
+        /* Execution Button Special Styling */
+        .btn-execution {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #ff9ff3 100%);
+            box-shadow: 
+                0 6px 20px rgba(255, 107, 107, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            animation: executionGlow 2s ease-in-out infinite alternate;
+        }
+        
+        .btn-execution:hover {
+            box-shadow: 
+                0 12px 30px rgba(255, 107, 107, 0.6),
+                0 0 0 2px rgba(255, 255, 255, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.3);
+            transform: translateY(-3px) scale(1.05);
+        }
+        
+        @keyframes executionGlow {
+            0% {
+                box-shadow: 
+                    0 6px 20px rgba(255, 107, 107, 0.4),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+            100% {
+                box-shadow: 
+                    0 6px 20px rgba(255, 107, 107, 0.8),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
         }
         
         /* Portal-specific button variants */
@@ -1076,39 +1042,9 @@
     
     {% block extra_js %}{% endblock %}
     
-    <!-- Footer Branding Stamp -->
-    <div class="footer-branding-stamp">
-        <div class="stamp-content">
-            <i class="fas fa-code stamp-icon"></i>
-            <span class="stamp-text">Crafted by Monish Reddy</span>
-        </div>
-    </div>
     
     
     <script>
-        // Footer branding stamp click handler
-        function handleStampClick() {
-            const stamp = document.querySelector('.stamp-content');
-            
-            // Add a subtle click effect
-            stamp.style.transform = 'translateY(-1px) scale(0.95)';
-            
-            // Reset after animation
-            setTimeout(() => {
-                stamp.style.transform = '';
-            }, 200);
-            
-            // Optional: Show a tooltip or redirect
-            // window.location.href = '/about'; // Uncomment to redirect
-        }
-        
-        // Add click event to stamp
-        document.addEventListener('DOMContentLoaded', function() {
-            const stamp = document.querySelector('.stamp-content');
-            if (stamp) {
-                stamp.addEventListener('click', handleStampClick);
-            }
-        });
         
         
         // 3D Animation Counter Functions
