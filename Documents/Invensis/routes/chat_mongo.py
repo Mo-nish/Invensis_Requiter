@@ -349,7 +349,7 @@ def get_user_conversations():
 
 @chat_bp.route('/api/chat/conversations', methods=['POST'])
 @login_required
-def create_conversation():
+def create_legacy_conversation():
     """Create or get existing conversation with another user"""
     try:
         data = request.get_json()
@@ -388,7 +388,7 @@ def create_conversation():
 
 @chat_bp.route('/api/chat/messages/<conversation_id>')
 @login_required
-def get_messages(conversation_id):
+def get_legacy_messages(conversation_id):
     """Get messages for a conversation"""
     try:
         # Verify user is participant
@@ -507,7 +507,7 @@ def chat_with_ai():
 
 @chat_bp.route('/api/chat/upload', methods=['POST'])
 @login_required
-def upload_file():
+def upload_legacy_file():
     """Upload file for chat sharing"""
     try:
         if 'file' not in request.files:
