@@ -1988,17 +1988,20 @@
                         </div>
                     ` : ''}
                     
-                    <div class="call-controls">
-                        <button class="call-button mute-call ${isMuted ? 'active' : ''}" onclick="toggleMute()" id="muteBtn">
-                            ${isMuted ? '🔇' : '🎤'}
-                        </button>
-                        ${callType === 'video' ? `
-                            <button class="call-button camera-toggle ${isCameraOff ? 'active' : ''}" onclick="toggleCamera()" id="cameraBtn">
-                                ${isCameraOff ? '📹' : '📷'}
+                        <div class="call-controls">
+                            <button class="call-button mute-call ${isMuted ? 'active' : ''}" onclick="toggleMute()" id="muteBtn">
+                                ${isMuted ? '🔇' : '🎤'}
                             </button>
-                        ` : ''}
-                        <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
-                    </div>
+                            ${callType === 'video' ? `
+                                <button class="call-button camera-toggle ${isCameraOff ? 'active' : ''}" onclick="toggleCamera()" id="cameraBtn">
+                                    ${isCameraOff ? '📹' : '📷'}
+                                </button>
+                            ` : ''}
+                            <button class="call-button enable-audio" onclick="enableAudio()" id="enableAudioBtn" style="display: none;">
+                                🔊 Enable Audio
+                            </button>
+                            <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
+                        </div>
                     
                     <div class="call-details">
                         <p>Call ID: ${callId}</p>
@@ -2072,6 +2075,16 @@
                     console.log('Local audio track enabled:', track.enabled, track.muted);
                 });
                 
+                // Test local audio by creating a temporary audio element
+                const testAudio = document.createElement('audio');
+                testAudio.srcObject = localStream;
+                testAudio.muted = true; // Don't create feedback
+                testAudio.play().then(() => {
+                    console.log('Local audio test successful');
+                }).catch(e => {
+                    console.log('Local audio test failed:', e);
+                });
+                
                 // Handle remote stream
                 peerConnection.ontrack = (event) => {
                     console.log('Received remote stream:', event.streams[0]);
@@ -2088,11 +2101,45 @@
                         remoteAudio = document.createElement('audio');
                         remoteAudio.id = 'remoteAudio';
                         remoteAudio.autoplay = true;
+                        remoteAudio.playsInline = true;
                         remoteAudio.controls = false;
                         remoteAudio.style.display = 'none';
+                        remoteAudio.volume = 1.0;
+                        remoteAudio.muted = false;
                         document.body.appendChild(remoteAudio);
+                        
+                        // Handle autoplay restrictions
+                        remoteAudio.addEventListener('canplay', () => {
+                            console.log('Remote audio can play');
+                            remoteAudio.play().catch(e => {
+                                console.log('Autoplay prevented, user interaction required:', e);
+                                // Show enable audio button
+                                const enableBtn = document.getElementById('enableAudioBtn');
+                                if (enableBtn) {
+                                    enableBtn.style.display = 'inline-block';
+                                }
+                            });
+                        });
+                        
+                        remoteAudio.addEventListener('loadedmetadata', () => {
+                            console.log('Remote audio metadata loaded');
+                        });
+                        
+                        remoteAudio.addEventListener('play', () => {
+                            console.log('Remote audio started playing');
+                        });
+                        
+                        remoteAudio.addEventListener('error', (e) => {
+                            console.error('Remote audio error:', e);
+                        });
                     }
+                    
                     remoteAudio.srcObject = event.streams[0];
+                    
+                    // Try to play immediately
+                    remoteAudio.play().catch(e => {
+                        console.log('Immediate play failed, will retry:', e);
+                    });
                     
                     // Enable all audio tracks
                     const audioTracks = event.streams[0].getAudioTracks();
@@ -2309,6 +2356,22 @@
                     }
                 }
                 peerConnection.pendingIceCandidates = [];
+            }
+        }
+        
+        // Enable audio manually (for autoplay restrictions)
+        function enableAudio() {
+            const remoteAudio = document.getElementById('remoteAudio');
+            if (remoteAudio) {
+                remoteAudio.play().then(() => {
+                    console.log('Audio enabled successfully');
+                    const enableBtn = document.getElementById('enableAudioBtn');
+                    if (enableBtn) {
+                        enableBtn.style.display = 'none';
+                    }
+                }).catch(e => {
+                    console.error('Failed to enable audio:', e);
+                });
             }
         }
         
