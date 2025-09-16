@@ -1912,7 +1912,6 @@
         }
         
         // Initiate call with server
-        // SIMPLE call initiation - NO SERVER
         function initiateCall(callType) {
             const recipientEmail = getCurrentRecipientEmail();
             if (!recipientEmail) {
@@ -1920,15 +1919,29 @@
                 return;
             }
             
-            console.log(`🚀 SIMPLE ${callType} call to:`, recipientEmail);
-            
-            // Generate a simple call ID
-            const callId = 'simple-' + Date.now();
-            
-            // Show call interface immediately
-            showCallInterface(callType, callId, recipientEmail);
-            
-            console.log('🚀 Simple call initiated with ID:', callId);
+            fetch('/api/chat/call', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    call_type: callType,
+                    recipient_email: recipientEmail
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show call interface
+                    showCallInterface(callType, data.call_id, data.recipient_name);
+                } else {
+                    alert('Call failed: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Call error:', error);
+                alert('Call failed');
+            });
         }
         
         // Get current recipient email
@@ -1975,29 +1988,17 @@
                         </div>
                     ` : ''}
                     
-                        <div class="call-controls">
-                            <button class="call-button mute-call ${isMuted ? 'active' : ''}" onclick="toggleMute()" id="muteBtn">
-                                ${isMuted ? '🔇' : '🎤'}
+                    <div class="call-controls">
+                        <button class="call-button mute-call ${isMuted ? 'active' : ''}" onclick="toggleMute()" id="muteBtn">
+                            ${isMuted ? '🔇' : '🎤'}
+                        </button>
+                        ${callType === 'video' ? `
+                            <button class="call-button camera-toggle ${isCameraOff ? 'active' : ''}" onclick="toggleCamera()" id="cameraBtn">
+                                ${isCameraOff ? '📹' : '📷'}
                             </button>
-                            ${callType === 'video' ? `
-                                <button class="call-button camera-toggle ${isCameraOff ? 'active' : ''}" onclick="toggleCamera()" id="cameraBtn">
-                                    ${isCameraOff ? '📹' : '📷'}
-                                </button>
-                            ` : ''}
-                            <button class="call-button enable-audio" onclick="enableAudio()" id="enableAudioBtn" style="display: none;">
-                                🔊 Enable Audio
-                            </button>
-                            <button class="call-button test-audio" onclick="testAudioConnection()" id="testAudioBtn">
-                                🎵 Test Audio
-                            </button>
-                            <button class="call-button test-signaling" onclick="testSignalingEndpoints()" id="testSignalingBtn">
-                                🔍 Test Signaling
-                            </button>
-                            <button class="call-button test-direct" onclick="testDirectConnection()" id="testDirectBtn">
-                                🔄 Direct Connect
-                            </button>
-                            <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
-                        </div>
+                        ` : ''}
+                        <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
+                    </div>
                     
                     <div class="call-details">
                         <p>Call ID: ${callId}</p>
@@ -2017,11 +2018,9 @@
             }
         }
         
-        // SIMPLE WebRTC connection - NO SIGNALING SERVER
+        // Initialize WebRTC connection
         async function initializeWebRTC(callType, isIncoming = false) {
             try {
-                console.log('🚀 Starting SIMPLE WebRTC connection...');
-                
                 // Get user media
                 const constraints = {
                     audio: true,
@@ -2029,7 +2028,6 @@
                 };
                 
                 localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                console.log('✅ Got local media stream');
                 
                 // Show local video if video call
                 if (callType === 'video') {
@@ -2039,86 +2037,150 @@
                     }
                 }
                 
-                // Create SIMPLE peer connection
+                // Create peer connection with better STUN/TURN servers
                 peerConnection = new RTCPeerConnection({
                     iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' }
-                    ]
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' },
+                        { 
+                            urls: 'turn:openrelay.metered.ca:80',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        },
+                        { 
+                            urls: 'turn:openrelay.metered.ca:443',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        }
+                    ],
+                    iceCandidatePoolSize: 10
                 });
                 
-                // Add local stream
+                // Add local stream to peer connection
                 localStream.getTracks().forEach(track => {
+                    console.log('Adding track:', track.kind, track.enabled);
                     peerConnection.addTrack(track, localStream);
-                    console.log('Added track:', track.kind);
                 });
                 
-                // Handle remote stream - SIMPLE
+                // Ensure audio tracks are enabled
+                const audioTracks = localStream.getAudioTracks();
+                audioTracks.forEach(track => {
+                    track.enabled = true;
+                    console.log('Local audio track enabled:', track.enabled, track.muted);
+                });
+                
+                // Handle remote stream
                 peerConnection.ontrack = (event) => {
-                    console.log('🎵 REMOTE AUDIO STREAM RECEIVED!');
+                    console.log('Received remote stream:', event.streams[0]);
+                    console.log('Remote stream tracks:', event.streams[0].getTracks());
+                    
+                    const remoteVideo = document.getElementById('remoteVideo');
+                    if (remoteVideo) {
+                        remoteVideo.srcObject = event.streams[0];
+                    }
                     
                     // Create audio element for remote audio
                     let remoteAudio = document.getElementById('remoteAudio');
-                    if (remoteAudio) {
-                        remoteAudio.remove();
+                    if (!remoteAudio) {
+                        remoteAudio = document.createElement('audio');
+                        remoteAudio.id = 'remoteAudio';
+                        remoteAudio.autoplay = true;
+                        remoteAudio.controls = false;
+                        remoteAudio.style.display = 'none';
+                        document.body.appendChild(remoteAudio);
+                    }
+                    remoteAudio.srcObject = event.streams[0];
+                    
+                    // Enable all audio tracks
+                    const audioTracks = event.streams[0].getAudioTracks();
+                    audioTracks.forEach(track => {
+                        track.enabled = true;
+                        console.log('Remote audio track enabled:', track.enabled, track.muted, track.readyState);
+                    });
+                    
+                    // Update status when we receive remote stream
+                    const status = document.getElementById('connectionStatus');
+                    if (status) {
+                        status.textContent = 'Connected - Audio Active';
                     }
                     
-                    remoteAudio = document.createElement('audio');
-                    remoteAudio.id = 'remoteAudio';
-                    remoteAudio.srcObject = event.streams[0];
-                    remoteAudio.autoplay = true;
-                    remoteAudio.muted = false;
-                    remoteAudio.volume = 1.0;
-                    remoteAudio.style.display = 'none';
-                    document.body.appendChild(remoteAudio);
+                    console.log('Remote audio element created and configured');
                     
-                    console.log('🎵 Remote audio element created');
-                    
-                    // Try to play immediately
-                    remoteAudio.play().then(() => {
-                        console.log('🎵✅ REMOTE AUDIO IS PLAYING!');
-                        
-                        // Update status
-                        const status = document.getElementById('connectionStatus');
-                        if (status) {
-                            status.textContent = 'Connected - Audio Active';
-                        }
-                    }).catch(e => {
-                        console.log('🎵❌ Remote audio play failed:', e);
-                        // Show enable button
-                        const enableBtn = document.getElementById('enableAudioBtn');
-                        if (enableBtn) {
-                            enableBtn.style.display = 'inline-block';
-                        }
-                    });
+                    // Log audio track states periodically
+                    setTimeout(() => {
+                        logAudioTrackStates();
+                    }, 2000);
                 };
                 
-                // Handle connection state
+                // Handle connection state changes
                 peerConnection.onconnectionstatechange = () => {
-                    console.log('Connection state:', peerConnection.connectionState);
                     const status = document.getElementById('connectionStatus');
                     if (status) {
                         status.textContent = peerConnection.connectionState;
                     }
+                    
+                    // If connection fails, end the call
+                    if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+                        setTimeout(() => {
+                            if (currentCallId) {
+                                endCall(currentCallId);
+                            }
+                        }, 2000);
+                    }
                 };
                 
-                // SIMPLE approach - just create offer and hope for the best
-                if (!isIncoming) {
-                    console.log('📞 Creating offer...');
-                    const offer = await peerConnection.createOffer();
-                    await peerConnection.setLocalDescription(offer);
-                    console.log('📞 Offer created');
-                    
-                    // Update status
+                // Handle ICE candidates
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        console.log('Sending ICE candidate:', event.candidate);
+                        sendSignalingData('ice-candidate', event.candidate);
+                    } else {
+                        console.log('ICE gathering complete');
+                    }
+                };
+                
+                // Handle ICE connection state changes
+                peerConnection.oniceconnectionstatechange = () => {
+                    console.log('ICE connection state:', peerConnection.iceConnectionState);
                     const status = document.getElementById('connectionStatus');
                     if (status) {
-                        status.textContent = 'Offer created - waiting for connection';
+                        status.textContent = `ICE: ${peerConnection.iceConnectionState}`;
                     }
+                };
+                
+                if (!isIncoming) {
+                    // Create offer for outgoing call
+                    console.log('Creating offer for outgoing call...');
+                    console.log('Initial signaling state:', peerConnection.signalingState);
+                    
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    console.log('Offer created and set as local description');
+                    console.log('New signaling state:', peerConnection.signalingState);
+                    
+                    // Send offer to recipient
+                    await sendSignalingData('offer', offer);
+                    
+                    // Start checking for answers
+                    startSignalingCheck();
+                } else {
+                    // Start checking for offers for incoming call
+                    console.log('Starting signaling check for incoming call...');
+                    console.log('Initial signaling state:', peerConnection.signalingState);
+                    startSignalingCheck();
                 }
                 
-                console.log('🚀 Simple WebRTC initialized');
+                // Update status
+                const status = document.getElementById('connectionStatus');
+                if (status) {
+                    status.textContent = 'Connecting...';
+                }
                 
             } catch (error) {
-                console.error('❌ Simple WebRTC failed:', error);
+                console.error('WebRTC initialization failed:', error);
                 const status = document.getElementById('connectionStatus');
                 if (status) {
                     status.textContent = 'Connection failed';
@@ -2129,8 +2191,7 @@
         // Send signaling data
         async function sendSignalingData(type, data) {
             try {
-                console.log(`📤 Sending ${type} signaling data to:`, window.currentRecipientEmail);
-                console.log('Signaling data:', data);
+                console.log(`Sending ${type} signaling data:`, data);
                 
                 const response = await fetch('/api/chat/call/signaling', {
                     method: 'POST',
@@ -2145,18 +2206,14 @@
                     })
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
                 const result = await response.json();
                 if (!result.success) {
-                    console.error('❌ Failed to send signaling data:', result.message);
+                    console.error('Failed to send signaling data:', result.message);
                 } else {
-                    console.log(`✅ Successfully sent ${type} signaling data`);
+                    console.log(`Successfully sent ${type} signaling data`);
                 }
             } catch (error) {
-                console.error('❌ Error sending signaling data:', error);
+                console.error('Error sending signaling data:', error);
             }
         }
         
@@ -2172,53 +2229,19 @@
                 }
                 
                 try {
-                    console.log(`Checking signaling for call: ${currentCallId}`);
-                    
-                    // Add timeout to prevent hanging requests
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-                    
-                    const response = await fetch(`/api/chat/call/signaling/${currentCallId}`, {
-                        signal: controller.signal
-                    });
-                    
-                    clearTimeout(timeoutId);
-                    
-                    // Check if response is ok
-                    if (!response.ok) {
-                        if (response.status === 502) {
-                            console.log('Server temporarily unavailable (502), retrying...');
-                            return; // Skip this check, try again next interval
-                        }
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    
-                    // Check if response is JSON
-                    const contentType = response.headers.get('content-type');
-                    if (!contentType || !contentType.includes('application/json')) {
-                        console.log('Server returned non-JSON response, skipping...');
-                        return;
-                    }
-                    
+                    const response = await fetch(`/api/chat/call/signaling/${currentCallId}`);
                     const data = await response.json();
-                    console.log('Signaling response:', data);
                     
                     if (data.success && data.signaling_data.length > 0) {
                         console.log('Received signaling data:', data.signaling_data);
                         for (const signal of data.signaling_data) {
                             await handleSignalingData(signal);
                         }
-                    } else {
-                        console.log('No new signaling data');
                     }
                 } catch (error) {
-                    if (error.name === 'AbortError') {
-                        console.log('Signaling request timed out');
-                    } else if (!error.message.includes('Unexpected token')) {
-                        console.error('Error checking signaling data:', error);
-                    }
+                    console.error('Error checking signaling data:', error);
                 }
-            }, 1000); // 1 second for WebRTC signaling (fast enough for real-time)
+            }, 500); // Check every 500ms for faster signaling
         }
         
         // Handle incoming signaling data
@@ -2286,135 +2309,6 @@
                     }
                 }
                 peerConnection.pendingIceCandidates = [];
-            }
-        }
-        
-        // Enable audio manually (for autoplay restrictions)
-        function enableAudio() {
-            console.log('🔊 Manual audio enable requested');
-            
-            const remoteAudio = document.getElementById('remoteAudio');
-            const remoteVideo = document.getElementById('remoteVideo');
-            
-            if (remoteAudio) {
-                console.log('Enabling remote audio element');
-                remoteAudio.play().then(() => {
-                    console.log('✅ Remote audio enabled successfully!');
-                    const enableBtn = document.getElementById('enableAudioBtn');
-                    if (enableBtn) {
-                        enableBtn.style.display = 'none';
-                    }
-                }).catch(e => {
-                    console.error('❌ Failed to enable remote audio:', e);
-                });
-            }
-            
-            if (remoteVideo && remoteVideo.srcObject) {
-                console.log('Enabling remote video audio');
-                remoteVideo.muted = false;
-                remoteVideo.volume = 1.0;
-                console.log('✅ Remote video audio enabled!');
-            }
-        }
-        
-        // Test direct connection without signaling
-        function testDirectConnection() {
-            console.log('🔄 Testing direct connection approach...');
-            
-            if (peerConnection) {
-                console.log('Current connection state:', peerConnection.connectionState);
-                console.log('Current ICE connection state:', peerConnection.iceConnectionState);
-                console.log('Current signaling state:', peerConnection.signalingState);
-                
-                // Try to create a new offer
-                peerConnection.createOffer().then(offer => {
-                    console.log('Direct offer created:', offer);
-                    return peerConnection.setLocalDescription(offer);
-                }).then(() => {
-                    console.log('Direct offer set as local description');
-                    
-                    // Update status
-                    const status = document.getElementById('connectionStatus');
-                    if (status) {
-                        status.textContent = 'Direct connection attempt';
-                    }
-                }).catch(error => {
-                    console.error('Direct connection failed:', error);
-                });
-            }
-        }
-        
-        // Test signaling endpoints manually
-        async function testSignalingEndpoints() {
-            console.log('🔍 Testing signaling endpoints...');
-            
-            try {
-                // Test signaling endpoint
-                const response = await fetch(`/api/chat/call/signaling/${currentCallId}`);
-                console.log('Signaling endpoint response:', {
-                    status: response.status,
-                    ok: response.ok,
-                    contentType: response.headers.get('content-type')
-                });
-                
-                if (response.ok) {
-                    const data = await response.json();
-                    console.log('Signaling data:', data);
-                }
-            } catch (error) {
-                console.error('❌ Signaling endpoint test failed:', error);
-            }
-            
-            try {
-                // Test notifications endpoint
-                const notifResponse = await fetch('/api/chat/notifications');
-                console.log('Notifications endpoint response:', {
-                    status: notifResponse.status,
-                    ok: notifResponse.ok,
-                    contentType: notifResponse.headers.get('content-type')
-                });
-                
-                if (notifResponse.ok) {
-                    const notifData = await notifResponse.json();
-                    console.log('Notifications data:', notifData);
-                }
-            } catch (error) {
-                console.error('❌ Notifications endpoint test failed:', error);
-            }
-        }
-        
-        // Test audio connection manually
-        function testAudioConnection() {
-            console.log('🔊 Testing audio connection...');
-            
-            const remoteAudio = document.getElementById('remoteAudio');
-            const remoteVideo = document.getElementById('remoteVideo');
-            
-            if (remoteAudio && remoteAudio.srcObject) {
-                console.log('Remote audio element found:', {
-                    paused: remoteAudio.paused,
-                    muted: remoteAudio.muted,
-                    volume: remoteAudio.volume,
-                    srcObject: !!remoteAudio.srcObject,
-                    tracks: remoteAudio.srcObject.getTracks().length
-                });
-                
-                // Try to play again
-                remoteAudio.play().then(() => {
-                    console.log('✅ Audio test successful!');
-                }).catch(e => {
-                    console.log('❌ Audio test failed:', e);
-                });
-            } else if (remoteVideo && remoteVideo.srcObject) {
-                console.log('Remote video element found:', {
-                    paused: remoteVideo.paused,
-                    muted: remoteVideo.muted,
-                    volume: remoteVideo.volume,
-                    srcObject: !!remoteVideo.srcObject,
-                    tracks: remoteVideo.srcObject.getTracks().length
-                });
-            } else {
-                console.log('❌ No remote audio/video elements found');
             }
         }
         
@@ -2569,27 +2463,9 @@
         // Check for incoming calls
         function checkForIncomingCalls() {
             fetch('/api/chat/notifications')
-            .then(response => {
-                // Check if response is ok
-                if (!response.ok) {
-                    if (response.status === 502) {
-                        console.log('Server temporarily unavailable (502) for notifications');
-                        return null; // Skip this check
-                    }
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                
-                // Check if response is JSON
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    console.log('Server returned non-JSON response for notifications');
-                    return null;
-                }
-                
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                if (data && data.success && data.notifications.length > 0) {
+                if (data.success && data.notifications.length > 0) {
                     data.notifications.forEach(notification => {
                         if (notification.type === 'incoming_call') {
                             showIncomingCallModal(notification);
@@ -2598,10 +2474,7 @@
                 }
             })
             .catch(error => {
-                // Only log errors that aren't JSON parsing errors from 502s
-                if (!error.message.includes('Unexpected token')) {
-                    console.error('Error checking notifications:', error);
-                }
+                console.error('Error checking notifications:', error);
             });
         }
         
@@ -2682,8 +2555,8 @@
         
         // Start checking for incoming calls
         function startCallNotificationCheck() {
-            // Check for calls every 5 seconds to reduce server load
-            setInterval(checkForIncomingCalls, 5000);
+            // Check for calls every 3 seconds
+            setInterval(checkForIncomingCalls, 3000);
         }
         
         // Toggle mute
