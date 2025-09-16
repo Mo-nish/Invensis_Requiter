@@ -1962,6 +1962,154 @@
         let peerConnection = null;
         let isMuted = false;
         let isCameraOff = false;
+        let websocket = null;
+        let remoteStream = null;
+        
+        // Socket.IO signaling system
+        function connectWebSocket() {
+            if (window.socket && window.socket.connected) {
+                return Promise.resolve();
+            }
+            
+            return new Promise((resolve, reject) => {
+                // Load Socket.IO if not already loaded
+                if (typeof io === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
+                    script.onload = () => {
+                        initializeSocket();
+                        resolve();
+                    };
+                    script.onerror = reject;
+                    document.head.appendChild(script);
+                } else {
+                    initializeSocket();
+                    resolve();
+                }
+            });
+        }
+        
+        function initializeSocket() {
+            window.socket = io();
+            
+            window.socket.on('connect', () => {
+                console.log('🔌 Socket.IO connected');
+            });
+            
+            window.socket.on('disconnect', () => {
+                console.log('🔌 Socket.IO disconnected');
+            });
+            
+            window.socket.on('call_offer', (data) => {
+                handleWebSocketMessage(data);
+            });
+            
+            window.socket.on('call_answer', (data) => {
+                handleWebSocketMessage(data);
+            });
+            
+            window.socket.on('ice_candidate', (data) => {
+                handleWebSocketMessage(data);
+            });
+            
+            window.socket.on('call_end', (data) => {
+                handleWebSocketMessage(data);
+            });
+        }
+        
+        function handleWebSocketMessage(data) {
+            console.log('📨 WebSocket message received:', data);
+            
+            switch (data.type) {
+                case 'call_offer':
+                    handleCallOffer(data);
+                    break;
+                case 'call_answer':
+                    handleCallAnswer(data);
+                    break;
+                case 'ice_candidate':
+                    handleIceCandidate(data);
+                    break;
+                case 'call_end':
+                    handleCallEnd(data);
+                    break;
+                default:
+                    console.log('Unknown WebSocket message type:', data.type);
+            }
+        }
+        
+        function sendWebSocketMessage(type, payload) {
+            if (window.socket && window.socket.connected) {
+                const message = {
+                    call_id: currentCallId,
+                    recipient_email: window.currentRecipientEmail,
+                    ...payload
+                };
+                window.socket.emit(type, message);
+                console.log(`📤 Socket.IO ${type} sent:`, message);
+            } else {
+                console.error('Socket.IO not connected');
+            }
+        }
+        
+        // WebSocket message handlers
+        async function handleCallOffer(data) {
+            console.log('📞 Received call offer:', data);
+            
+            // Join call room
+            window.socket.emit('join_call', {
+                call_id: data.call_id,
+                user_email: window.currentUserEmail
+            });
+            
+            if (!peerConnection) {
+                await initializeWebRTC(data.call_type || 'voice', true);
+            }
+            
+            try {
+                await peerConnection.setRemoteDescription(data.offer);
+                console.log('📞 Remote description set');
+                
+                const answer = await peerConnection.createAnswer();
+                await peerConnection.setLocalDescription(answer);
+                console.log('📞 Answer created');
+                
+                sendWebSocketMessage('call_answer', { answer: answer });
+            } catch (error) {
+                console.error('Error handling call offer:', error);
+            }
+        }
+        
+        async function handleCallAnswer(data) {
+            console.log('📞 Received call answer:', data);
+            
+            try {
+                await peerConnection.setRemoteDescription(data.answer);
+                console.log('📞 Remote description set from answer');
+            } catch (error) {
+                console.error('Error handling call answer:', error);
+            }
+        }
+        
+        async function handleIceCandidate(data) {
+            console.log('🧊 Received ICE candidate:', data);
+            
+            try {
+                await peerConnection.addIceCandidate(data.candidate);
+                console.log('🧊 ICE candidate added');
+            } catch (error) {
+                console.error('Error handling ICE candidate:', error);
+            }
+        }
+        
+        function handleCallEnd(data) {
+            console.log('📞 Received call end:', data);
+            
+            // Clean up call
+            if (currentCallId === data.call_id) {
+                endCall(currentCallId);
+            }
+        }
         
         // Show call interface
         function showCallInterface(callType, callId, recipientName, isIncoming = false) {
@@ -2027,6 +2175,9 @@
         // Initialize WebRTC connection
         async function initializeWebRTC(callType, isIncoming = false) {
             try {
+                // Connect WebSocket first
+                await connectWebSocket();
+                
                 // Get user media
                 const constraints = {
                     audio: true,
@@ -2144,16 +2295,13 @@
                     }
                 };
                 
-                // Handle ICE candidates - MINIMAL SIGNALING
+                // Handle ICE candidates - WebSocket signaling
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
-                        console.log('ICE candidate generated:', event.candidate);
-                        // Send ICE candidate to server
-                        sendSignalingData('ice-candidate', event.candidate).catch(e => {
-                            console.log('ICE candidate send failed (continuing anyway):', e);
-                        });
+                        console.log('🧊 ICE candidate generated:', event.candidate);
+                        sendWebSocketMessage('ice_candidate', { candidate: event.candidate });
                     } else {
-                        console.log('ICE gathering complete');
+                        console.log('🧊 ICE gathering complete');
                     }
                 };
                 
@@ -2167,24 +2315,23 @@
                 };
                 
                 if (!isIncoming) {
-                    // Create offer for outgoing call - MINIMAL SIGNALING
-                    console.log('Creating offer for outgoing call...');
+                    // Create offer for outgoing call
+                    console.log('📞 Creating offer for outgoing call...');
                     
                     const offer = await peerConnection.createOffer();
                     await peerConnection.setLocalDescription(offer);
-                    console.log('Offer created and set as local description');
+                    console.log('📞 Offer created and set as local description');
                     
-                    // Send offer to recipient
-                    sendSignalingData('offer', offer).catch(e => {
-                        console.log('Offer send failed (continuing anyway):', e);
+                    // Join call room and send offer via Socket.IO
+                    window.socket.emit('join_call', {
+                        call_id: currentCallId,
+                        user_email: window.currentUserEmail
                     });
                     
-                    // Start checking for answers
-                    startSignalingCheck();
-                } else {
-                    // Start checking for offers for incoming call
-                    console.log('Starting signaling check for incoming call...');
-                    startSignalingCheck();
+                    sendWebSocketMessage('call_offer', { 
+                        offer: offer,
+                        call_type: callType
+                    });
                 }
                 
                 // Update status
@@ -2440,7 +2587,13 @@
                 remoteAudio.remove();
             }
             
-            // Send end call request to server with duration
+            // Send call end via WebSocket
+            sendWebSocketMessage('call_end', { 
+                call_id: callId,
+                duration: callDuration
+            });
+            
+            // Also send to server for database
             fetch('/api/chat/call/end', {
                 method: 'POST',
                 headers: {
@@ -2453,15 +2606,7 @@
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Call ended:', data.message);
-                
-                // Add call duration message to chat
-                if (callDuration > 0) {
-                    const durationMinutes = Math.floor(callDuration / 60);
-                    const durationSeconds = callDuration % 60;
-                    const durationText = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
-                    addMessage(`📞 Call ended - Duration: ${durationText}`, 'sent');
-                }
+                console.log('📞 Call ended:', data.message);
             })
             .catch(error => {
                 console.error('Error ending call:', error);
