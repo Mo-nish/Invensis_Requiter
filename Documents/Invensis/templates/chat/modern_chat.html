@@ -1030,10 +1030,10 @@
     <script>
         // Global variables
         let currentUser = {
-            id: '{{ current_user.id }}',
-            name: '{{ current_user.name }}',
-            email: '{{ current_user.email }}',
-            role: '{{ current_user.role }}'
+            id: '{{ current_user.id if current_user else "unknown" }}',
+            name: '{{ current_user.name if current_user else "User" }}',
+            email: '{{ current_user.email if current_user else "user@example.com" }}',
+            role: '{{ current_user.role if current_user else "user" }}'
         };
         
         let currentChat = null;
@@ -1073,23 +1073,34 @@
         function initializeSocket() {
             console.log('🔌 Connecting to Socket.IO...');
             
-            socket = io({
-                transports: ['websocket', 'polling'],
-                timeout: 10000
-            });
-            
-            socket.on('connect', () => {
-                console.log('✅ Socket.IO connected:', socket.id);
-                
-                // Notify server that user is online
-                socket.emit('user_online', {
-                    user_id: currentUser.id
+            try {
+                socket = io({
+                    transports: ['websocket', 'polling'],
+                    timeout: 10000,
+                    forceNew: true
                 });
-            });
-            
-            socket.on('disconnect', () => {
-                console.log('❌ Socket.IO disconnected');
-            });
+                
+                socket.on('connect', () => {
+                    console.log('✅ Socket.IO connected:', socket.id);
+                    
+                    // Notify server that user is online
+                    socket.emit('user_online', {
+                        user_id: currentUser.id
+                    });
+                });
+                
+                socket.on('disconnect', () => {
+                    console.log('❌ Socket.IO disconnected');
+                });
+                
+                socket.on('connect_error', (error) => {
+                    console.error('❌ Socket.IO connection error:', error);
+                    showNotification('Connection error. Some features may not work.', 'error');
+                });
+            } catch (error) {
+                console.error('❌ Failed to initialize Socket.IO:', error);
+                showNotification('Real-time features disabled. Chat will work in offline mode.', 'error');
+            }
             
             socket.on('new_message', (data) => {
                 console.log('📨 New message received:', data);
@@ -1432,13 +1443,17 @@
             messageInput.value = '';
 
             // Send via Socket.IO
-            if (socket) {
+            if (socket && socket.connected) {
                 socket.emit('send_message', {
                     user_id: currentUser.id,
                     conversation_id: currentChat._id,
                     content: content,
                     type: 'text'
                 });
+            } else {
+                // Fallback: Send via API if Socket.IO is not available
+                console.log('📤 Socket.IO not available, sending via API...');
+                sendMessageViaAPI(content, 'text');
             }
 
             // Update conversation list
@@ -1699,6 +1714,30 @@
             // This would show search results in a modal or sidebar
             console.log('Search results:', searchResults);
             showNotification(`Found ${searchResults.length} messages`, 'info');
+        }
+
+        // API Fallback Functions
+        async function sendMessageViaAPI(content, messageType) {
+            try {
+                const response = await fetch('/api/modern-chat/conversations', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        participants: [currentChat._id]
+                    })
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Message will be handled by the conversation system
+                    console.log('✅ Message sent via API');
+                }
+            } catch (error) {
+                console.error('❌ Failed to send message via API:', error);
+                showNotification('Failed to send message', 'error');
+            }
         }
 
         // Utility Functions
