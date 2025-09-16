@@ -2144,11 +2144,11 @@
                     }
                 };
                 
-                // Handle ICE candidates
+                // Handle ICE candidates - SIMPLE APPROACH
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
-                        console.log('Sending ICE candidate:', event.candidate);
-                        sendSignalingData('ice-candidate', event.candidate);
+                        console.log('ICE candidate generated:', event.candidate);
+                        // Don't send to server - just log for debugging
                     } else {
                         console.log('ICE gathering complete');
                     }
@@ -2164,25 +2164,18 @@
                 };
                 
                 if (!isIncoming) {
-                    // Create offer for outgoing call
+                    // Create offer for outgoing call - SIMPLE APPROACH
                     console.log('Creating offer for outgoing call...');
-                    console.log('Initial signaling state:', peerConnection.signalingState);
                     
                     const offer = await peerConnection.createOffer();
                     await peerConnection.setLocalDescription(offer);
                     console.log('Offer created and set as local description');
-                    console.log('New signaling state:', peerConnection.signalingState);
                     
-                    // Send offer to recipient
-                    await sendSignalingData('offer', offer);
-                    
-                    // Start checking for answers
-                    startSignalingCheck();
+                    // Don't send to server - just log
+                    console.log('Offer created locally - no server signaling');
                 } else {
-                    // Start checking for offers for incoming call
-                    console.log('Starting signaling check for incoming call...');
-                    console.log('Initial signaling state:', peerConnection.signalingState);
-                    startSignalingCheck();
+                    // For incoming calls, just log
+                    console.log('Incoming call WebRTC initialized - no server signaling');
                 }
                 
                 // Update status
@@ -2478,10 +2471,13 @@
             .then(response => response.json())
             .then(data => {
                 if (data.success && data.notifications.length > 0) {
+                    console.log('📞 Notifications received:', data.notifications);
                     data.notifications.forEach(notification => {
+                        console.log('📞 Processing notification:', notification.type, notification);
                         if (notification.type === 'incoming_call') {
                             showIncomingCallModal(notification);
                         } else if (notification.type === 'call_ended') {
+                            console.log('📞 Call ended notification found!');
                             handleCallEndedNotification(notification);
                         }
                     });
