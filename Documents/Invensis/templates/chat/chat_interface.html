@@ -2010,6 +2010,13 @@
             document.body.appendChild(callModal);
             
             // Timer will start when call is connected
+            // Fallback: start timer after 5 seconds if no remote stream received
+            setTimeout(() => {
+                if (currentCallId && !callTimer) {
+                    startCallTimer();
+                    console.log('⏰ Fallback timer started - 5 seconds elapsed');
+                }
+            }, 5000);
             
             // Initialize WebRTC
             if (!isIncoming) {
@@ -2100,13 +2107,17 @@
                         console.log('Remote audio track enabled:', track.enabled, track.muted, track.readyState);
                     });
                     
+                    // START TIMER NOW - WE HAVE AUDIO CONNECTION!
+                    startCallTimer();
+                    console.log('⏰ Timer started - audio connection established');
+                    
                     // Update status when we receive remote stream
                     const status = document.getElementById('connectionStatus');
                     if (status) {
                         status.textContent = 'Connected - Audio Active';
                     }
                     
-                    console.log('Remote audio element created and configured');
+                    console.log('🎵✅ AUDIO CONNECTION ESTABLISHED!');
                     
                     // Log audio track states periodically
                     setTimeout(() => {
@@ -2121,11 +2132,7 @@
                         status.textContent = peerConnection.connectionState;
                     }
                     
-                    // Start timer when connected
-                    if (peerConnection.connectionState === 'connected') {
-                        startCallTimer();
-                        console.log('⏰ Call connected - starting timer');
-                    }
+                    // Timer starts when we receive remote audio stream
                     
                     // If connection fails, end the call
                     if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
