@@ -1347,12 +1347,47 @@ def get_analytics_data(tab_name):
             })
             
         elif tab_name == 'trends':
-            # Weekly trends
-            weekly_applications = [10, 15, 12, 18]  # Sample data
-            weekly_selections = [3, 5, 4, 7]       # Sample data
+            # Weekly trends - Calculate from real data
+            from datetime import datetime, timedelta
+            weekly_applications = []
+            weekly_selections = []
             
-            # Monthly success rates
-            monthly_success = [25, 30, 28, 35, 32, 40]  # Sample data
+            # Get last 4 weeks of data
+            for i in range(4):
+                week_start = datetime.now() - timedelta(weeks=i+1)
+                week_end = datetime.now() - timedelta(weeks=i)
+                
+                # Count applications in this week
+                week_applications = len([c for c in candidates if 
+                    c.get('created_at') and 
+                    week_start <= datetime.fromisoformat(str(c['created_at']).replace('Z', '+00:00')) < week_end])
+                
+                # Count selections in this week
+                week_selections = len([c for c in candidates if 
+                    c.get('status') == 'Selected' and
+                    c.get('created_at') and 
+                    week_start <= datetime.fromisoformat(str(c['created_at']).replace('Z', '+00:00')) < week_end])
+                
+                weekly_applications.insert(0, week_applications)
+                weekly_selections.insert(0, week_selections)
+            
+            # Monthly success rates - Calculate from real data
+            monthly_success = []
+            for i in range(6):
+                month_start = datetime.now().replace(day=1) - timedelta(days=30*i)
+                month_end = month_start + timedelta(days=30)
+                
+                month_candidates = [c for c in candidates if 
+                    c.get('created_at') and 
+                    month_start <= datetime.fromisoformat(str(c['created_at']).replace('Z', '+00:00')) < month_end]
+                
+                if month_candidates:
+                    selected_count = len([c for c in month_candidates if c.get('status') == 'Selected'])
+                    success_rate = round((selected_count / len(month_candidates)) * 100, 1)
+                else:
+                    success_rate = 0
+                
+                monthly_success.insert(0, success_rate)
             
             return jsonify({
                 'success': True,
