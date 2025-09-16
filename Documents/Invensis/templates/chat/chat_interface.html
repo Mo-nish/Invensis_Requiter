@@ -1999,10 +1999,18 @@
                 console.log('🔌 Initializing Socket.IO connection...');
                 
                 try {
-                    window.socket = io({
-                        transports: ['websocket', 'polling'],
+                    // Get the current host for Socket.IO connection
+                    const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+                    const host = window.location.host;
+                    const socketUrl = `${protocol}//${host}`;
+                    
+                    console.log('🔌 Connecting to Socket.IO at:', socketUrl);
+                    
+                    window.socket = io(socketUrl, {
+                        transports: ['websocket'], // Force websocket transport
                         timeout: 10000,
-                        forceNew: true
+                        forceNew: true,
+                        autoConnect: true
                     });
                     
                     window.socket.on('connect', () => {
@@ -2130,7 +2138,12 @@
                 await peerConnection.setLocalDescription(answer);
                 console.log('📞 Answer created');
                 
-                sendWebSocketMessage('call_answer', { answer: answer });
+                // Send answer directly via Socket.IO
+                window.socket.emit('call_answer', {
+                    call_id: currentCallId,
+                    answer: answer
+                });
+                console.log('📤 Call answer sent via Socket.IO');
             } catch (error) {
                 console.error('Error handling call offer:', error);
             }
@@ -2148,13 +2161,22 @@
         }
         
         async function handleIceCandidate(data) {
-            console.log('🧊 Received ICE candidate:', data);
+            console.log('🧊 Received ICE candidate via Socket.IO:', data);
             
-            try {
-                await peerConnection.addIceCandidate(data.candidate);
-                console.log('🧊 ICE candidate added');
-            } catch (error) {
-                console.error('Error handling ICE candidate:', error);
+            if (peerConnection && peerConnection.remoteDescription) {
+                try {
+                    await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                    console.log('✅ ICE candidate added successfully');
+                } catch (error) {
+                    console.error('❌ Error adding ICE candidate:', error);
+                }
+            } else {
+                console.log('⏳ ICE candidate queued (waiting for remote description)');
+                // Queue ICE candidate for later
+                if (!peerConnection.pendingIceCandidates) {
+                    peerConnection.pendingIceCandidates = [];
+                }
+                peerConnection.pendingIceCandidates.push(data.candidate);
             }
         }
         
@@ -2270,7 +2292,9 @@
                             credential: 'openrelayproject'
                         }
                     ],
-                    iceCandidatePoolSize: 10
+                    iceCandidatePoolSize: 10,
+                    bundlePolicy: 'max-bundle',
+                    rtcpMuxPolicy: 'require'
                 });
                 
                 // Add local stream to peer connection
@@ -2352,11 +2376,21 @@
                     }
                 };
                 
-                // Handle ICE candidates - WebSocket signaling
+                // Handle ICE candidates - Socket.IO signaling
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
                         console.log('🧊 ICE candidate generated:', event.candidate);
-                        sendWebSocketMessage('ice_candidate', { candidate: event.candidate });
+                        // Send ICE candidate via Socket.IO
+                        if (window.socket && window.socket.connected) {
+                            window.socket.emit('ice_candidate', {
+                                call_id: currentCallId,
+                                candidate: event.candidate,
+                                recipient_email: window.currentRecipientEmail
+                            });
+                            console.log('📤 ICE candidate sent via Socket.IO');
+                        } else {
+                            console.error('❌ Socket.IO not connected, cannot send ICE candidate');
+                        }
                     } else {
                         console.log('🧊 ICE gathering complete');
                     }
@@ -2385,10 +2419,14 @@
                         user_email: window.currentUserEmail
                     });
                     
-                    sendWebSocketMessage('call_offer', { 
+                    // Send offer directly via Socket.IO
+                    window.socket.emit('call_offer', {
+                        call_id: currentCallId,
+                        recipient_email: window.currentRecipientEmail,
                         offer: offer,
                         call_type: callType
                     });
+                    console.log('📤 Call offer sent via Socket.IO');
                 }
                 
                 // Update status
@@ -2644,11 +2682,14 @@
                 remoteAudio.remove();
             }
             
-            // Send call end via WebSocket
-            sendWebSocketMessage('call_end', { 
-                call_id: callId,
-                duration: callDuration
-            });
+            // Send call end directly via Socket.IO
+            if (window.socket && window.socket.connected) {
+                window.socket.emit('call_end', {
+                    call_id: callId,
+                    duration: callDuration
+                });
+                console.log('📤 Call end sent via Socket.IO');
+            }
             
             // Also send to server for database
             fetch('/api/chat/call/end', {
