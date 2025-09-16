@@ -2019,7 +2019,7 @@
         }
         
         // Initialize WebRTC connection
-        async function initializeWebRTC(callType) {
+        async function initializeWebRTC(callType, isIncoming = false) {
             try {
                 // Get user media
                 const constraints = {
@@ -2056,6 +2056,12 @@
                     if (remoteVideo) {
                         remoteVideo.srcObject = event.streams[0];
                     }
+                    
+                    // Update status when we receive remote stream
+                    const status = document.getElementById('connectionStatus');
+                    if (status) {
+                        status.textContent = 'Connected';
+                    }
                 };
                 
                 // Handle connection state changes
@@ -2064,19 +2070,43 @@
                     if (status) {
                         status.textContent = peerConnection.connectionState;
                     }
+                    
+                    // If connection fails, end the call
+                    if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
+                        setTimeout(() => {
+                            if (currentCallId) {
+                                endCall(currentCallId);
+                            }
+                        }, 2000);
+                    }
                 };
                 
-                // Create offer
-                const offer = await peerConnection.createOffer();
-                await peerConnection.setLocalDescription(offer);
+                // Handle ICE candidates
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate) {
+                        sendSignalingData('ice-candidate', event.candidate);
+                    }
+                };
                 
-                // Send offer to recipient (in a real app, this would go through signaling server)
-                console.log('WebRTC offer created:', offer);
+                if (!isIncoming) {
+                    // Create offer for outgoing call
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    
+                    // Send offer to recipient
+                    await sendSignalingData('offer', offer);
+                    
+                    // Start checking for answers
+                    startSignalingCheck();
+                } else {
+                    // Start checking for offers for incoming call
+                    startSignalingCheck();
+                }
                 
                 // Update status
                 const status = document.getElementById('connectionStatus');
                 if (status) {
-                    status.textContent = 'Connected';
+                    status.textContent = 'Connecting...';
                 }
                 
             } catch (error) {
@@ -2088,8 +2118,81 @@
             }
         }
         
+        // Send signaling data
+        async function sendSignalingData(type, data) {
+            try {
+                const response = await fetch('/api/chat/call/signaling', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        call_id: currentCallId,
+                        type: type,
+                        data: data,
+                        recipient_email: window.currentRecipientEmail
+                    })
+                });
+                
+                const result = await response.json();
+                if (!result.success) {
+                    console.error('Failed to send signaling data:', result.message);
+                }
+            } catch (error) {
+                console.error('Error sending signaling data:', error);
+            }
+        }
+        
+        // Check for signaling data
+        let signalingInterval = null;
+        
+        function startSignalingCheck() {
+            signalingInterval = setInterval(async () => {
+                if (!currentCallId) {
+                    clearInterval(signalingInterval);
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/chat/call/signaling/${currentCallId}`);
+                    const data = await response.json();
+                    
+                    if (data.success && data.signaling_data.length > 0) {
+                        for (const signal of data.signaling_data) {
+                            await handleSignalingData(signal);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error checking signaling data:', error);
+                }
+            }, 1000);
+        }
+        
+        // Handle incoming signaling data
+        async function handleSignalingData(signal) {
+            try {
+                if (signal.type === 'offer') {
+                    await peerConnection.setRemoteDescription(signal.data);
+                    const answer = await peerConnection.createAnswer();
+                    await peerConnection.setLocalDescription(answer);
+                    await sendSignalingData('answer', answer);
+                } else if (signal.type === 'answer') {
+                    await peerConnection.setRemoteDescription(signal.data);
+                } else if (signal.type === 'ice-candidate') {
+                    await peerConnection.addIceCandidate(signal.data);
+                }
+            } catch (error) {
+                console.error('Error handling signaling data:', error);
+            }
+        }
+        
         // Start call timer
         function startCallTimer() {
+            // Reset timer if already running
+            if (callTimer) {
+                clearInterval(callTimer);
+            }
+            
             callTimer = setInterval(() => {
                 if (callStartTime) {
                     const now = new Date();
@@ -2118,6 +2221,12 @@
         function endCall(callId) {
             // Stop call timer
             stopCallTimer();
+            
+            // Stop signaling check
+            if (signalingInterval) {
+                clearInterval(signalingInterval);
+                signalingInterval = null;
+            }
             
             // Calculate call duration
             let callDuration = 0;
@@ -2255,7 +2364,9 @@
                         // Show call interface for accepted call
                         showCallInterface('voice', callId, 'Call Connected', true);
                         // Initialize WebRTC for incoming call
-                        initializeWebRTC('voice');
+                        setTimeout(() => {
+                            initializeWebRTC('voice', true);
+                        }, 500);
                     } else {
                         // Add declined call message
                         addMessage('📞 Call declined', 'sent');
