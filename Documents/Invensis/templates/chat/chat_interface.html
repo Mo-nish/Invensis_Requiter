@@ -2061,17 +2061,45 @@
                 
                 // Add local stream to peer connection
                 localStream.getTracks().forEach(track => {
+                    console.log('Adding track:', track.kind, track.enabled);
                     peerConnection.addTrack(track, localStream);
+                });
+                
+                // Ensure audio tracks are enabled
+                const audioTracks = localStream.getAudioTracks();
+                audioTracks.forEach(track => {
+                    track.enabled = true;
+                    console.log('Local audio track enabled:', track.enabled, track.muted);
                 });
                 
                 // Handle remote stream
                 peerConnection.ontrack = (event) => {
                     console.log('Received remote stream:', event.streams[0]);
+                    console.log('Remote stream tracks:', event.streams[0].getTracks());
                     
                     const remoteVideo = document.getElementById('remoteVideo');
                     if (remoteVideo) {
                         remoteVideo.srcObject = event.streams[0];
                     }
+                    
+                    // Create audio element for remote audio
+                    let remoteAudio = document.getElementById('remoteAudio');
+                    if (!remoteAudio) {
+                        remoteAudio = document.createElement('audio');
+                        remoteAudio.id = 'remoteAudio';
+                        remoteAudio.autoplay = true;
+                        remoteAudio.controls = false;
+                        remoteAudio.style.display = 'none';
+                        document.body.appendChild(remoteAudio);
+                    }
+                    remoteAudio.srcObject = event.streams[0];
+                    
+                    // Enable all audio tracks
+                    const audioTracks = event.streams[0].getAudioTracks();
+                    audioTracks.forEach(track => {
+                        track.enabled = true;
+                        console.log('Remote audio track enabled:', track.enabled, track.muted, track.readyState);
+                    });
                     
                     // Update status when we receive remote stream
                     const status = document.getElementById('connectionStatus');
@@ -2079,12 +2107,12 @@
                         status.textContent = 'Connected - Audio Active';
                     }
                     
-                    // Enable audio for remote stream
-                    const remoteAudio = event.streams[0].getAudioTracks()[0];
-                    if (remoteAudio) {
-                        remoteAudio.enabled = true;
-                        console.log('Remote audio track enabled:', remoteAudio);
-                    }
+                    console.log('Remote audio element created and configured');
+                    
+                    // Log audio track states periodically
+                    setTimeout(() => {
+                        logAudioTrackStates();
+                    }, 2000);
                 };
                 
                 // Handle connection state changes
@@ -2284,6 +2312,48 @@
             }
         }
         
+        // Log audio track states for debugging
+        function logAudioTrackStates() {
+            console.log('=== AUDIO TRACK STATES ===');
+            
+            if (localStream) {
+                const localAudioTracks = localStream.getAudioTracks();
+                console.log('Local audio tracks:', localAudioTracks.length);
+                localAudioTracks.forEach((track, index) => {
+                    console.log(`Local track ${index}:`, {
+                        enabled: track.enabled,
+                        muted: track.muted,
+                        readyState: track.readyState,
+                        label: track.label
+                    });
+                });
+            }
+            
+            const remoteAudio = document.getElementById('remoteAudio');
+            if (remoteAudio && remoteAudio.srcObject) {
+                const remoteTracks = remoteAudio.srcObject.getTracks();
+                console.log('Remote audio tracks:', remoteTracks.length);
+                remoteTracks.forEach((track, index) => {
+                    console.log(`Remote track ${index}:`, {
+                        enabled: track.enabled,
+                        muted: track.muted,
+                        readyState: track.readyState,
+                        label: track.label
+                    });
+                });
+            }
+            
+            console.log('Remote audio element:', {
+                exists: !!remoteAudio,
+                srcObject: !!remoteAudio?.srcObject,
+                paused: remoteAudio?.paused,
+                muted: remoteAudio?.muted,
+                volume: remoteAudio?.volume
+            });
+            
+            console.log('=== END AUDIO TRACK STATES ===');
+        }
+        
         // Start call timer
         function startCallTimer() {
             // Reset timer if already running
@@ -2342,6 +2412,13 @@
             if (peerConnection) {
                 peerConnection.close();
                 peerConnection = null;
+            }
+            
+            // Clean up remote audio element
+            const remoteAudio = document.getElementById('remoteAudio');
+            if (remoteAudio) {
+                remoteAudio.srcObject = null;
+                remoteAudio.remove();
             }
             
             // Send end call request to server with duration
@@ -2485,18 +2562,22 @@
         // Toggle mute
         function toggleMute() {
             if (localStream) {
-                const audioTrack = localStream.getAudioTracks()[0];
-                if (audioTrack) {
-                    audioTrack.enabled = !audioTrack.enabled;
-                    isMuted = !audioTrack.enabled;
-                    
-                    // Update button
-                    const muteBtn = document.getElementById('muteBtn');
-                    if (muteBtn) {
-                        muteBtn.innerHTML = isMuted ? '🔇' : '🎤';
-                        muteBtn.classList.toggle('active', isMuted);
-                    }
+                const audioTracks = localStream.getAudioTracks();
+                audioTracks.forEach(track => {
+                    track.enabled = !track.enabled;
+                    console.log('Local audio track muted:', !track.enabled);
+                });
+                
+                isMuted = !audioTracks[0].enabled;
+                
+                // Update button
+                const muteBtn = document.getElementById('muteBtn');
+                if (muteBtn) {
+                    muteBtn.innerHTML = isMuted ? '🔇' : '🎤';
+                    muteBtn.classList.toggle('active', isMuted);
                 }
+                
+                console.log('Mute toggled:', isMuted);
             }
         }
         
