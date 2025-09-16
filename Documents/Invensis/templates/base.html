@@ -358,39 +358,65 @@
             }
         }
         
-        /* ===== WATERMARK COMPONENT ===== */
-        .watermark {
+        /* ===== PROFESSIONAL BRANDING COMPONENT ===== */
+        .professional-branding {
             position: fixed;
-            bottom: 12px;
-            left: 12px;
-            z-index: 1000;
-            font-size: 11px;
-            font-weight: 500;
-            font-family: inherit;
-            color: rgba(0, 0, 0, 0.4);
-            background: transparent;
-            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(147, 51, 234, 0.9) 0%, rgba(59, 130, 246, 0.9) 100%);
+            color: #fff;
+            padding: 12px 16px;
+            border-radius: 25px;
             cursor: pointer;
-            user-select: none;
             transition: all 0.3s ease;
-            animation: watermarkFadeIn 0.5s ease-in;
-            padding: 4px 8px;
-            border-radius: 4px;
-            backdrop-filter: blur(2px);
+            z-index: 1000;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(147, 51, 234, 0.3);
+            animation: brandingFadeIn 0.5s ease-in;
         }
         
-        .watermark:hover {
-            transform: scale(1.05);
-            color: #3B82F6; /* Primary blue color */
-            text-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+        .professional-branding:hover {
+            background: linear-gradient(135deg, rgba(147, 51, 234, 1) 0%, rgba(59, 130, 246, 1) 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(147, 51, 234, 0.4);
         }
         
-        .watermark:active {
-            transform: scale(0.98);
+        .professional-branding:active {
+            transform: translateY(-1px);
         }
         
-        /* Watermark fade-in animation */
-        @keyframes watermarkFadeIn {
+        .branding-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .branding-icon {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .branding-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        
+        .branding-label {
+            font-size: 10px;
+            opacity: 0.8;
+            font-weight: 400;
+        }
+        
+        .branding-name {
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Branding fade-in animation */
+        @keyframes brandingFadeIn {
             from {
                 opacity: 0;
                 transform: translateY(10px);
@@ -403,24 +429,18 @@
         
         /* Responsive adjustments for mobile */
         @media (max-width: 768px) {
-            .watermark {
-                bottom: 8px;
-                left: 8px;
-                font-size: 10px;
-                padding: 3px 6px;
-            }
-        }
-        
-        /* Dark mode support */
-        @media (prefers-color-scheme: dark) {
-            .watermark {
-                color: rgba(255, 255, 255, 0.6);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+            .professional-branding {
+                padding: 10px 12px;
+                bottom: 15px;
+                left: 15px;
             }
             
-            .watermark:hover {
-                color: #60A5FA; /* Lighter blue for dark mode */
-                text-shadow: 0 2px 4px rgba(96, 165, 250, 0.4);
+            .branding-label {
+                font-size: 9px;
+            }
+            
+            .branding-name {
+                font-size: 11px;
             }
         }
         
@@ -1077,27 +1097,33 @@
     
     {% block extra_js %}{% endblock %}
     
-    <!-- Watermark Component -->
-    <div class="watermark" onclick="handleWatermarkClick()" title="Created by Monish Reddy">
-        Created by Monish Reddy
+    <!-- Professional Branding Component -->
+    <div class="professional-branding" onclick="handleBrandingClick()" title="Crafted with Excellence by Monish Reddy">
+        <div class="branding-content">
+            <div class="branding-icon">
+                <i class="fas fa-code"></i>
+            </div>
+            <div class="branding-text">
+                <span class="branding-label">Crafted with Excellence by</span>
+                <span class="branding-name">Monish Reddy</span>
+            </div>
+        </div>
     </div>
     
     
     <script>
-        // Watermark click handler
-        function handleWatermarkClick() {
+        // Professional branding click handler
+        function handleBrandingClick() {
             // You can customize this to redirect to About/Contact page
             // For now, it shows a subtle notification
-            const watermark = document.querySelector('.watermark');
+            const branding = document.querySelector('.professional-branding');
             
             // Add a subtle click effect
-            watermark.style.transform = 'scale(0.95)';
-            watermark.style.color = '#10B981'; // Green color for click feedback
+            branding.style.transform = 'translateY(-1px) scale(0.98)';
             
             // Reset after animation
             setTimeout(() => {
-                watermark.style.transform = '';
-                watermark.style.color = '';
+                branding.style.transform = '';
             }, 200);
             
             // Optional: Show a tooltip or redirect
@@ -1106,8 +1132,8 @@
         
         // Add keyboard accessibility
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && document.activeElement.classList.contains('watermark')) {
-                handleWatermarkClick();
+            if (e.key === 'Enter' && document.activeElement.classList.contains('professional-branding')) {
+                handleBrandingClick();
             }
         });
         
