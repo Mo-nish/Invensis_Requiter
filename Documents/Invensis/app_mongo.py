@@ -369,6 +369,11 @@ app.register_blueprint(chat_bp, url_prefix='/')
 def contact_support():
     return render_template('contact_support.html')
 
+# Heaven Execution Chamber Route
+@app.route('/heaven-execution')
+def heaven_execution():
+    return render_template('heaven_execution.html')
+
 # Send Contact Email Route
 @app.route('/send-contact-email', methods=['POST'])
 def send_contact_email():

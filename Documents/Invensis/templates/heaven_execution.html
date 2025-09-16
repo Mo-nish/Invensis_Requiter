@@ -1,0 +1,951 @@
+{% extends "base.html" %}
+
+{% block title %}🌌 Heaven Execution Chamber - Monish Reddy{% endblock %}
+
+{% block content %}
+<div class="heaven-execution-container">
+    <!-- Back Button -->
+    <div class="back-button-container">
+        <a href="{{ url_for('index') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Portal</span>
+        </a>
+    </div>
+
+    <!-- Heaven Entry Scene -->
+    <div class="heaven-entry-scene">
+        <div class="portal-animation">
+            <div class="portal-ring ring-1"></div>
+            <div class="portal-ring ring-2"></div>
+            <div class="portal-ring ring-3"></div>
+            <div class="portal-core"></div>
+        </div>
+        
+        <div class="welcome-text">
+            <h1 class="welcome-title fade-in-text">Welcome to Heaven Execution</h1>
+            <h2 class="subtitle fade-in-text" style="animation-delay: 1s;">Where Ideas Become Legends</h2>
+            <h3 class="tagline fade-in-text" style="animation-delay: 2s;">Where AI Meets Imagination</h3>
+        </div>
+    </div>
+
+    <!-- Project Showcases -->
+    <div class="projects-showcase">
+        <!-- Mysync Project -->
+        <div class="project-card mysync-project">
+            <div class="project-scene">
+                <div class="ai-core-orb">
+                    <div class="orb-inner"></div>
+                    <div class="holographic-screens">
+                        <div class="screen screen-1"></div>
+                        <div class="screen screen-2"></div>
+                        <div class="screen screen-3"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-info">
+                <h3 class="project-title">Mysync – Your AI Personal Agent</h3>
+                <p class="project-subtitle">Designed to sync with your life, like a digital guardian angel.</p>
+                <div class="project-description">
+                    <p>An AI-powered personal assistant inspired by Jarvis, designed to seamlessly integrate with your daily workflow and provide intelligent automation.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vault Manager Project -->
+        <div class="project-card vault-project">
+            <div class="project-scene">
+                <div class="vault-door">
+                    <div class="vault-handle"></div>
+                    <div class="golden-light"></div>
+                    <div class="data-crystals">
+                        <div class="crystal crystal-1"></div>
+                        <div class="crystal crystal-2"></div>
+                        <div class="crystal crystal-3"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-info">
+                <h3 class="project-title">Vault Manager – Memory That Never Forgets</h3>
+                <p class="project-subtitle">Your knowledge, secured and immortal.</p>
+                <div class="project-description">
+                    <p>A digital memory vault that securely stores, organizes, and retrieves your knowledge with AI-powered search and categorization.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Maze Security Project -->
+        <div class="project-card maze-project">
+            <div class="project-scene">
+                <div class="maze-container">
+                    <div class="maze-walls"></div>
+                    <div class="scanning-eyes">
+                        <div class="eye eye-1"></div>
+                        <div class="eye eye-2"></div>
+                        <div class="eye eye-3"></div>
+                    </div>
+                    <div class="protective-shield"></div>
+                </div>
+            </div>
+            <div class="project-info">
+                <h3 class="project-title">Maze Security – Shield Against the Dark</h3>
+                <p class="project-subtitle">Guarding your world from hidden threats.</p>
+                <div class="project-description">
+                    <p>Advanced security system designed to protect against dark web threats and cyber attacks with AI-powered threat detection.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VizGenie Project -->
+        <div class="project-card vizgenie-project">
+            <div class="project-scene">
+                <div class="magic-charts">
+                    <div class="chart chart-1"></div>
+                    <div class="chart chart-2"></div>
+                    <div class="chart chart-3"></div>
+                    <div class="floating-lanterns">
+                        <div class="lantern lantern-1"></div>
+                        <div class="lantern lantern-2"></div>
+                        <div class="lantern lantern-3"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="project-info">
+                <h3 class="project-title">VizGenie – Data Turned Into Magic</h3>
+                <p class="project-subtitle">Dashboards that breathe life into your numbers.</p>
+                <div class="project-description">
+                    <p>AI-powered dashboard creator that transforms raw data into beautiful, interactive visualizations with intelligent insights.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- SplitFox Project -->
+        <div class="project-card splitfox-project">
+            <div class="project-scene">
+                <div class="fox-spirits">
+                    <div class="fox-spirit fox-red"></div>
+                    <div class="fox-spirit fox-blue"></div>
+                    <div class="fox-merge-effect"></div>
+                </div>
+            </div>
+            <div class="project-info">
+                <h3 class="project-title">SplitFox – Decisions Powered by AI</h3>
+                <p class="project-subtitle">Smarter choices, faster growth.</p>
+                <div class="project-description">
+                    <p>AI-driven A/B testing platform that automates decision-making processes and optimizes user experiences through intelligent testing.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inspiration Zone -->
+    <div class="inspiration-zone">
+        <h2 class="zone-title">Inspiration Zone</h2>
+        
+        <div class="inspirational-quotes">
+            <div class="quote-card">
+                <p class="quote">"The future belongs to those who can harness AI, data, and creativity together."</p>
+                <span class="quote-author">- Monish Reddy</span>
+            </div>
+            <div class="quote-card">
+                <p class="quote">"We are building not just software, but a movement towards a smarter, faster, and more connected world."</p>
+                <span class="quote-author">- Monish Reddy</span>
+            </div>
+        </div>
+
+        <div class="ideas-section">
+            <h3 class="ideas-title">My Thoughts, My Vision, My Future</h3>
+            <div class="vision-items">
+                <div class="vision-item">
+                    <i class="fas fa-lightbulb"></i>
+                    <span>Innovation</span>
+                </div>
+                <div class="vision-item">
+                    <i class="fas fa-rocket"></i>
+                    <span>Execution</span>
+                </div>
+                <div class="vision-item">
+                    <i class="fas fa-globe"></i>
+                    <span>Impact</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Scene -->
+    <div class="exit-scene">
+        <div class="exit-portal">
+            <div class="portal-glow"></div>
+            <div class="portal-text">This is only the beginning...</div>
+        </div>
+    </div>
+</div>
+
+<style>
+.heaven-execution-container {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Back Button */
+.back-button-container {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+}
+
+.back-button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    text-decoration: none;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Heaven Entry Scene */
+.heaven-entry-scene {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.portal-animation {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin-bottom: 50px;
+}
+
+.portal-ring {
+    position: absolute;
+    border: 2px solid rgba(147, 51, 234, 0.6);
+    border-radius: 50%;
+    animation: portalSpin 4s linear infinite;
+}
+
+.ring-1 {
+    width: 100%;
+    height: 100%;
+    animation-delay: 0s;
+}
+
+.ring-2 {
+    width: 80%;
+    height: 80%;
+    top: 10%;
+    left: 10%;
+    animation-delay: -1.3s;
+}
+
+.ring-3 {
+    width: 60%;
+    height: 60%;
+    top: 20%;
+    left: 20%;
+    animation-delay: -2.6s;
+}
+
+.portal-core {
+    position: absolute;
+    width: 40%;
+    height: 40%;
+    top: 30%;
+    left: 30%;
+    background: radial-gradient(circle, rgba(147, 51, 234, 0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: corePulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes portalSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes corePulse {
+    0% { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.2); opacity: 1; }
+}
+
+.welcome-text {
+    text-align: center;
+    color: white;
+}
+
+.welcome-title {
+    font-size: 4rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1, #96ceb4);
+    background-size: 400% 400%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientShift 3s ease-in-out infinite;
+}
+
+.subtitle {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #4ecdc4;
+}
+
+.tagline {
+    font-size: 1.5rem;
+    color: #96ceb4;
+}
+
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.fade-in-text {
+    opacity: 0;
+    animation: fadeInUp 1s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Project Showcases */
+.projects-showcase {
+    padding: 100px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.project-card {
+    margin-bottom: 100px;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    transition: all 0.3s ease;
+}
+
+.project-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.project-scene {
+    flex: 1;
+    height: 300px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.project-info {
+    flex: 1;
+    color: white;
+}
+
+.project-title {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 15px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.project-subtitle {
+    font-size: 1.2rem;
+    color: #4ecdc4;
+    margin-bottom: 20px;
+    font-style: italic;
+}
+
+.project-description {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #e0e0e0;
+}
+
+/* AI Core Orb (Mysync) */
+.ai-core-orb {
+    width: 150px;
+    height: 150px;
+    position: relative;
+}
+
+.orb-inner {
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(147, 51, 234, 0.8) 0%, rgba(59, 130, 246, 0.6) 50%, transparent 70%);
+    border-radius: 50%;
+    animation: orbRotate 6s linear infinite;
+}
+
+.holographic-screens {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.screen {
+    position: absolute;
+    width: 60px;
+    height: 40px;
+    background: rgba(147, 51, 234, 0.3);
+    border: 1px solid rgba(147, 51, 234, 0.6);
+    border-radius: 5px;
+    animation: screenFloat 3s ease-in-out infinite;
+}
+
+.screen-1 {
+    top: -80px;
+    left: -30px;
+    animation-delay: 0s;
+}
+
+.screen-2 {
+    top: -40px;
+    right: -80px;
+    animation-delay: 1s;
+}
+
+.screen-3 {
+    bottom: -60px;
+    left: -20px;
+    animation-delay: 2s;
+}
+
+@keyframes orbRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes screenFloat {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-10px); }
+}
+
+/* Vault Door (Vault Manager) */
+.vault-door {
+    width: 200px;
+    height: 250px;
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+    border-radius: 10px;
+    position: relative;
+    border: 3px solid #f39c12;
+}
+
+.vault-handle {
+    position: absolute;
+    top: 50%;
+    left: 20px;
+    width: 20px;
+    height: 40px;
+    background: #f39c12;
+    border-radius: 10px;
+    transform: translateY(-50%);
+}
+
+.golden-light {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(255, 215, 0, 0.3) 0%, transparent 70%);
+    border-radius: 10px;
+    animation: lightPulse 2s ease-in-out infinite alternate;
+}
+
+.data-crystals {
+    position: absolute;
+    top: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.crystal {
+    width: 20px;
+    height: 30px;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: absolute;
+    animation: crystalFloat 3s ease-in-out infinite;
+}
+
+.crystal-1 {
+    left: -30px;
+    animation-delay: 0s;
+}
+
+.crystal-2 {
+    left: 0px;
+    animation-delay: 1s;
+}
+
+.crystal-3 {
+    left: 30px;
+    animation-delay: 2s;
+}
+
+@keyframes lightPulse {
+    0% { opacity: 0.3; }
+    100% { opacity: 0.8; }
+}
+
+@keyframes crystalFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-15px) rotate(180deg); }
+}
+
+/* Maze Security */
+.maze-container {
+    width: 200px;
+    height: 200px;
+    position: relative;
+    background: rgba(0, 0, 0, 0.8);
+    border-radius: 10px;
+    border: 2px solid #e74c3c;
+}
+
+.maze-walls {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(90deg, transparent 0%, #e74c3c 10%, transparent 20%),
+        linear-gradient(0deg, transparent 0%, #e74c3c 10%, transparent 20%);
+    background-size: 20px 20px;
+}
+
+.scanning-eyes {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.eye {
+    width: 15px;
+    height: 15px;
+    background: #e74c3c;
+    border-radius: 50%;
+    position: absolute;
+    animation: eyeScan 2s ease-in-out infinite;
+}
+
+.eye-1 {
+    top: -30px;
+    left: -30px;
+    animation-delay: 0s;
+}
+
+.eye-2 {
+    top: -30px;
+    right: -30px;
+    animation-delay: 0.7s;
+}
+
+.eye-3 {
+    bottom: -30px;
+    left: 0px;
+    animation-delay: 1.4s;
+}
+
+.protective-shield {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    border: 2px solid rgba(52, 152, 219, 0.6);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: shieldPulse 3s ease-in-out infinite;
+}
+
+@keyframes eyeScan {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}
+
+@keyframes shieldPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+}
+
+/* Magic Charts (VizGenie) */
+.magic-charts {
+    position: relative;
+    width: 250px;
+    height: 200px;
+}
+
+.chart {
+    position: absolute;
+    background: linear-gradient(45deg, #4ecdc4, #44a08d);
+    border-radius: 5px;
+    animation: chartGrow 3s ease-in-out infinite;
+}
+
+.chart-1 {
+    width: 40px;
+    height: 80px;
+    bottom: 0;
+    left: 20px;
+    animation-delay: 0s;
+}
+
+.chart-2 {
+    width: 40px;
+    height: 120px;
+    bottom: 0;
+    left: 80px;
+    animation-delay: 1s;
+}
+
+.chart-3 {
+    width: 40px;
+    height: 100px;
+    bottom: 0;
+    left: 140px;
+    animation-delay: 2s;
+}
+
+.floating-lanterns {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.lantern {
+    width: 20px;
+    height: 30px;
+    background: radial-gradient(circle, #ffd700 0%, #ff8c00 100%);
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: absolute;
+    animation: lanternFloat 4s ease-in-out infinite;
+}
+
+.lantern-1 {
+    top: 20px;
+    left: 30px;
+    animation-delay: 0s;
+}
+
+.lantern-2 {
+    top: 40px;
+    right: 40px;
+    animation-delay: 1.3s;
+}
+
+.lantern-3 {
+    top: 60px;
+    left: 120px;
+    animation-delay: 2.6s;
+}
+
+@keyframes chartGrow {
+    0%, 100% { transform: scaleY(1); }
+    50% { transform: scaleY(1.2); }
+}
+
+@keyframes lanternFloat {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Fox Spirits (SplitFox) */
+.fox-spirits {
+    position: relative;
+    width: 200px;
+    height: 150px;
+}
+
+.fox-spirit {
+    width: 60px;
+    height: 40px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    position: absolute;
+    animation: foxRun 3s ease-in-out infinite;
+}
+
+.fox-red {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    top: 30px;
+    left: 20px;
+    animation-delay: 0s;
+}
+
+.fox-blue {
+    background: linear-gradient(45deg, #3498db, #2980b9);
+    top: 60px;
+    right: 20px;
+    animation-delay: 1.5s;
+}
+
+.fox-merge-effect {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 80px;
+    height: 80px;
+    border: 2px solid rgba(155, 89, 182, 0.6);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    animation: mergePulse 2s ease-in-out infinite;
+}
+
+@keyframes foxRun {
+    0%, 100% { transform: translateX(0px) scale(1); }
+    50% { transform: translateX(30px) scale(1.1); }
+}
+
+@keyframes mergePulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
+/* Inspiration Zone */
+.inspiration-zone {
+    padding: 100px 20px;
+    text-align: center;
+    color: white;
+}
+
+.zone-title {
+    font-size: 3rem;
+    font-weight: bold;
+    margin-bottom: 50px;
+    background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.inspirational-quotes {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 30px;
+    margin-bottom: 80px;
+}
+
+.quote-card {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.quote-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.quote {
+    font-size: 1.2rem;
+    font-style: italic;
+    margin-bottom: 15px;
+    line-height: 1.6;
+}
+
+.quote-author {
+    color: #4ecdc4;
+    font-weight: bold;
+}
+
+.ideas-section {
+    margin-top: 50px;
+}
+
+.ideas-title {
+    font-size: 2rem;
+    margin-bottom: 40px;
+    color: #96ceb4;
+}
+
+.vision-items {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    flex-wrap: wrap;
+}
+
+.vision-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 15px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    min-width: 120px;
+}
+
+.vision-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.vision-item i {
+    font-size: 2rem;
+    color: #4ecdc4;
+}
+
+.vision-item span {
+    font-weight: bold;
+    color: white;
+}
+
+/* Exit Scene */
+.exit-scene {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.exit-portal {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.portal-glow {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(147, 51, 234, 0.8) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: exitGlow 3s ease-in-out infinite alternate;
+}
+
+.portal-text {
+    position: relative;
+    z-index: 2;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    animation: textGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes exitGlow {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.2); opacity: 1; }
+}
+
+@keyframes textGlow {
+    0% { text-shadow: 0 0 10px rgba(147, 51, 234, 0.5); }
+    100% { text-shadow: 0 0 20px rgba(147, 51, 234, 1); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .welcome-title {
+        font-size: 2.5rem;
+    }
+    
+    .subtitle {
+        font-size: 1.5rem;
+    }
+    
+    .tagline {
+        font-size: 1.2rem;
+    }
+    
+    .project-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .project-title {
+        font-size: 2rem;
+    }
+    
+    .inspirational-quotes {
+        grid-template-columns: 1fr;
+    }
+    
+    .vision-items {
+        gap: 30px;
+    }
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add scroll animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.style.opacity = '1';
+                entry.target.style.transform = 'translateY(0)';
+            }
+        });
+    }, observerOptions);
+
+    // Observe all project cards
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(50px)';
+        card.style.transition = 'all 0.6s ease-out';
+        observer.observe(card);
+    });
+
+    // Add click effects to project cards
+    document.querySelectorAll('.project-card').forEach(card => {
+        card.addEventListener('click', function() {
+            this.style.transform = 'translateY(-15px) scale(1.02)';
+            setTimeout(() => {
+                this.style.transform = 'translateY(-10px) scale(1)';
+            }, 200);
+        });
+    });
+});
+</script>
+{% endblock %}
