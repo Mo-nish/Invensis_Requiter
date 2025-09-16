@@ -513,8 +513,8 @@ def send_message():
 
 @chat_bp.route('/api/chat/ai', methods=['POST'])
 @login_required
-def chat_with_ai():
-    """Chat with AI assistant"""
+def chat_with_ai_legacy():
+    """Chat with AI assistant (legacy)"""
     try:
         from chatbot_engine import chatbot_engine
         
