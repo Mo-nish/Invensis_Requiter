@@ -2126,9 +2126,12 @@
                 if (!isIncoming) {
                     // Create offer for outgoing call
                     console.log('Creating offer for outgoing call...');
+                    console.log('Initial signaling state:', peerConnection.signalingState);
+                    
                     const offer = await peerConnection.createOffer();
                     await peerConnection.setLocalDescription(offer);
                     console.log('Offer created and set as local description');
+                    console.log('New signaling state:', peerConnection.signalingState);
                     
                     // Send offer to recipient
                     await sendSignalingData('offer', offer);
@@ -2138,6 +2141,7 @@
                 } else {
                     // Start checking for offers for incoming call
                     console.log('Starting signaling check for incoming call...');
+                    console.log('Initial signaling state:', peerConnection.signalingState);
                     startSignalingCheck();
                 }
                 
@@ -2216,25 +2220,67 @@
         async function handleSignalingData(signal) {
             try {
                 console.log(`Handling ${signal.type} signal:`, signal);
+                console.log('Current connection state:', peerConnection.connectionState);
+                console.log('Current signaling state:', peerConnection.signalingState);
                 
                 if (signal.type === 'offer') {
                     console.log('Processing offer...');
-                    await peerConnection.setRemoteDescription(signal.data);
-                    const answer = await peerConnection.createAnswer();
-                    await peerConnection.setLocalDescription(answer);
-                    await sendSignalingData('answer', answer);
-                    console.log('Answer sent successfully');
+                    if (peerConnection.signalingState === 'stable') {
+                        await peerConnection.setRemoteDescription(signal.data);
+                        const answer = await peerConnection.createAnswer();
+                        await peerConnection.setLocalDescription(answer);
+                        await sendSignalingData('answer', answer);
+                        console.log('Answer sent successfully');
+                        
+                        // Process any pending ICE candidates
+                        await processPendingIceCandidates();
+                    } else {
+                        console.log('Cannot process offer - wrong signaling state:', peerConnection.signalingState);
+                    }
                 } else if (signal.type === 'answer') {
                     console.log('Processing answer...');
-                    await peerConnection.setRemoteDescription(signal.data);
-                    console.log('Answer processed successfully');
+                    if (peerConnection.signalingState === 'have-local-offer') {
+                        await peerConnection.setRemoteDescription(signal.data);
+                        console.log('Answer processed successfully');
+                        
+                        // Process any pending ICE candidates
+                        await processPendingIceCandidates();
+                    } else {
+                        console.log('Cannot process answer - wrong signaling state:', peerConnection.signalingState);
+                    }
                 } else if (signal.type === 'ice-candidate') {
                     console.log('Processing ICE candidate...');
-                    await peerConnection.addIceCandidate(signal.data);
-                    console.log('ICE candidate added successfully');
+                    if (peerConnection.remoteDescription) {
+                        await peerConnection.addIceCandidate(signal.data);
+                        console.log('ICE candidate added successfully');
+                    } else {
+                        console.log('Cannot add ICE candidate - no remote description set');
+                        // Store ICE candidate for later
+                        if (!peerConnection.pendingIceCandidates) {
+                            peerConnection.pendingIceCandidates = [];
+                        }
+                        peerConnection.pendingIceCandidates.push(signal.data);
+                        console.log('ICE candidate stored for later processing');
+                    }
                 }
             } catch (error) {
                 console.error('Error handling signaling data:', error);
+            }
+        }
+        
+        // Process pending ICE candidates
+        async function processPendingIceCandidates() {
+            if (peerConnection.pendingIceCandidates && peerConnection.pendingIceCandidates.length > 0) {
+                console.log('Processing pending ICE candidates:', peerConnection.pendingIceCandidates.length);
+                for (const candidate of peerConnection.pendingIceCandidates) {
+                    try {
+                        await peerConnection.addIceCandidate(candidate);
+                        console.log('Pending ICE candidate added successfully');
+                    } catch (error) {
+                        console.error('Error adding pending ICE candidate:', error);
+                    }
+                }
+                peerConnection.pendingIceCandidates = [];
             }
         }
         
