@@ -605,7 +605,7 @@ def end_call():
         signaling_collection = db.signaling
         signaling_collection.delete_many({'call_id': call_id})
         
-        # Add call duration message to conversation
+        # Add call duration message to conversation and notify other user
         call_session = calls_collection.find_one({'call_id': call_id})
         if call_session:
             # Create a call summary message
@@ -623,6 +623,29 @@ def end_call():
                     message_type='call_summary'
                 )
                 call_message.save()
+            
+            # Create notification for the other participant
+            participants = call_session.get('participants', [])
+            other_participant = None
+            for participant in participants:
+                if participant != current_user.email:
+                    other_participant = participant
+                    break
+            
+            if other_participant:
+                # Create call ended notification
+                notification = {
+                    'user_email': other_participant,
+                    'type': 'call_ended',
+                    'call_id': call_id,
+                    'caller_name': current_user.name,
+                    'duration': duration_text,
+                    'created_at': datetime.utcnow(),
+                    'read': False
+                }
+                
+                notifications_collection = db.notifications
+                notifications_collection.insert_one(notification)
         
         return jsonify({
             'success': True,
