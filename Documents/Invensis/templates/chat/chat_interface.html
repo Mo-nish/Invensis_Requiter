@@ -2028,23 +2028,23 @@
                     });
                     
                     window.socket.on('call_offer', (data) => {
-                        console.log('📞 Received call offer via Socket.IO');
-                        handleWebSocketMessage(data);
+                        console.log('📞 Received call offer via Socket.IO:', data);
+                        handleCallOffer(data);
                     });
                     
                     window.socket.on('call_answer', (data) => {
-                        console.log('📞 Received call answer via Socket.IO');
-                        handleWebSocketMessage(data);
+                        console.log('📞 Received call answer via Socket.IO:', data);
+                        handleCallAnswer(data);
                     });
                     
                     window.socket.on('ice_candidate', (data) => {
-                        console.log('🧊 Received ICE candidate via Socket.IO');
-                        handleWebSocketMessage(data);
+                        console.log('🧊 Received ICE candidate via Socket.IO:', data);
+                        handleIceCandidate(data);
                     });
                     
                     window.socket.on('call_end', (data) => {
-                        console.log('📞 Received call end via Socket.IO');
-                        handleWebSocketMessage(data);
+                        console.log('📞 Received call end via Socket.IO:', data);
+                        handleCallEnd(data);
                     });
                     
                     // Timeout after 10 seconds
@@ -2257,45 +2257,52 @@
                 // Connect WebSocket first
                 await connectWebSocket();
                 
-                // Get user media
+                // Get user media with proper error handling
                 const constraints = {
-                    audio: true,
-                    video: callType === 'video'
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    },
+                    video: callType === 'video' ? { 
+                        width: { ideal: 640 }, 
+                        height: { ideal: 480 } 
+                    } : false
                 };
                 
-                localStream = await navigator.mediaDevices.getUserMedia(constraints);
-                
-                // Show local video if video call
-                if (callType === 'video') {
-                    const localVideo = document.getElementById('localVideo');
-                    if (localVideo) {
-                        localVideo.srcObject = localStream;
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia(constraints);
+                    console.log('🎤 Local stream obtained:', localStream.getTracks().length, 'tracks');
+                    
+                    // Log audio tracks specifically
+                    const audioTracks = localStream.getAudioTracks();
+                    console.log('🎵 Audio tracks:', audioTracks.length);
+                    audioTracks.forEach((track, index) => {
+                        console.log(`🎵 Audio track ${index}:`, track.label, track.enabled, track.muted);
+                    });
+                    
+                    // Show local video if video call
+                    if (callType === 'video') {
+                        const localVideo = document.getElementById('localVideo');
+                        if (localVideo) {
+                            localVideo.srcObject = localStream;
+                        }
                     }
+                } catch (error) {
+                    console.error('❌ Error accessing media devices:', error);
+                    throw error;
                 }
                 
-                // Create peer connection with better STUN/TURN servers
+                // Create peer connection with STUN servers
                 peerConnection = new RTCPeerConnection({
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
                         { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun3.l.google.com:19302' },
-                        { urls: 'stun:stun4.l.google.com:19302' },
-                        { 
-                            urls: 'turn:openrelay.metered.ca:80',
-                            username: 'openrelayproject',
-                            credential: 'openrelayproject'
-                        },
-                        { 
-                            urls: 'turn:openrelay.metered.ca:443',
-                            username: 'openrelayproject',
-                            credential: 'openrelayproject'
-                        }
-                    ],
-                    iceCandidatePoolSize: 10,
-                    bundlePolicy: 'max-bundle',
-                    rtcpMuxPolicy: 'require'
+                        { urls: 'stun:stun2.l.google.com:19302' }
+                    ]
                 });
+                
+                console.log('🔌 RTCPeerConnection created with STUN servers');
                 
                 // Add local stream to peer connection
                 localStream.getTracks().forEach(track => {
@@ -2312,8 +2319,15 @@
                 
                 // Handle remote stream
                 peerConnection.ontrack = (event) => {
-                    console.log('Received remote stream:', event.streams[0]);
-                    console.log('Remote stream tracks:', event.streams[0].getTracks());
+                    console.log('📞 Remote stream received:', event.streams[0]);
+                    remoteStream = event.streams[0];
+                    
+                    // Log remote tracks
+                    const remoteTracks = remoteStream.getTracks();
+                    console.log('📞 Remote tracks:', remoteTracks.length);
+                    remoteTracks.forEach((track, index) => {
+                        console.log(`📞 Remote track ${index}:`, track.kind, track.label, track.enabled);
+                    });
                     
                     const remoteVideo = document.getElementById('remoteVideo');
                     if (remoteVideo) {
@@ -2398,10 +2412,65 @@
                 
                 // Handle ICE connection state changes
                 peerConnection.oniceconnectionstatechange = () => {
-                    console.log('ICE connection state:', peerConnection.iceConnectionState);
+                    console.log('🧊 ICE connection state:', peerConnection.iceConnectionState);
                     const status = document.getElementById('connectionStatus');
                     if (status) {
-                        status.textContent = `ICE: ${peerConnection.iceConnectionState}`;
+                        switch (peerConnection.iceConnectionState) {
+                            case 'connected':
+                                status.textContent = 'Connected';
+                                status.style.color = '#4CAF50';
+                                console.log('✅ WebRTC connection established!');
+                                break;
+                            case 'disconnected':
+                                status.textContent = 'Disconnected';
+                                status.style.color = '#f44336';
+                                console.log('❌ WebRTC connection disconnected');
+                                break;
+                            case 'failed':
+                                status.textContent = 'Connection Failed';
+                                status.style.color = '#f44336';
+                                console.log('❌ WebRTC connection failed');
+                                break;
+                            case 'checking':
+                                status.textContent = 'Connecting...';
+                                status.style.color = '#ff9800';
+                                console.log('🔄 WebRTC connection checking...');
+                                break;
+                            case 'completed':
+                                status.textContent = 'Connected';
+                                status.style.color = '#4CAF50';
+                                console.log('✅ WebRTC connection completed!');
+                                break;
+                            default:
+                                status.textContent = `ICE: ${peerConnection.iceConnectionState}`;
+                        }
+                    }
+                };
+                
+                // Handle connection state changes
+                peerConnection.onconnectionstatechange = () => {
+                    console.log('🔌 Connection state:', peerConnection.connectionState);
+                    const status = document.getElementById('connectionStatus');
+                    if (status) {
+                        switch (peerConnection.connectionState) {
+                            case 'connected':
+                                status.textContent = 'Connected';
+                                status.style.color = '#4CAF50';
+                                console.log('✅ Peer connection established!');
+                                break;
+                            case 'disconnected':
+                                status.textContent = 'Disconnected';
+                                status.style.color = '#f44336';
+                                break;
+                            case 'failed':
+                                status.textContent = 'Connection Failed';
+                                status.style.color = '#f44336';
+                                break;
+                            case 'connecting':
+                                status.textContent = 'Connecting...';
+                                status.style.color = '#ff9800';
+                                break;
+                        }
                     }
                 };
                 
