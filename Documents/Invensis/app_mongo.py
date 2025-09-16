@@ -364,6 +364,48 @@ app.register_blueprint(cluster_bp, url_prefix='/cluster')
 app.register_blueprint(chatbot_bp, url_prefix='/')
 app.register_blueprint(chat_bp, url_prefix='/')
 
+# Contact Support Route
+@app.route('/contact-support')
+def contact_support():
+    return render_template('contact_support.html')
+
+# Send Contact Email Route
+@app.route('/send-contact-email', methods=['POST'])
+def send_contact_email():
+    try:
+        data = request.get_json()
+        user_email = data.get('email')
+        subject = data.get('subject', 'Contact Support')
+        message = data.get('message')
+        
+        if not user_email or not message:
+            return jsonify({'success': False, 'message': 'Email and message are required'})
+        
+        # Create email message
+        msg = Message(
+            subject=f"Contact Support: {subject}",
+            recipients=['p.monishreddy19@gmail.com'],
+            body=f"""
+From: {user_email}
+Subject: {subject}
+
+Message:
+{message}
+
+---
+Sent from Invensis Hiring Portal Contact Support
+            """,
+            sender=app.config['MAIL_DEFAULT_SENDER']
+        )
+        
+        # Send email
+        mail.send(msg)
+        
+        return jsonify({'success': True, 'message': 'Email sent successfully!'})
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': f'Error sending email: {str(e)}'})
+
 if __name__ == '__main__':
     # Ensure a single intended admin user exists (configurable via env)
     default_admin_email = os.getenv('DEFAULT_ADMIN_EMAIL', 'invensisprocess@gmail.com')
