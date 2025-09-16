@@ -7,6 +7,7 @@ import json
 import uuid
 from datetime import datetime
 from models_chat import ChatConversation, ChatMessage, ChatUser, init_chat_collections
+from app_mongo import db
 
 # Create blueprint
 chat_bp = Blueprint('chat', __name__)
