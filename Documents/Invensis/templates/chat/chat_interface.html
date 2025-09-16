@@ -2000,6 +2000,9 @@
                             <button class="call-button enable-audio" onclick="enableAudio()" id="enableAudioBtn" style="display: none;">
                                 🔊 Enable Audio
                             </button>
+                            <button class="call-button test-audio" onclick="testAudioConnection()" id="testAudioBtn">
+                                🎵 Test Audio
+                            </button>
                             <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
                         </div>
                     
@@ -2137,6 +2140,16 @@
                         // Try to play
                         remoteAudio.play().then(() => {
                             console.log('✅ Remote audio playing successfully!');
+                            
+                            // Verify audio is actually working
+                            setTimeout(() => {
+                                console.log('Audio element state:', {
+                                    paused: remoteAudio.paused,
+                                    muted: remoteAudio.muted,
+                                    volume: remoteAudio.volume,
+                                    srcObject: !!remoteAudio.srcObject
+                                });
+                            }, 1000);
                         }).catch(e => {
                             console.log('❌ Remote audio play failed:', e);
                             // Show enable button
@@ -2154,6 +2167,11 @@
                     }
                     
                     console.log('=== REMOTE STREAM CONFIGURED ===');
+                    
+                    // Test audio connection after a short delay
+                    setTimeout(() => {
+                        testAudioConnection();
+                    }, 2000);
                 };
                 
                 // Handle connection state changes
@@ -2302,7 +2320,7 @@
                         console.error('Error checking signaling data:', error);
                     }
                 }
-            }, 2000); // Reduced to 2 seconds to prevent server overload
+            }, 1000); // 1 second for WebRTC signaling (fast enough for real-time)
         }
         
         // Handle incoming signaling data
@@ -2398,6 +2416,41 @@
                 remoteVideo.muted = false;
                 remoteVideo.volume = 1.0;
                 console.log('✅ Remote video audio enabled!');
+            }
+        }
+        
+        // Test audio connection manually
+        function testAudioConnection() {
+            console.log('🔊 Testing audio connection...');
+            
+            const remoteAudio = document.getElementById('remoteAudio');
+            const remoteVideo = document.getElementById('remoteVideo');
+            
+            if (remoteAudio && remoteAudio.srcObject) {
+                console.log('Remote audio element found:', {
+                    paused: remoteAudio.paused,
+                    muted: remoteAudio.muted,
+                    volume: remoteAudio.volume,
+                    srcObject: !!remoteAudio.srcObject,
+                    tracks: remoteAudio.srcObject.getTracks().length
+                });
+                
+                // Try to play again
+                remoteAudio.play().then(() => {
+                    console.log('✅ Audio test successful!');
+                }).catch(e => {
+                    console.log('❌ Audio test failed:', e);
+                });
+            } else if (remoteVideo && remoteVideo.srcObject) {
+                console.log('Remote video element found:', {
+                    paused: remoteVideo.paused,
+                    muted: remoteVideo.muted,
+                    volume: remoteVideo.volume,
+                    srcObject: !!remoteVideo.srcObject,
+                    tracks: remoteVideo.srcObject.getTracks().length
+                });
+            } else {
+                console.log('❌ No remote audio/video elements found');
             }
         }
         
