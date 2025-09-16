@@ -24,7 +24,7 @@ def chat_interface():
 @login_required
 def modern_chat_interface():
     """Serve the modern chat interface"""
-    return render_template('chat/modern_chat.html')
+    return render_template('chat/modern_chat.html', current_user=current_user)
 
 # Modern Chat API Endpoints
 @chat_bp.route('/api/modern-chat/conversations')
