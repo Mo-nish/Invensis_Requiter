@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, session, jsonify
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
+from flask_socketio import SocketIO, emit, join_room, leave_room
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime, timedelta
@@ -11,6 +12,9 @@ load_dotenv()
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('JWT_SECRET', 'your-secret-key-here')
+
+# Initialize SocketIO
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 # Email configuration
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -387,4 +391,79 @@ if __name__ == '__main__':
     print("🔧 Admin Portal: http://localhost:5001/admin/login")
     print("=" * 50)
     
-    app.run(debug=True, host='0.0.0.0', port=5001) 
+    # WebSocket event handlers
+    @socketio.on('connect')
+    def handle_connect():
+        print(f"🔌 WebSocket connected: {request.sid}")
+        emit('connected', {'message': 'Connected to WebSocket'})
+    
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        print(f"🔌 WebSocket disconnected: {request.sid}")
+    
+    @socketio.on('join_call')
+    def handle_join_call(data):
+        call_id = data.get('call_id')
+        user_email = data.get('user_email')
+        join_room(call_id)
+        print(f"👤 {user_email} joined call room: {call_id}")
+    
+    @socketio.on('call_offer')
+    def handle_call_offer(data):
+        call_id = data.get('call_id')
+        recipient_email = data.get('recipient_email')
+        offer = data.get('offer')
+        call_type = data.get('call_type', 'voice')
+        
+        print(f"📞 Call offer from {request.sid} to {recipient_email}")
+        
+        # Send offer to recipient
+        emit('call_offer', {
+            'call_id': call_id,
+            'offer': offer,
+            'call_type': call_type
+        }, room=call_id)
+    
+    @socketio.on('call_answer')
+    def handle_call_answer(data):
+        call_id = data.get('call_id')
+        answer = data.get('answer')
+        
+        print(f"📞 Call answer from {request.sid}")
+        
+        # Send answer to all in call room
+        emit('call_answer', {
+            'call_id': call_id,
+            'answer': answer
+        }, room=call_id)
+    
+    @socketio.on('ice_candidate')
+    def handle_ice_candidate(data):
+        call_id = data.get('call_id')
+        candidate = data.get('candidate')
+        
+        print(f"🧊 ICE candidate from {request.sid}")
+        
+        # Send ICE candidate to all in call room
+        emit('ice_candidate', {
+            'call_id': call_id,
+            'candidate': candidate
+        }, room=call_id)
+    
+    @socketio.on('call_end')
+    def handle_call_end(data):
+        call_id = data.get('call_id')
+        duration = data.get('duration', 0)
+        
+        print(f"📞 Call ended: {call_id}, duration: {duration}")
+        
+        # Send call end to all in call room
+        emit('call_end', {
+            'call_id': call_id,
+            'duration': duration
+        }, room=call_id)
+        
+        # Leave room
+        leave_room(call_id)
+    
+    socketio.run(app, debug=True, host='0.0.0.0', port=5001) 
