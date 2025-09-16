@@ -1,0 +1,306 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Support - Invensis Hiring Portal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center relative overflow-hidden">
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <!-- Floating Geometric Shapes -->
+        <div class="absolute top-20 left-20 w-32 h-32 bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full animate-float-slow"></div>
+        <div class="absolute top-40 right-40 w-24 h-24 bg-gradient-to-r from-green-400/20 to-cyan-400/20 rounded-full animate-float-medium"></div>
+        <div class="absolute bottom-40 left-1/4 w-40 h-40 bg-gradient-to-r from-pink-400/20 to-purple-400/20 rounded-full animate-float-fast"></div>
+        <div class="absolute bottom-20 right-1/4 w-28 h-28 bg-gradient-to-r from-blue-400/20 to-indigo-400/20 rounded-full animate-float-slow"></div>
+        
+        <!-- Animated Rings -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div class="w-96 h-96 border-2 border-purple-400/30 rounded-full animate-spin-slow"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 border-2 border-blue-400/40 rounded-full animate-spin-medium"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-48 h-48 border-2 border-green-400/50 rounded-full animate-spin-fast"></div>
+        </div>
+        
+        <!-- Central Glowing Sphere -->
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div class="w-20 h-20 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full animate-pulse shadow-lg shadow-purple-400/50"></div>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-gradient-to-r from-purple-400/20 to-blue-400/20 rounded-full animate-ping"></div>
+        </div>
+        
+        <!-- Data Flow Lines -->
+        <div class="absolute top-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-purple-400/50 to-transparent animate-pulse"></div>
+        <div class="absolute bottom-1/4 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-400/50 to-transparent animate-pulse" style="animation-delay: 1s;"></div>
+        
+        <!-- Floating Icons -->
+        <div class="absolute top-16 left-1/3 text-purple-300/60 animate-bounce" style="animation-delay: 0.5s;">
+            <i class="fas fa-envelope text-4xl"></i>
+        </div>
+        <div class="absolute top-24 right-1/3 text-blue-300/60 animate-bounce" style="animation-delay: 1s;">
+            <i class="fas fa-headset text-4xl"></i>
+        </div>
+        <div class="absolute bottom-20 left-1/3 text-green-300/60 animate-bounce" style="animation-delay: 1.5s;">
+            <i class="fas fa-comments text-4xl"></i>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto text-center px-4 relative z-10">
+        <!-- Header -->
+        <div class="mb-16 fade-in">
+            <h1 class="text-6xl font-bold text-white mb-6 text-3d text-glow">
+                Contact Support
+            </h1>
+            <p class="text-2xl text-purple-100 mb-8 max-w-3xl mx-auto">
+                Get direct help from our development team
+            </p>
+        </div>
+
+        <!-- Contact Form - 3D Version -->
+        <div class="card-3d p-12 mb-12 fade-in">
+            <div class="max-w-2xl mx-auto">
+                <div class="text-center mb-10">
+                    <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                        <i class="fas fa-envelope text-3xl text-white"></i>
+                    </div>
+                    <h2 class="text-3xl font-bold text-white mb-4 text-3d">Send us a Message</h2>
+                    <p class="text-purple-100">We'll get back to you as soon as possible</p>
+                </div>
+
+                <form id="contactForm" class="space-y-6">
+                    <!-- Email Field -->
+                    <div class="form-group">
+                        <label for="email" class="block text-white text-lg font-semibold mb-3 text-left">Your Email</label>
+                        <div class="relative">
+                            <input type="email" id="email" name="email" required
+                                   class="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
+                                   placeholder="Enter your email address">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="fas fa-envelope text-purple-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Subject Field -->
+                    <div class="form-group">
+                        <label for="subject" class="block text-white text-lg font-semibold mb-3 text-left">Subject</label>
+                        <div class="relative">
+                            <input type="text" id="subject" name="subject" value="Contact Support" readonly
+                                   class="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300"
+                                   placeholder="Subject">
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="fas fa-tag text-purple-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Message Field -->
+                    <div class="form-group">
+                        <label for="message" class="block text-white text-lg font-semibold mb-3 text-left">Message</label>
+                        <div class="relative">
+                            <textarea id="message" name="message" rows="6" required
+                                      class="w-full px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl text-white placeholder-purple-200 focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-transparent transition-all duration-300 resize-none"
+                                      placeholder="Tell us how we can help you..."></textarea>
+                            <div class="absolute top-4 right-4 pointer-events-none">
+                                <i class="fas fa-comment text-purple-300"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Send Button -->
+                    <div class="text-center pt-6">
+                        <button type="submit" id="sendBtn"
+                                class="btn-3d btn-cluster inline-flex items-center text-lg px-12 py-4 transform transition-all duration-300 hover:scale-105">
+                            <i class="fas fa-paper-plane mr-3"></i>
+                            <span id="sendBtnText">Send Message</span>
+                            <div id="loadingSpinner" class="hidden ml-3">
+                                <i class="fas fa-spinner fa-spin"></i>
+                            </div>
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Success/Error Messages -->
+                <div id="messageContainer" class="mt-6 hidden">
+                    <div id="successMessage" class="hidden bg-green-500/20 border border-green-400/50 rounded-xl p-4 text-green-200">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span id="successText"></span>
+                    </div>
+                    <div id="errorMessage" class="hidden bg-red-500/20 border border-red-400/50 rounded-xl p-4 text-red-200">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <span id="errorText"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info - 3D Version -->
+        <div class="card-3d p-10 fade-in">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-white mb-4 text-3d">Direct Contact</h2>
+                <p class="text-purple-100">Reach out to us directly</p>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-envelope text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3 text-3d">Email</h3>
+                    <p class="text-purple-100 mb-4">Send us an email directly</p>
+                    <a href="mailto:p.monishreddy19@gmail.com" 
+                       class="text-blue-300 hover:text-blue-200 transition-colors duration-300 font-medium">
+                        p.monishreddy19@gmail.com
+                    </a>
+                </div>
+                
+                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20 hover:bg-white/20 transition-all duration-300">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-400 to-emerald-400 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <i class="fas fa-clock text-2xl text-white"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-white mb-3 text-3d">Response Time</h3>
+                    <p class="text-purple-100 mb-4">We typically respond within</p>
+                    <p class="text-green-300 font-medium">24 hours</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .form-group input:focus,
+    .form-group textarea:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(147, 51, 234, 0.3);
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+    
+    .form-group input:hover,
+    .form-group textarea:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
+    }
+    
+    #sendBtn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none !important;
+    }
+    
+    .animate-float-slow {
+        animation: float 6s ease-in-out infinite;
+    }
+    
+    .animate-float-medium {
+        animation: float 4s ease-in-out infinite;
+    }
+    
+    .animate-float-fast {
+        animation: float 3s ease-in-out infinite;
+    }
+    
+    .animate-spin-slow {
+        animation: spin 20s linear infinite;
+    }
+    
+    .animate-spin-medium {
+        animation: spin 15s linear infinite;
+    }
+    
+    .animate-spin-fast {
+        animation: spin 10s linear infinite;
+    }
+    
+    @keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-20px); }
+    }
+    
+    @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('contactForm');
+    const sendBtn = document.getElementById('sendBtn');
+    const sendBtnText = document.getElementById('sendBtnText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const messageContainer = document.getElementById('messageContainer');
+    const successMessage = document.getElementById('successMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const successText = document.getElementById('successText');
+    const errorText = document.getElementById('errorText');
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        // Show loading state
+        sendBtn.disabled = true;
+        sendBtnText.textContent = 'Sending...';
+        loadingSpinner.classList.remove('hidden');
+        messageContainer.classList.add('hidden');
+        
+        // Get form data
+        const formData = {
+            email: document.getElementById('email').value,
+            subject: document.getElementById('subject').value,
+            message: document.getElementById('message').value
+        };
+        
+        try {
+            const response = await fetch('/send-contact-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                successText.textContent = result.message;
+                successMessage.classList.remove('hidden');
+                errorMessage.classList.add('hidden');
+                messageContainer.classList.remove('hidden');
+                
+                // Reset form
+                form.reset();
+                document.getElementById('subject').value = 'Contact Support';
+                
+                // Hide message after 5 seconds
+                setTimeout(() => {
+                    messageContainer.classList.add('hidden');
+                }, 5000);
+            } else {
+                errorText.textContent = result.message;
+                errorMessage.classList.remove('hidden');
+                successMessage.classList.add('hidden');
+                messageContainer.classList.remove('hidden');
+            }
+        } catch (error) {
+            errorText.textContent = 'Network error. Please try again.';
+            errorMessage.classList.remove('hidden');
+            successMessage.classList.add('hidden');
+            messageContainer.classList.remove('hidden');
+        } finally {
+            // Reset button state
+            sendBtn.disabled = false;
+            sendBtnText.textContent = 'Send Message';
+            loadingSpinner.classList.add('hidden');
+        }
+    });
+    
+    // Add floating animation to form elements
+    const formElements = document.querySelectorAll('.form-group');
+    formElements.forEach((element, index) => {
+        element.style.animationDelay = `${index * 0.1}s`;
+        element.classList.add('fade-in');
+    });
+});
+</script>
+{% endblock %}

@@ -153,103 +153,78 @@
             </div>
         </div>
 
-        <!-- AI Chatbot Features Section - 3D Version -->
+        <!-- Contact Support Section - 3D Version -->
         <div class="card-3d p-10 mb-12 fade-in">
             <div class="text-center mb-10">
-                <div class="w-24 h-24 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-                    <i class="fas fa-robot text-4xl text-white"></i>
+                <div class="w-24 h-24 bg-gradient-to-r from-green-400 to-blue-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fas fa-headset text-4xl text-white"></i>
                 </div>
-                <h2 class="text-4xl font-bold text-white mb-4 text-3d">AI-Powered Chatbot Assistant</h2>
-                <p class="text-xl text-purple-100">Your intelligent recruitment companion available 24/7</p>
+                <h2 class="text-4xl font-bold text-white mb-4 text-3d">Need Support?</h2>
+                <p class="text-xl text-purple-100">Get direct help from our development team</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-                <!-- Smart Resume Parsing -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
-                    <div class="w-12 h-12 bg-blue-400/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-file-alt text-xl text-blue-300"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white mb-2 text-center text-3d">Smart Resume Parsing</h3>
-                    <p class="text-sm text-purple-100 text-center">AI-powered extraction of candidate information from PDF, DOCX resumes</p>
-                </div>
-
-                <!-- Instant Support -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
-                    <div class="w-12 h-12 bg-green-400/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-headset text-xl text-green-300"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white mb-2 text-center text-3d">24/7 Support</h3>
-                    <p class="text-sm text-purple-100 text-center">Round-the-clock assistance for all recruitment queries</p>
-                </div>
-
-                <!-- Quick Actions -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
-                    <div class="w-12 h-12 bg-purple-400/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-bolt text-xl text-purple-300"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white mb-2 text-center text-3d">Quick Actions</h3>
-                    <p class="text-sm text-purple-100 text-center">One-click access to common tasks and workflows</p>
-                </div>
-
-                <!-- Context Awareness -->
-                <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300">
-                    <div class="w-12 h-12 bg-orange-400/20 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <i class="fas fa-brain text-xl text-orange-300"></i>
-                    </div>
-                    <h3 class="text-lg font-semibold text-white mb-2 text-center text-3d">Context Aware</h3>
-                    <p class="text-sm text-purple-100 text-center">Understands your current page and provides relevant assistance</p>
-                </div>
+            <div class="text-center">
+                <a href="{{ url_for('contact_support') }}" class="btn-3d btn-cluster inline-flex items-center text-lg px-10 py-4">
+                    <i class="fas fa-envelope mr-3"></i>
+                    Contact Support
+                </a>
+                <p class="text-sm text-purple-200 mt-3">Send feedback or get help directly</p>
             </div>
+        </div>
 
-            <!-- Chatbot Capabilities -->
-            <div class="bg-white/10 backdrop-blur-sm rounded-xl p-8 border border-white/20">
-                <h3 class="text-2xl font-semibold text-white mb-6 text-center text-3d">What Can Our AI Assistant Do?</h3>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- About Section - 3D Version -->
+        <div class="card-3d p-10 mb-12 fade-in">
+            <div class="text-center mb-10">
+                <div class="w-24 h-24 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fas fa-globe text-4xl text-white"></i>
+                </div>
+                <h2 class="text-4xl font-bold text-white mb-4 text-3d">🌍 My Vision for the Future</h2>
+            </div>
+            
+            <div class="max-w-4xl mx-auto">
+                <p class="text-lg text-purple-100 mb-6 leading-relaxed">
+                    The future belongs to those who can harness AI, data, and creativity together—and I believe we are just at the beginning of this revolution. My vision is to build intelligent products that don't just solve problems but transform the way people work, think, and create.
+                </p>
+                
+                <p class="text-lg text-purple-100 mb-6 leading-relaxed">
+                    From VizGenie (AI-powered dashboards) to SplitFox (AI-driven A/B testing), and advanced hiring and productivity platforms, my journey is about creating real tools for real impact. Each project is a stepping stone toward a larger goal:
+                </p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <div class="space-y-4">
                         <div class="flex items-start space-x-3">
                             <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Guide you through candidate management workflows</span>
+                            <span class="text-purple-100">Empowering businesses with data-driven decisions</span>
                         </div>
                         <div class="flex items-start space-x-3">
                             <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Help with resume upload and parsing issues</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Provide quick access to dashboard features</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Answer questions about portal functionality</span>
+                            <span class="text-purple-100">Automating complexity so teams can focus on innovation</span>
                         </div>
                     </div>
                     <div class="space-y-4">
                         <div class="flex items-start space-x-3">
                             <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Assist with candidate assignment processes</span>
+                            <span class="text-purple-100">Blending AI + Human intuition for creative support</span>
                         </div>
                         <div class="flex items-start space-x-3">
                             <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Help navigate between different portals</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Provide real-time recruitment insights</span>
-                        </div>
-                        <div class="flex items-start space-x-3">
-                            <i class="fas fa-check-circle text-green-400 mt-1 text-xl"></i>
-                            <span class="text-purple-100">Troubleshoot technical issues instantly</span>
+                            <span class="text-purple-100">Making AI accessible to businesses of all sizes</span>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Try Chatbot Button -->
-                <div class="text-center mt-8">
-                    <button onclick="openChatbot()" class="btn-3d btn-cluster inline-flex items-center text-lg px-8 py-4">
-                        <i class="fas fa-comments mr-3"></i>
-                        Try Our AI Assistant
-                    </button>
-                    <p class="text-sm text-purple-200 mt-3">Click the chat icon on any page to get started</p>
+                <p class="text-lg text-purple-100 mb-6 leading-relaxed">
+                    In the next few years, my goal is to evolve these ideas into a global AI ecosystem—a suite of products that inspire trust, deliver measurable impact, and push the boundaries of what's possible.
+                </p>
+                
+                <p class="text-lg text-purple-100 mb-6 leading-relaxed">
+                    I see a future where AI is not a tool for the few, but a partner for everyone—from startups to enterprises, from creators to leaders. Together, we are building not just software, but a movement towards a smarter, faster, and more connected world.
+                </p>
+                
+                <div class="text-center">
+                    <div class="inline-flex items-center text-2xl font-bold text-white bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                        🚀 This is just the beginning.
+                    </div>
                 </div>
             </div>
         </div>
