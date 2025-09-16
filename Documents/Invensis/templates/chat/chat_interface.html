@@ -2037,12 +2037,26 @@
                     }
                 }
                 
-                // Create peer connection
+                // Create peer connection with better STUN/TURN servers
                 peerConnection = new RTCPeerConnection({
                     iceServers: [
                         { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' }
-                    ]
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' },
+                        { 
+                            urls: 'turn:openrelay.metered.ca:80',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        },
+                        { 
+                            urls: 'turn:openrelay.metered.ca:443',
+                            username: 'openrelayproject',
+                            credential: 'openrelayproject'
+                        }
+                    ],
+                    iceCandidatePoolSize: 10
                 });
                 
                 // Add local stream to peer connection
@@ -2052,6 +2066,8 @@
                 
                 // Handle remote stream
                 peerConnection.ontrack = (event) => {
+                    console.log('Received remote stream:', event.streams[0]);
+                    
                     const remoteVideo = document.getElementById('remoteVideo');
                     if (remoteVideo) {
                         remoteVideo.srcObject = event.streams[0];
@@ -2060,7 +2076,14 @@
                     // Update status when we receive remote stream
                     const status = document.getElementById('connectionStatus');
                     if (status) {
-                        status.textContent = 'Connected';
+                        status.textContent = 'Connected - Audio Active';
+                    }
+                    
+                    // Enable audio for remote stream
+                    const remoteAudio = event.streams[0].getAudioTracks()[0];
+                    if (remoteAudio) {
+                        remoteAudio.enabled = true;
+                        console.log('Remote audio track enabled:', remoteAudio);
                     }
                 };
                 
@@ -2084,14 +2107,28 @@
                 // Handle ICE candidates
                 peerConnection.onicecandidate = (event) => {
                     if (event.candidate) {
+                        console.log('Sending ICE candidate:', event.candidate);
                         sendSignalingData('ice-candidate', event.candidate);
+                    } else {
+                        console.log('ICE gathering complete');
+                    }
+                };
+                
+                // Handle ICE connection state changes
+                peerConnection.oniceconnectionstatechange = () => {
+                    console.log('ICE connection state:', peerConnection.iceConnectionState);
+                    const status = document.getElementById('connectionStatus');
+                    if (status) {
+                        status.textContent = `ICE: ${peerConnection.iceConnectionState}`;
                     }
                 };
                 
                 if (!isIncoming) {
                     // Create offer for outgoing call
+                    console.log('Creating offer for outgoing call...');
                     const offer = await peerConnection.createOffer();
                     await peerConnection.setLocalDescription(offer);
+                    console.log('Offer created and set as local description');
                     
                     // Send offer to recipient
                     await sendSignalingData('offer', offer);
@@ -2100,6 +2137,7 @@
                     startSignalingCheck();
                 } else {
                     // Start checking for offers for incoming call
+                    console.log('Starting signaling check for incoming call...');
                     startSignalingCheck();
                 }
                 
@@ -2121,6 +2159,8 @@
         // Send signaling data
         async function sendSignalingData(type, data) {
             try {
+                console.log(`Sending ${type} signaling data:`, data);
+                
                 const response = await fetch('/api/chat/call/signaling', {
                     method: 'POST',
                     headers: {
@@ -2137,6 +2177,8 @@
                 const result = await response.json();
                 if (!result.success) {
                     console.error('Failed to send signaling data:', result.message);
+                } else {
+                    console.log(`Successfully sent ${type} signaling data`);
                 }
             } catch (error) {
                 console.error('Error sending signaling data:', error);
@@ -2147,6 +2189,7 @@
         let signalingInterval = null;
         
         function startSignalingCheck() {
+            console.log('Starting signaling check for call:', currentCallId);
             signalingInterval = setInterval(async () => {
                 if (!currentCallId) {
                     clearInterval(signalingInterval);
@@ -2158,6 +2201,7 @@
                     const data = await response.json();
                     
                     if (data.success && data.signaling_data.length > 0) {
+                        console.log('Received signaling data:', data.signaling_data);
                         for (const signal of data.signaling_data) {
                             await handleSignalingData(signal);
                         }
@@ -2165,21 +2209,29 @@
                 } catch (error) {
                     console.error('Error checking signaling data:', error);
                 }
-            }, 1000);
+            }, 500); // Check every 500ms for faster signaling
         }
         
         // Handle incoming signaling data
         async function handleSignalingData(signal) {
             try {
+                console.log(`Handling ${signal.type} signal:`, signal);
+                
                 if (signal.type === 'offer') {
+                    console.log('Processing offer...');
                     await peerConnection.setRemoteDescription(signal.data);
                     const answer = await peerConnection.createAnswer();
                     await peerConnection.setLocalDescription(answer);
                     await sendSignalingData('answer', answer);
+                    console.log('Answer sent successfully');
                 } else if (signal.type === 'answer') {
+                    console.log('Processing answer...');
                     await peerConnection.setRemoteDescription(signal.data);
+                    console.log('Answer processed successfully');
                 } else if (signal.type === 'ice-candidate') {
+                    console.log('Processing ICE candidate...');
                     await peerConnection.addIceCandidate(signal.data);
+                    console.log('ICE candidate added successfully');
                 }
             } catch (error) {
                 console.error('Error handling signaling data:', error);
