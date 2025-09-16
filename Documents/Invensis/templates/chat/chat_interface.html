@@ -2271,6 +2271,23 @@
                 
                 try {
                     const response = await fetch(`/api/chat/call/signaling/${currentCallId}`);
+                    
+                    // Check if response is ok
+                    if (!response.ok) {
+                        if (response.status === 502) {
+                            console.log('Server temporarily unavailable (502), retrying...');
+                            return; // Skip this check, try again next interval
+                        }
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    
+                    // Check if response is JSON
+                    const contentType = response.headers.get('content-type');
+                    if (!contentType || !contentType.includes('application/json')) {
+                        console.log('Server returned non-JSON response, skipping...');
+                        return;
+                    }
+                    
                     const data = await response.json();
                     
                     if (data.success && data.signaling_data.length > 0) {
@@ -2280,9 +2297,12 @@
                         }
                     }
                 } catch (error) {
-                    console.error('Error checking signaling data:', error);
+                    // Only log errors that aren't JSON parsing errors from 502s
+                    if (!error.message.includes('Unexpected token')) {
+                        console.error('Error checking signaling data:', error);
+                    }
                 }
-            }, 500); // Check every 500ms for faster signaling
+            }, 2000); // Reduced to 2 seconds to prevent server overload
         }
         
         // Handle incoming signaling data
@@ -2532,9 +2552,27 @@
         // Check for incoming calls
         function checkForIncomingCalls() {
             fetch('/api/chat/notifications')
-            .then(response => response.json())
+            .then(response => {
+                // Check if response is ok
+                if (!response.ok) {
+                    if (response.status === 502) {
+                        console.log('Server temporarily unavailable (502) for notifications');
+                        return null; // Skip this check
+                    }
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                // Check if response is JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.log('Server returned non-JSON response for notifications');
+                    return null;
+                }
+                
+                return response.json();
+            })
             .then(data => {
-                if (data.success && data.notifications.length > 0) {
+                if (data && data.success && data.notifications.length > 0) {
                     data.notifications.forEach(notification => {
                         if (notification.type === 'incoming_call') {
                             showIncomingCallModal(notification);
@@ -2543,7 +2581,10 @@
                 }
             })
             .catch(error => {
-                console.error('Error checking notifications:', error);
+                // Only log errors that aren't JSON parsing errors from 502s
+                if (!error.message.includes('Unexpected token')) {
+                    console.error('Error checking notifications:', error);
+                }
             });
         }
         
@@ -2624,8 +2665,8 @@
         
         // Start checking for incoming calls
         function startCallNotificationCheck() {
-            // Check for calls every 3 seconds
-            setInterval(checkForIncomingCalls, 3000);
+            // Check for calls every 5 seconds to reduce server load
+            setInterval(checkForIncomingCalls, 5000);
         }
         
         // Toggle mute
