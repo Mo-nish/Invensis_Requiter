@@ -2006,6 +2006,9 @@
                             <button class="call-button test-signaling" onclick="testSignalingEndpoints()" id="testSignalingBtn">
                                 🔍 Test Signaling
                             </button>
+                            <button class="call-button test-direct" onclick="testDirectConnection()" id="testDirectBtn">
+                                🔄 Direct Connect
+                            </button>
                             <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
                         </div>
                     
@@ -2226,7 +2229,7 @@
                     // Send offer to recipient
                     await sendSignalingData('offer', offer);
                     
-                    // Start checking for answers
+                    // Start checking for answers with reduced frequency
                     startSignalingCheck();
                 } else {
                     // Start checking for offers for incoming call
@@ -2234,6 +2237,15 @@
                     console.log('Initial signaling state:', peerConnection.signalingState);
                     startSignalingCheck();
                 }
+                
+                // Add a fallback: if no signaling happens in 10 seconds, try direct connection
+                setTimeout(() => {
+                    if (peerConnection.signalingState === 'have-local-offer' || peerConnection.signalingState === 'stable') {
+                        console.log('⚠️ Signaling timeout - trying direct connection approach');
+                        // Try to establish connection without signaling
+                        testDirectConnection();
+                    }
+                }, 10000);
                 
                 // Update status
                 const status = document.getElementById('connectionStatus');
@@ -2438,6 +2450,33 @@
                 remoteVideo.muted = false;
                 remoteVideo.volume = 1.0;
                 console.log('✅ Remote video audio enabled!');
+            }
+        }
+        
+        // Test direct connection without signaling
+        function testDirectConnection() {
+            console.log('🔄 Testing direct connection approach...');
+            
+            if (peerConnection) {
+                console.log('Current connection state:', peerConnection.connectionState);
+                console.log('Current ICE connection state:', peerConnection.iceConnectionState);
+                console.log('Current signaling state:', peerConnection.signalingState);
+                
+                // Try to create a new offer
+                peerConnection.createOffer().then(offer => {
+                    console.log('Direct offer created:', offer);
+                    return peerConnection.setLocalDescription(offer);
+                }).then(() => {
+                    console.log('Direct offer set as local description');
+                    
+                    // Update status
+                    const status = document.getElementById('connectionStatus');
+                    if (status) {
+                        status.textContent = 'Direct connection attempt';
+                    }
+                }).catch(error => {
+                    console.error('Direct connection failed:', error);
+                });
             }
         }
         
