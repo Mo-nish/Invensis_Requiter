@@ -501,6 +501,81 @@ def answer_call():
     except Exception as e:
         return jsonify({'success': False, 'message': str(e)}), 500
 
+@chat_bp.route('/api/chat/call/signaling', methods=['POST'])
+@login_required
+def handle_signaling():
+    """Handle WebRTC signaling (offers, answers, ICE candidates)"""
+    try:
+        data = request.get_json()
+        call_id = data.get('call_id')
+        signal_type = data.get('type')  # 'offer', 'answer', 'ice-candidate'
+        signal_data = data.get('data')
+        recipient_email = data.get('recipient_email')
+        
+        if not call_id or not signal_type or not signal_data:
+            return jsonify({'success': False, 'message': 'Missing required fields'}), 400
+        
+        from models_mongo import db
+        signaling_collection = db.signaling
+        
+        # Store signaling data
+        signaling_message = {
+            'call_id': call_id,
+            'sender_email': current_user.email,
+            'recipient_email': recipient_email,
+            'signal_type': signal_type,
+            'signal_data': signal_data,
+            'created_at': datetime.utcnow(),
+            'processed': False
+        }
+        
+        signaling_collection.insert_one(signaling_message)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Signaling data stored'
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
+@chat_bp.route('/api/chat/call/signaling/<call_id>')
+@login_required
+def get_signaling_data(call_id):
+    """Get pending signaling data for a call"""
+    try:
+        from models_mongo import db
+        signaling_collection = db.signaling
+        
+        # Get unprocessed signaling messages for this call
+        signaling_messages = list(signaling_collection.find({
+            'call_id': call_id,
+            'recipient_email': current_user.email,
+            'processed': False
+        }).sort('created_at', 1))
+        
+        signaling_data = []
+        for msg in signaling_messages:
+            signaling_data.append({
+                'type': msg['signal_type'],
+                'data': msg['signal_data'],
+                'sender_email': msg['sender_email']
+            })
+            
+            # Mark as processed
+            signaling_collection.update_one(
+                {'_id': msg['_id']},
+                {'$set': {'processed': True}}
+            )
+        
+        return jsonify({
+            'success': True,
+            'signaling_data': signaling_data
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+
 @chat_bp.route('/api/chat/call/end', methods=['POST'])
 @login_required
 def end_call():
@@ -525,6 +600,10 @@ def end_call():
                 'duration': duration
             }}
         )
+        
+        # Clean up signaling data
+        signaling_collection = db.signaling
+        signaling_collection.delete_many({'call_id': call_id})
         
         # Add call duration message to conversation
         call_session = calls_collection.find_one({'call_id': call_id})
