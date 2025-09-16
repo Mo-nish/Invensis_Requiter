@@ -394,12 +394,12 @@ if __name__ == '__main__':
     # WebSocket event handlers
     @socketio.on('connect')
     def handle_connect():
-        print(f"🔌 WebSocket connected: {request.sid}")
-        emit('connected', {'message': 'Connected to WebSocket'})
+        print(f"🔌 Socket.IO connected: {request.sid}")
+        emit('connected', {'message': 'Connected to Socket.IO', 'socket_id': request.sid})
     
     @socketio.on('disconnect')
     def handle_disconnect():
-        print(f"🔌 WebSocket disconnected: {request.sid}")
+        print(f"🔌 Socket.IO disconnected: {request.sid}")
     
     @socketio.on('join_call')
     def handle_join_call(data):
@@ -407,6 +407,7 @@ if __name__ == '__main__':
         user_email = data.get('user_email')
         join_room(call_id)
         print(f"👤 {user_email} joined call room: {call_id}")
+        emit('joined_call', {'call_id': call_id, 'user_email': user_email})
     
     @socketio.on('call_offer')
     def handle_call_offer(data):
@@ -415,13 +416,14 @@ if __name__ == '__main__':
         offer = data.get('offer')
         call_type = data.get('call_type', 'voice')
         
-        print(f"📞 Call offer from {request.sid} to {recipient_email}")
+        print(f"📞 Call offer from {request.sid} to {recipient_email} in room {call_id}")
         
-        # Send offer to recipient
+        # Send offer to all in call room (including sender for debugging)
         emit('call_offer', {
             'call_id': call_id,
             'offer': offer,
-            'call_type': call_type
+            'call_type': call_type,
+            'from': request.sid
         }, room=call_id)
     
     @socketio.on('call_answer')
@@ -429,12 +431,13 @@ if __name__ == '__main__':
         call_id = data.get('call_id')
         answer = data.get('answer')
         
-        print(f"📞 Call answer from {request.sid}")
+        print(f"📞 Call answer from {request.sid} in room {call_id}")
         
         # Send answer to all in call room
         emit('call_answer', {
             'call_id': call_id,
-            'answer': answer
+            'answer': answer,
+            'from': request.sid
         }, room=call_id)
     
     @socketio.on('ice_candidate')
@@ -442,12 +445,13 @@ if __name__ == '__main__':
         call_id = data.get('call_id')
         candidate = data.get('candidate')
         
-        print(f"🧊 ICE candidate from {request.sid}")
+        print(f"🧊 ICE candidate from {request.sid} in room {call_id}")
         
         # Send ICE candidate to all in call room
         emit('ice_candidate', {
             'call_id': call_id,
-            'candidate': candidate
+            'candidate': candidate,
+            'from': request.sid
         }, room=call_id)
     
     @socketio.on('call_end')
@@ -460,7 +464,8 @@ if __name__ == '__main__':
         # Send call end to all in call room
         emit('call_end', {
             'call_id': call_id,
-            'duration': duration
+            'duration': duration,
+            'from': request.sid
         }, room=call_id)
         
         # Leave room

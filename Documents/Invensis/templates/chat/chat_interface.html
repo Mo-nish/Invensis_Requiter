@@ -1968,52 +1968,88 @@
         // Socket.IO signaling system
         function connectWebSocket() {
             if (window.socket && window.socket.connected) {
+                console.log('🔌 Socket.IO already connected');
                 return Promise.resolve();
             }
             
             return new Promise((resolve, reject) => {
                 // Load Socket.IO if not already loaded
                 if (typeof io === 'undefined') {
+                    console.log('📦 Loading Socket.IO...');
                     const script = document.createElement('script');
                     script.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
                     script.onload = () => {
-                        initializeSocket();
-                        resolve();
+                        console.log('📦 Socket.IO loaded');
+                        initializeSocket().then(resolve).catch(reject);
                     };
-                    script.onerror = reject;
+                    script.onerror = (error) => {
+                        console.error('❌ Failed to load Socket.IO:', error);
+                        reject(error);
+                    };
                     document.head.appendChild(script);
                 } else {
-                    initializeSocket();
-                    resolve();
+                    console.log('📦 Socket.IO already loaded');
+                    initializeSocket().then(resolve).catch(reject);
                 }
             });
         }
         
         function initializeSocket() {
-            window.socket = io();
-            
-            window.socket.on('connect', () => {
-                console.log('🔌 Socket.IO connected');
-            });
-            
-            window.socket.on('disconnect', () => {
-                console.log('🔌 Socket.IO disconnected');
-            });
-            
-            window.socket.on('call_offer', (data) => {
-                handleWebSocketMessage(data);
-            });
-            
-            window.socket.on('call_answer', (data) => {
-                handleWebSocketMessage(data);
-            });
-            
-            window.socket.on('ice_candidate', (data) => {
-                handleWebSocketMessage(data);
-            });
-            
-            window.socket.on('call_end', (data) => {
-                handleWebSocketMessage(data);
+            return new Promise((resolve, reject) => {
+                console.log('🔌 Initializing Socket.IO connection...');
+                
+                try {
+                    window.socket = io({
+                        transports: ['websocket', 'polling'],
+                        timeout: 10000,
+                        forceNew: true
+                    });
+                    
+                    window.socket.on('connect', () => {
+                        console.log('🔌 Socket.IO connected successfully:', window.socket.id);
+                        resolve();
+                    });
+                    
+                    window.socket.on('connect_error', (error) => {
+                        console.error('❌ Socket.IO connection error:', error);
+                        reject(error);
+                    });
+                    
+                    window.socket.on('disconnect', (reason) => {
+                        console.log('🔌 Socket.IO disconnected:', reason);
+                    });
+                    
+                    window.socket.on('call_offer', (data) => {
+                        console.log('📞 Received call offer via Socket.IO');
+                        handleWebSocketMessage(data);
+                    });
+                    
+                    window.socket.on('call_answer', (data) => {
+                        console.log('📞 Received call answer via Socket.IO');
+                        handleWebSocketMessage(data);
+                    });
+                    
+                    window.socket.on('ice_candidate', (data) => {
+                        console.log('🧊 Received ICE candidate via Socket.IO');
+                        handleWebSocketMessage(data);
+                    });
+                    
+                    window.socket.on('call_end', (data) => {
+                        console.log('📞 Received call end via Socket.IO');
+                        handleWebSocketMessage(data);
+                    });
+                    
+                    // Timeout after 10 seconds
+                    setTimeout(() => {
+                        if (!window.socket.connected) {
+                            reject(new Error('Socket.IO connection timeout'));
+                        }
+                    }, 10000);
+                    
+                } catch (error) {
+                    console.error('❌ Socket.IO initialization error:', error);
+                    reject(error);
+                }
             });
         }
         
@@ -2048,7 +2084,27 @@
                 window.socket.emit(type, message);
                 console.log(`📤 Socket.IO ${type} sent:`, message);
             } else {
-                console.error('Socket.IO not connected');
+                console.error('❌ Socket.IO not connected - attempting to reconnect...');
+                // Try to reconnect
+                connectWebSocket().then(() => {
+                    console.log('✅ Socket.IO reconnected, retrying message...');
+                    sendWebSocketMessage(type, payload);
+                }).catch(error => {
+                    console.error('❌ Failed to reconnect Socket.IO:', error);
+                });
+            }
+        }
+        
+        // Test Socket.IO connection
+        function testSocketConnection() {
+            if (window.socket && window.socket.connected) {
+                console.log('✅ Socket.IO connection test: CONNECTED');
+                console.log('Socket ID:', window.socket.id);
+                console.log('Socket connected:', window.socket.connected);
+                return true;
+            } else {
+                console.log('❌ Socket.IO connection test: NOT CONNECTED');
+                return false;
             }
         }
         
@@ -2146,6 +2202,7 @@
                             </button>
                         ` : ''}
                         <button class="call-button end-call" onclick="endCall('${callId}')">📞 End</button>
+                        <button class="call-button test-socket" onclick="testSocketConnection()">🔌 Test Socket</button>
                     </div>
                     
                     <div class="call-details">
