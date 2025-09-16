@@ -2080,86 +2080,80 @@
                 testAudio.srcObject = localStream;
                 testAudio.muted = true; // Don't create feedback
                 testAudio.play().then(() => {
-                    console.log('Local audio test successful');
+                    console.log('✅ Local audio test successful');
+                    
+                    // Check if we actually have audio data
+                    const audioTracks = localStream.getAudioTracks();
+                    audioTracks.forEach(track => {
+                        console.log('Local audio track details:', {
+                            enabled: track.enabled,
+                            muted: track.muted,
+                            readyState: track.readyState,
+                            label: track.label,
+                            settings: track.getSettings()
+                        });
+                    });
                 }).catch(e => {
-                    console.log('Local audio test failed:', e);
+                    console.log('❌ Local audio test failed:', e);
                 });
                 
-                // Handle remote stream
+                // Handle remote stream - SIMPLIFIED APPROACH
                 peerConnection.ontrack = (event) => {
-                    console.log('Received remote stream:', event.streams[0]);
-                    console.log('Remote stream tracks:', event.streams[0].getTracks());
+                    console.log('=== REMOTE STREAM RECEIVED ===');
+                    console.log('Remote stream:', event.streams[0]);
+                    console.log('Remote tracks:', event.streams[0].getTracks());
                     
+                    // Handle video if it's a video call
                     const remoteVideo = document.getElementById('remoteVideo');
                     if (remoteVideo) {
                         remoteVideo.srcObject = event.streams[0];
+                        console.log('Remote video set');
                     }
                     
-                    // Create audio element for remote audio
-                    let remoteAudio = document.getElementById('remoteAudio');
-                    if (!remoteAudio) {
+                    // SIMPLE AUDIO HANDLING - Use the video element for audio too
+                    if (remoteVideo) {
+                        // For video calls, audio comes with video
+                        remoteVideo.muted = false;
+                        remoteVideo.volume = 1.0;
+                        console.log('Audio enabled on remote video element');
+                    } else {
+                        // For voice calls, create a simple audio element
+                        let remoteAudio = document.getElementById('remoteAudio');
+                        if (remoteAudio) {
+                            remoteAudio.remove(); // Remove existing one
+                        }
+                        
                         remoteAudio = document.createElement('audio');
                         remoteAudio.id = 'remoteAudio';
+                        remoteAudio.srcObject = event.streams[0];
                         remoteAudio.autoplay = true;
-                        remoteAudio.playsInline = true;
-                        remoteAudio.controls = false;
-                        remoteAudio.style.display = 'none';
-                        remoteAudio.volume = 1.0;
                         remoteAudio.muted = false;
+                        remoteAudio.volume = 1.0;
+                        remoteAudio.style.display = 'none';
                         document.body.appendChild(remoteAudio);
                         
-                        // Handle autoplay restrictions
-                        remoteAudio.addEventListener('canplay', () => {
-                            console.log('Remote audio can play');
-                            remoteAudio.play().catch(e => {
-                                console.log('Autoplay prevented, user interaction required:', e);
-                                // Show enable audio button
-                                const enableBtn = document.getElementById('enableAudioBtn');
-                                if (enableBtn) {
-                                    enableBtn.style.display = 'inline-block';
-                                }
-                            });
-                        });
+                        console.log('Simple remote audio element created');
                         
-                        remoteAudio.addEventListener('loadedmetadata', () => {
-                            console.log('Remote audio metadata loaded');
-                        });
-                        
-                        remoteAudio.addEventListener('play', () => {
-                            console.log('Remote audio started playing');
-                        });
-                        
-                        remoteAudio.addEventListener('error', (e) => {
-                            console.error('Remote audio error:', e);
+                        // Try to play
+                        remoteAudio.play().then(() => {
+                            console.log('✅ Remote audio playing successfully!');
+                        }).catch(e => {
+                            console.log('❌ Remote audio play failed:', e);
+                            // Show enable button
+                            const enableBtn = document.getElementById('enableAudioBtn');
+                            if (enableBtn) {
+                                enableBtn.style.display = 'inline-block';
+                            }
                         });
                     }
                     
-                    remoteAudio.srcObject = event.streams[0];
-                    
-                    // Try to play immediately
-                    remoteAudio.play().catch(e => {
-                        console.log('Immediate play failed, will retry:', e);
-                    });
-                    
-                    // Enable all audio tracks
-                    const audioTracks = event.streams[0].getAudioTracks();
-                    audioTracks.forEach(track => {
-                        track.enabled = true;
-                        console.log('Remote audio track enabled:', track.enabled, track.muted, track.readyState);
-                    });
-                    
-                    // Update status when we receive remote stream
+                    // Update status
                     const status = document.getElementById('connectionStatus');
                     if (status) {
                         status.textContent = 'Connected - Audio Active';
                     }
                     
-                    console.log('Remote audio element created and configured');
-                    
-                    // Log audio track states periodically
-                    setTimeout(() => {
-                        logAudioTrackStates();
-                    }, 2000);
+                    console.log('=== REMOTE STREAM CONFIGURED ===');
                 };
                 
                 // Handle connection state changes
@@ -2361,17 +2355,29 @@
         
         // Enable audio manually (for autoplay restrictions)
         function enableAudio() {
+            console.log('🔊 Manual audio enable requested');
+            
             const remoteAudio = document.getElementById('remoteAudio');
+            const remoteVideo = document.getElementById('remoteVideo');
+            
             if (remoteAudio) {
+                console.log('Enabling remote audio element');
                 remoteAudio.play().then(() => {
-                    console.log('Audio enabled successfully');
+                    console.log('✅ Remote audio enabled successfully!');
                     const enableBtn = document.getElementById('enableAudioBtn');
                     if (enableBtn) {
                         enableBtn.style.display = 'none';
                     }
                 }).catch(e => {
-                    console.error('Failed to enable audio:', e);
+                    console.error('❌ Failed to enable remote audio:', e);
                 });
+            }
+            
+            if (remoteVideo && remoteVideo.srcObject) {
+                console.log('Enabling remote video audio');
+                remoteVideo.muted = false;
+                remoteVideo.volume = 1.0;
+                console.log('✅ Remote video audio enabled!');
             }
         }
         
