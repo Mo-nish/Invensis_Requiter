@@ -2129,7 +2129,6 @@
                     
                     // If connection fails, end the call
                     if (peerConnection.connectionState === 'failed' || peerConnection.connectionState === 'disconnected') {
-                        stopCallTimer();
                         setTimeout(() => {
                             if (currentCallId) {
                                 endCall(currentCallId);
@@ -2367,7 +2366,6 @@
                 clearInterval(callTimer);
             }
             
-            callStartTime = new Date();
             callTimer = setInterval(() => {
                 if (callStartTime) {
                     const now = new Date();
@@ -2382,15 +2380,13 @@
                     }
                 }
             }, 1000);
-            
-            console.log('⏰ Call timer started');
         }
         
+        // Stop call timer
         function stopCallTimer() {
             if (callTimer) {
                 clearInterval(callTimer);
                 callTimer = null;
-                console.log('⏰ Call timer stopped');
             }
         }
         
@@ -2445,7 +2441,13 @@
             .then(data => {
                 console.log('Call ended:', data.message);
                 
-                // Call duration message is saved by backend
+                // Add call duration message to chat
+                if (callDuration > 0) {
+                    const durationMinutes = Math.floor(callDuration / 60);
+                    const durationSeconds = callDuration % 60;
+                    const durationText = `${durationMinutes}:${durationSeconds.toString().padStart(2, '0')}`;
+                    addMessage(`📞 Call ended - Duration: ${durationText}`, 'sent');
+                }
             })
             .catch(error => {
                 console.error('Error ending call:', error);
@@ -2529,7 +2531,10 @@
                 console.log('📞 Ending call due to remote user ending it');
                 
                 // Stop timer and cleanup
-                stopCallTimer();
+                if (callTimer) {
+                    clearInterval(callTimer);
+                    callTimer = null;
+                }
                 
                 // Clean up WebRTC
                 if (localStream) {
@@ -2559,8 +2564,6 @@
                 currentCallId = null;
                 callStartTime = null;
                 
-                // Call ended message is saved by backend
-                
                 console.log('📞 Call cleanup completed');
             }
         }
@@ -2586,13 +2589,11 @@
                     }
                     
                     if (action === 'accept') {
-                        // Get call type from notification data
-                        const callType = data.call_type || 'voice';
                         // Show call interface for accepted call
-                        showCallInterface(callType, callId, 'Call Connected', true);
+                        showCallInterface('voice', callId, 'Call Connected', true);
                         // Initialize WebRTC for incoming call
                         setTimeout(() => {
-                            initializeWebRTC(callType, true);
+                            initializeWebRTC('voice', true);
                         }, 500);
                     } else {
                         // Add declined call message
