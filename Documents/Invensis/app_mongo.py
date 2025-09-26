@@ -26,6 +26,11 @@ app.config['MAIL_USERNAME'] = os.getenv('EMAIL_USER')
 app.config['MAIL_PASSWORD'] = os.getenv('EMAIL_PASS')
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('EMAIL_USER')
 
+# Debug email configuration
+print(f"Email config - USER: {os.getenv('EMAIL_USER', 'NOT_SET')}")
+print(f"Email config - PASS: {'SET' if os.getenv('EMAIL_PASS') else 'NOT_SET'}")
+print(f"Email config - SENDER: {app.config['MAIL_DEFAULT_SENDER']}")
+
 # File upload configuration
 UPLOAD_FOLDER = 'static/uploads'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf'}
