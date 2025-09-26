@@ -250,7 +250,10 @@ def add_user_and_send_invite(email, role):
         registration_link = f"{request.host_url.rstrip('/')}/register?token={token}"
         
         # Send invitation email
-        send_invitation_email(email, role, registration_link)
+        email_sent = send_invitation_email(email, role, registration_link)
+        if not email_sent:
+            print(f"❌ Failed to send invitation email to {email}")
+            # Still return success for user addition, but log the email failure
         
         # Log activity
         activity = ActivityLog(

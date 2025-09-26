@@ -1072,8 +1072,12 @@ def assign_candidate():
         
         # Send email to manager
         try:
-            send_candidate_assignment_email(manager_email, candidate, interview_datetime)
+            email_sent = send_candidate_assignment_email(manager_email, candidate, interview_datetime)
+            if not email_sent:
+                print(f"❌ Failed to send candidate assignment email to {manager_email}")
+                flash('Email notification failed - check email configuration', 'warning')
         except Exception as e:
+            print(f"❌ Email sending error: {str(e)}")
             flash('Email notification failed', 'warning')
         
         # Log activity

@@ -9,10 +9,22 @@ def send_async_email(app, msg):
         mail.send(msg)
 
 def send_email(subject, recipients, body):
-    app = current_app._get_current_object()
-    msg = Message(subject, recipients=recipients)
-    msg.body = body
-    Thread(target=send_async_email, args=(app, msg)).start()
+    try:
+        app = current_app._get_current_object()
+        msg = Message(subject, recipients=recipients)
+        msg.body = body
+        
+        # Check if email is properly configured
+        if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
+            print(f"❌ EMAIL NOT CONFIGURED - USER: {app.config.get('MAIL_USERNAME', 'NOT_SET')}, PASS: {'SET' if app.config.get('MAIL_PASSWORD') else 'NOT_SET'}")
+            return False
+            
+        Thread(target=send_async_email, args=(app, msg)).start()
+        print(f"✅ Email queued for sending to: {recipients}")
+        return True
+    except Exception as e:
+        print(f"❌ Error in send_email: {str(e)}")
+        return False
 
 def send_role_assignment_email(email, role_type):
     """Send email notification when admin assigns a role"""
@@ -31,7 +43,10 @@ Admin Team
 Invensis Hiring Portal
 """
     
-    send_email(subject, [email], body)
+    result = send_email(subject, [email], body)
+    if not result:
+        print(f"❌ Failed to send role assignment email to {email}")
+    return result
 
 def send_candidate_assignment_email(manager_email, candidate, interview_datetime):
     """Send email notification when HR assigns a candidate to manager"""
@@ -62,7 +77,10 @@ HR Team
 Invensis Hiring Portal
 """
     
-    send_email(subject, [manager_email], body)
+    result = send_email(subject, [manager_email], body)
+    if not result:
+        print(f"❌ Failed to send candidate assignment email to {manager_email}")
+    return result
 
 def send_feedback_notification_email(hr_email, candidate, status):
     """Send email notification when manager provides feedback"""
