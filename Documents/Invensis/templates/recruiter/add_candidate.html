@@ -137,48 +137,52 @@
     /* Assessment & Rating Styles */
     .assessment-grid {
         display: grid;
-        grid-template-columns: 2fr 1fr;
-        gap: 32px;
+        grid-template-columns: 1fr;
+        gap: 24px;
         margin-bottom: 32px;
     }
     
     .rating-categories {
         display: flex;
         flex-direction: column;
-        gap: 24px;
+        gap: 20px;
     }
     
     .rating-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 24px;
+        gap: 20px;
     }
     
     .rating-item {
-        background: #f8fafc;
+        background: white;
         border: 2px solid #e2e8f0;
         border-radius: 12px;
-        padding: 20px;
+        padding: 24px;
         transition: all 0.3s;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     .rating-item:hover {
         border-color: #3b82f6;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+        transform: translateY(-2px);
     }
     
     .rating-label {
         display: block;
         font-weight: 600;
         color: #374151;
-        margin-bottom: 12px;
-        font-size: 14px;
+        margin-bottom: 16px;
+        font-size: 15px;
+        text-align: center;
     }
     
     .rating-buttons {
         display: flex;
-        gap: 8px;
+        gap: 12px;
         justify-content: center;
+        flex-wrap: wrap;
     }
     
     .rating-buttons input[type="radio"] {
@@ -189,64 +193,72 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 40px;
-        height: 40px;
+        width: 45px;
+        height: 45px;
         border: 2px solid #d1d5db;
         border-radius: 50%;
         background: white;
         color: #6b7280;
-        font-weight: 600;
+        font-weight: 700;
+        font-size: 16px;
         cursor: pointer;
-        transition: all 0.3s;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .rating-btn:hover {
         border-color: #3b82f6;
         color: #3b82f6;
-        transform: scale(1.1);
+        transform: scale(1.15);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
     }
     
     .rating-buttons input[type="radio"]:checked + .rating-btn {
         background: linear-gradient(135deg, #3b82f6, #1d4ed8);
         border-color: #3b82f6;
         color: white;
-        transform: scale(1.1);
+        transform: scale(1.15);
+        box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
     }
     
     .rating-summary {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-top: 24px;
     }
     
     .summary-item {
         background: white;
         border: 2px solid #e2e8f0;
         border-radius: 12px;
-        padding: 20px;
+        padding: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     .summary-label {
         display: block;
         font-weight: 600;
         color: #374151;
-        margin-bottom: 12px;
-        font-size: 14px;
+        margin-bottom: 16px;
+        font-size: 15px;
+        text-align: center;
     }
     
     .overall-rating-display {
         text-align: center;
-        padding: 20px;
-        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
-        border-radius: 8px;
-        border: 2px dashed #cbd5e1;
+        padding: 24px;
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        border-radius: 12px;
+        border: 2px solid #0ea5e9;
+        box-shadow: inset 0 2px 4px rgba(14, 165, 233, 0.1);
     }
     
     .overall-rating-value {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #3b82f6;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #0ea5e9;
+        text-shadow: 2px 2px 4px rgba(14, 165, 233, 0.2);
     }
     
     .notes-textarea {
@@ -269,23 +281,25 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 24px;
-        padding: 20px;
-        background: #f8fafc;
+        margin: 24px 0;
+        padding: 24px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
         border-radius: 12px;
         border: 2px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     .ai-info {
         display: flex;
         align-items: center;
-        color: #6b7280;
-        font-size: 14px;
+        color: #64748b;
+        font-size: 15px;
+        font-weight: 500;
     }
     
     .action-buttons {
         display: flex;
-        gap: 12px;
+        gap: 16px;
     }
     
     .btn-calculate {
@@ -329,8 +343,14 @@
     .bottom-actions {
         display: flex;
         justify-content: center;
-        gap: 16px;
+        gap: 20px;
         flex-wrap: wrap;
+        margin-top: 32px;
+        padding: 24px;
+        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
     }
     
     .btn-add-candidate {
@@ -400,12 +420,12 @@
     
     /* Responsive Design */
     @media (max-width: 768px) {
-        .assessment-grid {
+        .rating-row {
             grid-template-columns: 1fr;
-            gap: 24px;
+            gap: 16px;
         }
         
-        .rating-row {
+        .rating-summary {
             grid-template-columns: 1fr;
             gap: 16px;
         }
@@ -416,9 +436,47 @@
             text-align: center;
         }
         
+        .action-buttons {
+            justify-content: center;
+        }
+        
         .bottom-actions {
             flex-direction: column;
             align-items: center;
+        }
+        
+        .rating-buttons {
+            gap: 8px;
+        }
+        
+        .rating-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+        }
+        
+        .overall-rating-value {
+            font-size: 2rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .rating-btn {
+            width: 35px;
+            height: 35px;
+            font-size: 12px;
+        }
+        
+        .rating-item {
+            padding: 16px;
+        }
+        
+        .summary-item {
+            padding: 16px;
+        }
+        
+        .overall-rating-value {
+            font-size: 1.8rem;
         }
     }
 </style>
@@ -567,109 +625,107 @@
 
     <!-- Candidate Assessment & Rating Section -->
     <div class="form-section">
-        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+        <h2 class="text-2xl font-bold text-gray-900 mb-8 text-center">
             <i class="fas fa-star text-purple-600 mr-3"></i>Candidate Assessment & Rating
         </h2>
         
-        <div class="assessment-grid">
-            <!-- Rating Categories -->
-            <div class="rating-categories">
-                <!-- Top Row -->
-                <div class="rating-row">
-                    <div class="rating-item">
-                        <label class="rating-label">
-                            <i class="fas fa-comments text-blue-500 mr-2"></i>Communication Skills <span class="required">*</span>
-                        </label>
-                        <div class="rating-buttons">
-                            <input type="radio" id="comm_1" name="communication_skills" value="1">
-                            <label for="comm_1" class="rating-btn">1</label>
-                            <input type="radio" id="comm_2" name="communication_skills" value="2">
-                            <label for="comm_2" class="rating-btn">2</label>
-                            <input type="radio" id="comm_3" name="communication_skills" value="3">
-                            <label for="comm_3" class="rating-btn">3</label>
-                            <input type="radio" id="comm_4" name="communication_skills" value="4">
-                            <label for="comm_4" class="rating-btn">4</label>
-                            <input type="radio" id="comm_5" name="communication_skills" value="5">
-                            <label for="comm_5" class="rating-btn">5</label>
-                        </div>
-                    </div>
-                    
-                    <div class="rating-item">
-                        <label class="rating-label">
-                            <i class="fas fa-sync-alt text-green-500 mr-2"></i>Adaptability & Flexibility <span class="required">*</span>
-                        </label>
-                        <div class="rating-buttons">
-                            <input type="radio" id="adapt_1" name="adaptability" value="1">
-                            <label for="adapt_1" class="rating-btn">1</label>
-                            <input type="radio" id="adapt_2" name="adaptability" value="2">
-                            <label for="adapt_2" class="rating-btn">2</label>
-                            <input type="radio" id="adapt_3" name="adaptability" value="3">
-                            <label for="adapt_3" class="rating-btn">3</label>
-                            <input type="radio" id="adapt_4" name="adaptability" value="4">
-                            <label for="adapt_4" class="rating-btn">4</label>
-                            <input type="radio" id="adapt_5" name="adaptability" value="5">
-                            <label for="adapt_5" class="rating-btn">5</label>
-                        </div>
+        <!-- Rating Categories -->
+        <div class="rating-categories">
+            <!-- Top Row -->
+            <div class="rating-row">
+                <div class="rating-item">
+                    <label class="rating-label">
+                        <i class="fas fa-comments text-blue-500 mr-2"></i>Communication Skills <span class="required">*</span>
+                    </label>
+                    <div class="rating-buttons">
+                        <input type="radio" id="comm_1" name="communication_skills" value="1">
+                        <label for="comm_1" class="rating-btn">1</label>
+                        <input type="radio" id="comm_2" name="communication_skills" value="2">
+                        <label for="comm_2" class="rating-btn">2</label>
+                        <input type="radio" id="comm_3" name="communication_skills" value="3">
+                        <label for="comm_3" class="rating-btn">3</label>
+                        <input type="radio" id="comm_4" name="communication_skills" value="4">
+                        <label for="comm_4" class="rating-btn">4</label>
+                        <input type="radio" id="comm_5" name="communication_skills" value="5">
+                        <label for="comm_5" class="rating-btn">5</label>
                     </div>
                 </div>
                 
-                <!-- Bottom Row -->
-                <div class="rating-row">
-                    <div class="rating-item">
-                        <label class="rating-label">
-                            <i class="fas fa-users text-blue-600 mr-2"></i>Teamwork & Collaboration <span class="required">*</span>
-                        </label>
-                        <div class="rating-buttons">
-                            <input type="radio" id="team_1" name="teamwork" value="1">
-                            <label for="team_1" class="rating-btn">1</label>
-                            <input type="radio" id="team_2" name="teamwork" value="2">
-                            <label for="team_2" class="rating-btn">2</label>
-                            <input type="radio" id="team_3" name="teamwork" value="3">
-                            <label for="team_3" class="rating-btn">3</label>
-                            <input type="radio" id="team_4" name="teamwork" value="4">
-                            <label for="team_4" class="rating-btn">4</label>
-                            <input type="radio" id="team_5" name="teamwork" value="5">
-                            <label for="team_5" class="rating-btn">5</label>
-                        </div>
-                    </div>
-                    
-                    <div class="rating-item">
-                        <label class="rating-label">
-                            <i class="fas fa-briefcase text-orange-500 mr-2"></i>Perfect Fit for Job <span class="required">*</span>
-                        </label>
-                        <div class="rating-buttons">
-                            <input type="radio" id="fit_1" name="job_fit" value="1">
-                            <label for="fit_1" class="rating-btn">1</label>
-                            <input type="radio" id="fit_2" name="job_fit" value="2">
-                            <label for="fit_2" class="rating-btn">2</label>
-                            <input type="radio" id="fit_3" name="job_fit" value="3">
-                            <label for="fit_3" class="rating-btn">3</label>
-                            <input type="radio" id="fit_4" name="job_fit" value="4">
-                            <label for="fit_4" class="rating-btn">4</label>
-                            <input type="radio" id="fit_5" name="job_fit" value="5">
-                            <label for="fit_5" class="rating-btn">5</label>
-                        </div>
+                <div class="rating-item">
+                    <label class="rating-label">
+                        <i class="fas fa-sync-alt text-green-500 mr-2"></i>Adaptability & Flexibility <span class="required">*</span>
+                    </label>
+                    <div class="rating-buttons">
+                        <input type="radio" id="adapt_1" name="adaptability" value="1">
+                        <label for="adapt_1" class="rating-btn">1</label>
+                        <input type="radio" id="adapt_2" name="adaptability" value="2">
+                        <label for="adapt_2" class="rating-btn">2</label>
+                        <input type="radio" id="adapt_3" name="adaptability" value="3">
+                        <label for="adapt_3" class="rating-btn">3</label>
+                        <input type="radio" id="adapt_4" name="adaptability" value="4">
+                        <label for="adapt_4" class="rating-btn">4</label>
+                        <input type="radio" id="adapt_5" name="adaptability" value="5">
+                        <label for="adapt_5" class="rating-btn">5</label>
                     </div>
                 </div>
             </div>
             
-            <!-- Overall Rating and Notes -->
-            <div class="rating-summary">
-                <div class="summary-item">
-                    <label class="summary-label">
-                        <i class="fas fa-robot text-pink-500 mr-2"></i>Overall Rating
+            <!-- Bottom Row -->
+            <div class="rating-row">
+                <div class="rating-item">
+                    <label class="rating-label">
+                        <i class="fas fa-users text-blue-600 mr-2"></i>Teamwork & Collaboration <span class="required">*</span>
                     </label>
-                    <div class="overall-rating-display">
-                        <span id="overallRating" class="overall-rating-value">--</span>
+                    <div class="rating-buttons">
+                        <input type="radio" id="team_1" name="teamwork" value="1">
+                        <label for="team_1" class="rating-btn">1</label>
+                        <input type="radio" id="team_2" name="teamwork" value="2">
+                        <label for="team_2" class="rating-btn">2</label>
+                        <input type="radio" id="team_3" name="teamwork" value="3">
+                        <label for="team_3" class="rating-btn">3</label>
+                        <input type="radio" id="team_4" name="teamwork" value="4">
+                        <label for="team_4" class="rating-btn">4</label>
+                        <input type="radio" id="team_5" name="teamwork" value="5">
+                        <label for="team_5" class="rating-btn">5</label>
                     </div>
                 </div>
                 
-                <div class="summary-item">
-                    <label class="summary-label">
-                        <i class="fas fa-sticky-note text-yellow-500 mr-2"></i>Additional Notes
+                <div class="rating-item">
+                    <label class="rating-label">
+                        <i class="fas fa-briefcase text-orange-500 mr-2"></i>Perfect Fit for Job <span class="required">*</span>
                     </label>
-                    <textarea id="additionalNotes" name="additional_notes" rows="4" placeholder="Additional comments..." class="notes-textarea"></textarea>
+                    <div class="rating-buttons">
+                        <input type="radio" id="fit_1" name="job_fit" value="1">
+                        <label for="fit_1" class="rating-btn">1</label>
+                        <input type="radio" id="fit_2" name="job_fit" value="2">
+                        <label for="fit_2" class="rating-btn">2</label>
+                        <input type="radio" id="fit_3" name="job_fit" value="3">
+                        <label for="fit_3" class="rating-btn">3</label>
+                        <input type="radio" id="fit_4" name="job_fit" value="4">
+                        <label for="fit_4" class="rating-btn">4</label>
+                        <input type="radio" id="fit_5" name="job_fit" value="5">
+                        <label for="fit_5" class="rating-btn">5</label>
+                    </div>
                 </div>
+            </div>
+        </div>
+        
+        <!-- Overall Rating and Notes -->
+        <div class="rating-summary">
+            <div class="summary-item">
+                <label class="summary-label">
+                    <i class="fas fa-robot text-pink-500 mr-2"></i>Overall Rating
+                </label>
+                <div class="overall-rating-display">
+                    <span id="overallRating" class="overall-rating-value">--</span>
+                </div>
+            </div>
+            
+            <div class="summary-item">
+                <label class="summary-label">
+                    <i class="fas fa-sticky-note text-yellow-500 mr-2"></i>Additional Notes
+                </label>
+                <textarea id="additionalNotes" name="additional_notes" rows="4" placeholder="Additional comments..." class="notes-textarea"></textarea>
             </div>
         </div>
         
