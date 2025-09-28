@@ -15,10 +15,13 @@
                 <p class="text-gray-600">Source, screen, and manage candidate pipeline</p>
             </div>
             <div class="flex flex-wrap gap-4">
-                <button onclick="updateCandidateList()" class="btn-3d btn-hr px-6 py-3 text-lg font-semibold">
+                <a href="{{ url_for('recruiter.add_candidate_page') }}" class="btn-3d btn-hr px-6 py-3 text-lg font-semibold">
+                    <i class="fas fa-plus mr-2"></i>Add Candidate
+                </a>
+                <button onclick="updateCandidateList()" class="btn-3d btn-cluster px-6 py-3 text-lg font-semibold">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh List
                 </button>
-                <a href="{{ url_for('recruiter.candidates') }}" class="btn-3d btn-cluster px-6 py-3 text-lg font-semibold">
+                <a href="{{ url_for('recruiter.candidates') }}" class="btn-3d bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white px-6 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300">
                     <i class="fas fa-list mr-2"></i>View All Candidates
                 </a>
                 <button onclick="openDataVisualization()" class="btn-3d bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white px-6 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300">
@@ -122,11 +125,112 @@
                 </div>
                 <div>
                     <p class="text-sm font-semibold text-gray-600 mb-2">Candidate Requests</p>
-                    <p class="text-3xl font-bold text-gray-900" id="total-requests">0</p>
+                    <p class="text-3xl font-bold text-gray-900" id="total-requests">{{ candidate_requests|length if candidate_requests else 0 }}</p>
                 </div>
             </div>
         </div>
         </div>
+
+    <!-- Candidate Requests Section -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-clipboard-list text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Candidate Requests</h3>
+                    <p class="text-gray-600">Active hiring requests with deadlines</p>
+                </div>
+            </div>
+            <a href="{{ url_for('recruiter.candidate_requests') }}" class="btn-3d bg-gradient-to-r from-indigo-500 to-indigo-700 hover:from-indigo-600 hover:to-indigo-800 text-white px-6 py-3 text-lg font-semibold shadow-lg transform hover:scale-105 transition-all duration-300">
+                <i class="fas fa-eye mr-2"></i>View All Requests
+            </a>
+        </div>
+        
+        {% if candidate_requests %}
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Job Title</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Requester</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Open Positions</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Deadline</th>
+                        <th class="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for request in candidate_requests[:5] %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-gray-900">{{ request.get('job_title', 'N/A') }}</div>
+                            <div class="text-sm text-gray-500">{{ request.get('department', 'N/A') }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <div class="font-medium text-gray-900">{{ request.get('requester_name', 'N/A') }}</div>
+                            <div class="text-sm text-gray-500">{{ request.get('requester_email', 'N/A') }}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                {{ request.get('open_positions', 0) }} positions
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if request.get('deadline') %}
+                                <div class="flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                                    <span class="font-medium">{{ request.deadline.strftime('%Y-%m-%d') if request.deadline else 'N/A' }}</span>
+                                </div>
+                                {% if request.get('days_remaining') is defined %}
+                                    <div class="text-sm {{ 'text-red-600' if request.days_remaining < 0 else 'text-yellow-600' if request.days_remaining <= 7 else 'text-green-600' }}">
+                                        {{ request.days_remaining }} days remaining
+                                    </div>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-gray-500">No deadline</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4">
+                            {% if request.get('deadline_status') %}
+                                {% if request.deadline_status == 'overdue' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>Overdue
+                                    </span>
+                                {% elif request.deadline_status == 'urgent' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                                        <i class="fas fa-clock mr-1"></i>Urgent
+                                    </span>
+                                {% elif request.deadline_status == 'warning' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                                        <i class="fas fa-exclamation-circle mr-1"></i>Warning
+                                    </span>
+                                {% else %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>Good
+                                    </span>
+                                {% endif %}
+                            {% else %}
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800">
+                                    Active
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <i class="fas fa-clipboard-list text-3xl text-gray-400"></i>
+            </div>
+            <h4 class="text-lg font-medium text-gray-900 mb-2">No Active Requests</h4>
+            <p class="text-gray-500">There are currently no active candidate requests.</p>
+        </div>
+        {% endif %}
+    </div>
 
     <!-- Add New Candidate Profile Section -->
     <div class="bg-white rounded-xl shadow-lg p-8 mb-8">

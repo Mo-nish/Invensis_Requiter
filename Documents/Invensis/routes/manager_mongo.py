@@ -270,12 +270,13 @@ def reassign_candidate():
     
     candidate = Candidate.find_by_id(candidate_id)
     if candidate and candidate.manager_email == current_user.email:
-        # Reset assignment
+        # Reset assignment and set to Pending for recruiter
         candidate.assigned_to_manager = False
         candidate.manager_email = None
-        candidate.status = 'New'
+        candidate.status = 'Pending'  # Changed from 'New' to 'Pending' for recruiter visibility
         candidate.manager_feedback = None
         candidate.reviewed_at = None
+        candidate.reassignment_note = note  # Store the reassignment note
         candidate.save()
         
         # Log activity
