@@ -247,10 +247,13 @@ def correct_extracted_data(extracted_data, resume_text):
 def dashboard():
     """Recruiter Dashboard"""
     try:
-        from models_mongo import candidates_collection
+        from models_mongo import candidates_collection, candidate_requests_collection
         
         # Fetch all candidates for statistics
         all_candidates = list(candidates_collection.find({}))
+        
+        # Fetch candidate requests with deadline tracking
+        candidate_requests = list(candidate_requests_collection.find({}))
         
         # Convert ObjectId to string for template compatibility
         for candidate in all_candidates:
@@ -262,6 +265,30 @@ def dashboard():
                 unique_id = str(uuid.uuid4())[:8].upper()
                 reference_id = f'REF-{current_date}-{unique_id}'
                 candidate['reference_id'] = reference_id
+        
+        # Process candidate requests with deadline status
+        for request in candidate_requests:
+            request['_id'] = str(request['_id'])
+            if request.get('deadline'):
+                deadline = request['deadline']
+                if isinstance(deadline, str):
+                    deadline = datetime.fromisoformat(deadline.replace('Z', '+00:00'))
+                
+                days_remaining = (deadline - datetime.now()).days
+                if days_remaining < 0:
+                    request['deadline_status'] = 'overdue'
+                    request['deadline_color'] = 'red'
+                elif days_remaining <= 7:
+                    request['deadline_status'] = 'urgent'
+                    request['deadline_color'] = 'yellow'
+                elif days_remaining <= 15:
+                    request['deadline_status'] = 'warning'
+                    request['deadline_color'] = 'orange'
+                else:
+                    request['deadline_status'] = 'good'
+                    request['deadline_color'] = 'green'
+                
+                request['days_remaining'] = days_remaining
                 
                 # Update the database with the new reference ID
                 try:
@@ -288,15 +315,23 @@ def dashboard():
                 except Exception as update_error:
                     print(f"Error updating name field for candidate {candidate.get('_id')}: {update_error}")
         
-        print(f"DEBUG: Dashboard loaded {len(all_candidates)} candidates")
+        print(f"DEBUG: Dashboard loaded {len(all_candidates)} candidates and {len(candidate_requests)} requests")
         
-        return render_template('recruiter/dashboard.html', all_candidates=all_candidates)
+        return render_template('recruiter/dashboard.html', 
+                             all_candidates=all_candidates, 
+                             candidate_requests=candidate_requests)
         
     except Exception as e:
         print(f"Error loading dashboard: {str(e)}")
         flash('Error loading dashboard data', 'error')
         # Return empty dashboard with error handling
-        return render_template('recruiter/dashboard.html', all_candidates=[])
+        return render_template('recruiter/dashboard.html', all_candidates=[], candidate_requests=[])
+
+@recruiter_bp.route('/add-candidate')
+@recruiter_required
+def add_candidate_page():
+    """Add Candidate Profile Page"""
+    return render_template('recruiter/add_candidate.html')
 
 @recruiter_bp.route('/candidates')
 @recruiter_required
