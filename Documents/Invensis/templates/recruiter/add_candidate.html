@@ -133,6 +133,294 @@
     .required {
         color: #ef4444;
     }
+    
+    /* Assessment & Rating Styles */
+    .assessment-grid {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 32px;
+        margin-bottom: 32px;
+    }
+    
+    .rating-categories {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .rating-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    .rating-item {
+        background: #f8fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+        transition: all 0.3s;
+    }
+    
+    .rating-item:hover {
+        border-color: #3b82f6;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    }
+    
+    .rating-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+    
+    .rating-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+    
+    .rating-buttons input[type="radio"] {
+        display: none;
+    }
+    
+    .rating-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: 2px solid #d1d5db;
+        border-radius: 50%;
+        background: white;
+        color: #6b7280;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .rating-btn:hover {
+        border-color: #3b82f6;
+        color: #3b82f6;
+        transform: scale(1.1);
+    }
+    
+    .rating-buttons input[type="radio"]:checked + .rating-btn {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        border-color: #3b82f6;
+        color: white;
+        transform: scale(1.1);
+    }
+    
+    .rating-summary {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+    
+    .summary-item {
+        background: white;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 20px;
+    }
+    
+    .summary-label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 12px;
+        font-size: 14px;
+    }
+    
+    .overall-rating-display {
+        text-align: center;
+        padding: 20px;
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        border-radius: 8px;
+        border: 2px dashed #cbd5e1;
+    }
+    
+    .overall-rating-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: #3b82f6;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    .notes-textarea {
+        width: 100%;
+        padding: 12px;
+        border: 2px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 14px;
+        resize: vertical;
+        transition: border-color 0.3s;
+    }
+    
+    .notes-textarea:focus {
+        outline: none;
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .assessment-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        padding: 20px;
+        background: #f8fafc;
+        border-radius: 12px;
+        border: 2px solid #e2e8f0;
+    }
+    
+    .ai-info {
+        display: flex;
+        align-items: center;
+        color: #6b7280;
+        font-size: 14px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .btn-calculate {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-calculate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+    }
+    
+    .btn-save {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+    }
+    
+    .bottom-actions {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-add-candidate {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        padding: 12px 32px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-add-candidate:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+    }
+    
+    .btn-clear {
+        background: #6b7280;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-clear:hover {
+        background: #4b5563;
+        transform: translateY(-2px);
+    }
+    
+    .btn-reset {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-reset:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+    }
+    
+    /* Animations */
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .assessment-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+        
+        .rating-row {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .assessment-actions {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+        
+        .bottom-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
 </style>
 {% endblock %}
 
@@ -276,11 +564,286 @@
             </button>
         </div>
     </form>
+
+    <!-- Candidate Assessment & Rating Section -->
+    <div class="form-section">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6 text-center">
+            <i class="fas fa-star text-purple-600 mr-3"></i>Candidate Assessment & Rating
+        </h2>
+        
+        <div class="assessment-grid">
+            <!-- Rating Categories -->
+            <div class="rating-categories">
+                <!-- Top Row -->
+                <div class="rating-row">
+                    <div class="rating-item">
+                        <label class="rating-label">
+                            <i class="fas fa-comments text-blue-500 mr-2"></i>Communication Skills <span class="required">*</span>
+                        </label>
+                        <div class="rating-buttons">
+                            <input type="radio" id="comm_1" name="communication_skills" value="1">
+                            <label for="comm_1" class="rating-btn">1</label>
+                            <input type="radio" id="comm_2" name="communication_skills" value="2">
+                            <label for="comm_2" class="rating-btn">2</label>
+                            <input type="radio" id="comm_3" name="communication_skills" value="3">
+                            <label for="comm_3" class="rating-btn">3</label>
+                            <input type="radio" id="comm_4" name="communication_skills" value="4">
+                            <label for="comm_4" class="rating-btn">4</label>
+                            <input type="radio" id="comm_5" name="communication_skills" value="5">
+                            <label for="comm_5" class="rating-btn">5</label>
+                        </div>
+                    </div>
+                    
+                    <div class="rating-item">
+                        <label class="rating-label">
+                            <i class="fas fa-sync-alt text-green-500 mr-2"></i>Adaptability & Flexibility <span class="required">*</span>
+                        </label>
+                        <div class="rating-buttons">
+                            <input type="radio" id="adapt_1" name="adaptability" value="1">
+                            <label for="adapt_1" class="rating-btn">1</label>
+                            <input type="radio" id="adapt_2" name="adaptability" value="2">
+                            <label for="adapt_2" class="rating-btn">2</label>
+                            <input type="radio" id="adapt_3" name="adaptability" value="3">
+                            <label for="adapt_3" class="rating-btn">3</label>
+                            <input type="radio" id="adapt_4" name="adaptability" value="4">
+                            <label for="adapt_4" class="rating-btn">4</label>
+                            <input type="radio" id="adapt_5" name="adaptability" value="5">
+                            <label for="adapt_5" class="rating-btn">5</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bottom Row -->
+                <div class="rating-row">
+                    <div class="rating-item">
+                        <label class="rating-label">
+                            <i class="fas fa-users text-blue-600 mr-2"></i>Teamwork & Collaboration <span class="required">*</span>
+                        </label>
+                        <div class="rating-buttons">
+                            <input type="radio" id="team_1" name="teamwork" value="1">
+                            <label for="team_1" class="rating-btn">1</label>
+                            <input type="radio" id="team_2" name="teamwork" value="2">
+                            <label for="team_2" class="rating-btn">2</label>
+                            <input type="radio" id="team_3" name="teamwork" value="3">
+                            <label for="team_3" class="rating-btn">3</label>
+                            <input type="radio" id="team_4" name="teamwork" value="4">
+                            <label for="team_4" class="rating-btn">4</label>
+                            <input type="radio" id="team_5" name="teamwork" value="5">
+                            <label for="team_5" class="rating-btn">5</label>
+                        </div>
+                    </div>
+                    
+                    <div class="rating-item">
+                        <label class="rating-label">
+                            <i class="fas fa-briefcase text-orange-500 mr-2"></i>Perfect Fit for Job <span class="required">*</span>
+                        </label>
+                        <div class="rating-buttons">
+                            <input type="radio" id="fit_1" name="job_fit" value="1">
+                            <label for="fit_1" class="rating-btn">1</label>
+                            <input type="radio" id="fit_2" name="job_fit" value="2">
+                            <label for="fit_2" class="rating-btn">2</label>
+                            <input type="radio" id="fit_3" name="job_fit" value="3">
+                            <label for="fit_3" class="rating-btn">3</label>
+                            <input type="radio" id="fit_4" name="job_fit" value="4">
+                            <label for="fit_4" class="rating-btn">4</label>
+                            <input type="radio" id="fit_5" name="job_fit" value="5">
+                            <label for="fit_5" class="rating-btn">5</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Overall Rating and Notes -->
+            <div class="rating-summary">
+                <div class="summary-item">
+                    <label class="summary-label">
+                        <i class="fas fa-robot text-pink-500 mr-2"></i>Overall Rating
+                    </label>
+                    <div class="overall-rating-display">
+                        <span id="overallRating" class="overall-rating-value">--</span>
+                    </div>
+                </div>
+                
+                <div class="summary-item">
+                    <label class="summary-label">
+                        <i class="fas fa-sticky-note text-yellow-500 mr-2"></i>Additional Notes
+                    </label>
+                    <textarea id="additionalNotes" name="additional_notes" rows="4" placeholder="Additional comments..." class="notes-textarea"></textarea>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Assessment Actions -->
+        <div class="assessment-actions">
+            <div class="ai-info">
+                <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                <span>AI calculates overall rating automatically</span>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="button" onclick="calculateOverallRating()" class="btn-calculate">
+                    <i class="fas fa-calculator mr-2"></i>Calculate
+                </button>
+                <button type="button" onclick="saveRatings()" class="btn-save">
+                    <i class="fas fa-save mr-2"></i>Save Ratings
+                </button>
+            </div>
+        </div>
+        
+        <!-- Bottom Action Buttons -->
+        <div class="bottom-actions">
+            <button type="button" onclick="addCandidateWithRating()" class="btn-add-candidate">
+                <i class="fas fa-plus mr-2"></i>Add Candidate
+            </button>
+            <button type="button" onclick="clearForm()" class="btn-clear">
+                <i class="fas fa-refresh mr-2"></i>Clear Form
+            </button>
+            <button type="button" onclick="resetRatings()" class="btn-reset">
+                <i class="fas fa-star mr-2"></i>Reset Ratings
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
 function clearForm() {
     document.getElementById('addCandidateForm').reset();
+    resetRatings();
+}
+
+function calculateOverallRating() {
+    const ratings = {
+        communication: getRatingValue('communication_skills'),
+        adaptability: getRatingValue('adaptability'),
+        teamwork: getRatingValue('teamwork'),
+        jobFit: getRatingValue('job_fit')
+    };
+    
+    // Check if all ratings are provided
+    const allRated = Object.values(ratings).every(rating => rating !== null);
+    
+    if (!allRated) {
+        alert('Please rate all categories before calculating the overall rating.');
+        return;
+    }
+    
+    // Calculate average rating
+    const total = Object.values(ratings).reduce((sum, rating) => sum + rating, 0);
+    const average = total / Object.keys(ratings).length;
+    const overallRating = Math.round(average * 10) / 10; // Round to 1 decimal place
+    
+    // Update display
+    document.getElementById('overallRating').textContent = overallRating;
+    
+    // Add visual feedback
+    const ratingDisplay = document.querySelector('.overall-rating-value');
+    ratingDisplay.style.animation = 'pulse 0.5s ease-in-out';
+    
+    setTimeout(() => {
+        ratingDisplay.style.animation = '';
+    }, 500);
+    
+    return overallRating;
+}
+
+function getRatingValue(name) {
+    const selected = document.querySelector(`input[name="${name}"]:checked`);
+    return selected ? parseInt(selected.value) : null;
+}
+
+function saveRatings() {
+    const ratings = {
+        communication_skills: getRatingValue('communication_skills'),
+        adaptability: getRatingValue('adaptability'),
+        teamwork: getRatingValue('teamwork'),
+        job_fit: getRatingValue('job_fit'),
+        overall_rating: document.getElementById('overallRating').textContent,
+        additional_notes: document.getElementById('additionalNotes').value
+    };
+    
+    // Check if all ratings are provided
+    const requiredRatings = ['communication_skills', 'adaptability', 'teamwork', 'job_fit'];
+    const allRated = requiredRatings.every(name => ratings[name] !== null);
+    
+    if (!allRated) {
+        alert('Please rate all categories before saving.');
+        return;
+    }
+    
+    // Save to localStorage for now (can be sent to server later)
+    localStorage.setItem('candidateAssessment', JSON.stringify(ratings));
+    
+    // Visual feedback
+    const saveBtn = document.querySelector('.btn-save');
+    const originalText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<i class="fas fa-check mr-2"></i>Saved!';
+    saveBtn.style.background = 'linear-gradient(135deg, #10b981, #059669)';
+    
+    setTimeout(() => {
+        saveBtn.innerHTML = originalText;
+        saveBtn.style.background = 'linear-gradient(135deg, #8b5cf6, #7c3aed)';
+    }, 2000);
+    
+    alert('Ratings saved successfully!');
+}
+
+function resetRatings() {
+    // Clear all radio buttons
+    document.querySelectorAll('input[type="radio"]').forEach(radio => {
+        radio.checked = false;
+    });
+    
+    // Reset overall rating display
+    document.getElementById('overallRating').textContent = '--';
+    
+    // Clear additional notes
+    document.getElementById('additionalNotes').value = '';
+    
+    // Clear saved ratings from localStorage
+    localStorage.removeItem('candidateAssessment');
+}
+
+function addCandidateWithRating() {
+    // First, submit the main form
+    const form = document.getElementById('addCandidateForm');
+    const formData = new FormData(form);
+    
+    // Get ratings data
+    const ratings = {
+        communication_skills: getRatingValue('communication_skills'),
+        adaptability: getRatingValue('adaptability'),
+        teamwork: getRatingValue('teamwork'),
+        job_fit: getRatingValue('job_fit'),
+        overall_rating: document.getElementById('overallRating').textContent,
+        additional_notes: document.getElementById('additionalNotes').value
+    };
+    
+    // Add ratings to form data
+    Object.keys(ratings).forEach(key => {
+        if (ratings[key] !== null && ratings[key] !== '--') {
+            formData.append(key, ratings[key]);
+        }
+    });
+    
+    // Submit form with ratings
+    fetch(form.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            alert('Candidate added successfully with assessment ratings!');
+            clearForm();
+            // Redirect to dashboard
+            window.location.href = '{{ url_for("recruiter.dashboard") }}';
+        } else {
+            alert('Error adding candidate. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding candidate. Please try again.');
+    });
 }
 
 function extractResumeData() {
