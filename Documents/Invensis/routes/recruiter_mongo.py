@@ -331,7 +331,7 @@ def dashboard():
 @recruiter_required
 def add_candidate_page():
     """Add Candidate Profile Page"""
-    return render_template('recruiter/add_candidate.html')
+    return render_template('recruiter/add_candidate_new.html')
 
 @recruiter_bp.route('/candidates')
 @recruiter_required

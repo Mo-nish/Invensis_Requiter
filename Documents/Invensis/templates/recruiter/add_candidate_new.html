@@ -1,0 +1,1090 @@
+{% extends "base.html" %}
+
+{% block title %}Add New Candidate - Recruiter Dashboard{% endblock %}
+
+{% block head %}
+<style>
+    /* Reset and Base Styles */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+    
+    body {
+        font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        line-height: 1.5;
+        color: #202124;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+    
+    .form-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+    }
+    
+    .header-section {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+    
+    .header-section h1 {
+        font-size: 28px;
+        font-weight: 500;
+        color: #202124;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+    }
+    
+    .header-section p {
+        font-size: 16px;
+        color: #5f6368;
+        margin-bottom: 24px;
+    }
+    
+    .back-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: #1a73e8;
+        color: white;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+    
+    .back-button:hover {
+        background: #1557b0;
+        transform: translateY(-1px);
+    }
+    
+    .form-section {
+        background: white;
+        border-radius: 12px;
+        padding: 32px;
+        margin-bottom: 24px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+    }
+    
+    .form-group {
+        margin-bottom: 24px;
+        position: relative;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: #3c4043;
+        font-size: 14px;
+    }
+    
+    .input-wrapper {
+        position: relative;
+    }
+    
+    .input-wrapper i {
+        position: absolute;
+        left: 16px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #5f6368;
+        font-size: 18px;
+        z-index: 2;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 16px 16px 16px 48px;
+        border: 2px solid #e8eaed;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        background: white;
+        font-family: inherit;
+        color: #202124;
+    }
+    
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+    }
+    
+    .form-group input:hover,
+    .form-group select:hover,
+    .form-group textarea:hover {
+        border-color: #dadce0;
+    }
+    
+    .file-upload {
+        border: 2px dashed #dadce0;
+        border-radius: 8px;
+        padding: 24px;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.2s ease;
+    }
+    
+    .file-upload:hover {
+        border-color: #1a73e8;
+        background: #f1f3f4;
+    }
+    
+    .file-upload input[type="file"] {
+        display: none;
+    }
+    
+    .file-upload-label {
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: #1a73e8;
+        color: white;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        border: none;
+        font-family: inherit;
+    }
+    
+    .file-upload-label:hover {
+        background: #1557b0;
+        transform: translateY(-1px);
+    }
+    
+    .btn-primary {
+        background: #1a73e8;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    
+    .btn-primary:hover {
+        background: #1557b0;
+        transform: translateY(-1px);
+    }
+    
+    .btn-secondary {
+        background: #5f6368;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        font-family: inherit;
+    }
+    
+    .btn-secondary:hover {
+        background: #3c4043;
+        transform: translateY(-1px);
+    }
+    
+    .section-title {
+        font-size: 18px;
+        font-weight: 500;
+        color: #202124;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-bottom: 12px;
+        border-bottom: 2px solid #e8eaed;
+    }
+    
+    .section-title i {
+        font-size: 20px;
+        color: #1a73e8;
+    }
+    
+    .required {
+        color: #d93025;
+        font-weight: 500;
+    }
+    
+    .error-message {
+        background: #fce8e6;
+        border: 1px solid #f28b82;
+        color: #d93025;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 400;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .file-info {
+        color: #5f6368;
+        font-size: 12px;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .form-actions {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        margin-top: 32px;
+    }
+    
+    /* Assessment Section */
+    .assessment-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 24px;
+    }
+    
+    .assessment-header {
+        background: #f8f9fa;
+        color: #202124;
+        padding: 20px 32px;
+        text-align: left;
+        border-bottom: 1px solid #e8eaed;
+    }
+    
+    .assessment-header h2 {
+        font-size: 18px;
+        font-weight: 500;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #202124;
+    }
+    
+    .assessment-content {
+        padding: 32px;
+    }
+    
+    .rating-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 24px;
+        margin-bottom: 32px;
+    }
+    
+    .rating-card {
+        background: #f8f9fa;
+        border: 1px solid #e8eaed;
+        border-radius: 8px;
+        padding: 20px;
+        transition: all 0.2s ease;
+    }
+    
+    .rating-card:hover {
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-color: #1a73e8;
+    }
+    
+    .rating-card-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+    }
+    
+    .rating-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: white;
+    }
+    
+    .rating-icon.communication { background: #1a73e8; }
+    .rating-icon.adaptability { background: #34a853; }
+    .rating-icon.teamwork { background: #9c27b0; }
+    .rating-icon.job-fit { background: #ff9800; }
+    
+    .rating-title {
+        font-size: 16px;
+        font-weight: 500;
+        color: #202124;
+        margin: 0;
+    }
+    
+    .rating-required {
+        color: #d93025;
+        font-weight: 500;
+    }
+    
+    .rating-buttons {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    
+    .rating-buttons input[type="radio"] {
+        display: none;
+    }
+    
+    .rating-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border: 2px solid #dadce0;
+        border-radius: 50%;
+        background: white;
+        color: #5f6368;
+        font-weight: 500;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+    }
+    
+    .rating-btn:hover {
+        border-color: #1a73e8;
+        color: #1a73e8;
+    }
+    
+    .rating-buttons input[type="radio"]:checked + .rating-btn {
+        background: #1a73e8;
+        border-color: #1a73e8;
+        color: white;
+    }
+    
+    .summary-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+        margin-top: 32px;
+    }
+    
+    .summary-card {
+        background: #f8f9fa;
+        border: 1px solid #e8eaed;
+        border-radius: 8px;
+        padding: 20px;
+    }
+    
+    .summary-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 16px;
+        gap: 12px;
+    }
+    
+    .summary-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        color: white;
+    }
+    
+    .summary-icon.rating { background: #9c27b0; }
+    .summary-icon.notes { background: #ff9800; }
+    
+    .summary-title {
+        font-size: 16px;
+        font-weight: 500;
+        color: #202124;
+        margin: 0;
+    }
+    
+    .overall-rating-display {
+        text-align: center;
+        padding: 20px;
+        background: white;
+        border-radius: 8px;
+        border: 2px solid #1a73e8;
+    }
+    
+    .overall-rating-value {
+        font-size: 32px;
+        font-weight: 600;
+        color: #1a73e8;
+        margin: 0;
+    }
+    
+    .notes-textarea {
+        width: 100%;
+        min-height: 100px;
+        padding: 12px;
+        border: 2px solid #e8eaed;
+        border-radius: 8px;
+        font-size: 14px;
+        resize: vertical;
+        transition: all 0.2s ease;
+        background: white;
+        font-family: inherit;
+    }
+    
+    .notes-textarea:focus {
+        outline: none;
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+    }
+    
+    .assessment-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin: 24px 0;
+        padding: 16px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e8eaed;
+    }
+    
+    .ai-info {
+        display: flex;
+        align-items: center;
+        color: #5f6368;
+        font-size: 14px;
+        font-weight: 400;
+        gap: 8px;
+    }
+    
+    .ai-info i {
+        color: #1a73e8;
+        font-size: 16px;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 12px;
+    }
+    
+    .btn-calculate {
+        background: #34a853;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    
+    .btn-calculate:hover {
+        background: #2d8f47;
+        transform: translateY(-1px);
+    }
+    
+    .btn-save {
+        background: #9c27b0;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    
+    .btn-save:hover {
+        background: #7b1fa2;
+        transform: translateY(-1px);
+    }
+    
+    .bottom-actions {
+        display: flex;
+        justify-content: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-top: 32px;
+        padding: 24px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e8eaed;
+    }
+    
+    .btn-add-candidate {
+        background: #1a73e8;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    
+    .btn-add-candidate:hover {
+        background: #1557b0;
+        transform: translateY(-1px);
+    }
+    
+    .btn-clear {
+        background: #5f6368;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    
+    .btn-clear:hover {
+        background: #3c4043;
+        transform: translateY(-1px);
+    }
+    
+    .btn-reset {
+        background: #ff9800;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: inherit;
+    }
+    
+    .btn-reset:hover {
+        background: #f57c00;
+        transform: translateY(-1px);
+    }
+    
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .form-container {
+            padding: 16px;
+        }
+        
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .rating-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .summary-section {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .assessment-actions {
+            flex-direction: column;
+            gap: 16px;
+            text-align: center;
+        }
+        
+        .bottom-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .rating-btn {
+            width: 36px;
+            height: 36px;
+            font-size: 14px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <!-- Header -->
+    <div class="header-section">
+        <h1><i class="fas fa-user-plus"></i>Add New Candidate Profile</h1>
+        <p>Create a comprehensive candidate profile with AI-powered resume extraction</p>
+        <a href="{{ url_for('recruiter.dashboard') }}" class="back-button">
+            <i class="fas fa-arrow-left"></i>Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Add Candidate Form -->
+    <form id="addCandidateForm" method="POST" action="{{ url_for('recruiter.upload_candidate') }}" enctype="multipart/form-data">
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-user"></i>
+                Personal Information
+            </h2>
+            
+            <div class="form-grid">
+                <!-- Left Column -->
+                <div>
+                    <div class="form-group">
+                        <label for="full_name">Full Name <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="full_name" name="full_name" placeholder="Enter full name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="phone">Phone Number <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" id="phone" name="phone" placeholder="Enter phone number" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="date_of_birth">Date of Birth <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="date" id="date_of_birth" name="date_of_birth" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div>
+                    <div class="form-group">
+                        <label for="email">Email Address <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" id="email" name="email" placeholder="Enter email address" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gender">Gender <span class="required">*</span></label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-venus-mars"></i>
+                            <select id="gender" name="gender" required>
+                                <option value="">Select gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                                <option value="Prefer not to say">Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div class="error-message">
+                            <i class="fas fa-info-circle"></i>
+                            Please select the candidate's gender identity
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-graduation-cap"></i>
+                Education & Experience
+            </h2>
+            
+            <div class="form-grid">
+                <!-- Left Column -->
+                <div>
+                    <div class="form-group">
+                        <label for="education">Education & Qualification</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-graduation-cap"></i>
+                            <textarea id="education" name="education" rows="4" placeholder="Enter educational background (degree, institution, year)"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="skills">Skills & Technologies</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-cogs"></i>
+                            <input type="text" id="skills" name="skills" placeholder="e.g., Python, SQL, JavaScript">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div>
+                    <div class="form-group">
+                        <label for="experience">Work Experience</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-briefcase"></i>
+                            <textarea id="experience" name="experience" rows="4" placeholder="Enter work experience (company, role, duration)"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2 class="section-title">
+                <i class="fas fa-file-upload"></i>
+                Resume & Documents
+            </h2>
+            
+            <div class="form-grid">
+                <!-- Left Column -->
+                <div>
+                    <div class="form-group">
+                        <label>Upload Resume <span class="required">*</span></label>
+                        <div class="file-upload">
+                            <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx" required>
+                            <label for="resume" class="file-upload-label">
+                                <i class="fas fa-upload"></i>
+                                Choose File
+                            </label>
+                            <button type="button" onclick="extractResumeData()" class="btn-primary" style="margin-left: 12px;">
+                                <i class="fas fa-magic"></i>
+                                Extract
+                            </button>
+                            <div class="file-info">
+                                <i class="fas fa-info-circle"></i>
+                                PDF, DOC, DOCX (Max 10MB)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column -->
+                <div>
+                    <div class="form-group">
+                        <label>Upload Profile Photo</label>
+                        <div class="file-upload">
+                            <input type="file" id="profile_photo" name="profile_photo" accept="image/*">
+                            <label for="profile_photo" class="file-upload-label">
+                                <i class="fas fa-camera"></i>
+                                Choose Photo
+                            </label>
+                            <div class="file-info">
+                                <i class="fas fa-info-circle"></i>
+                                JPG, PNG, GIF (Max 5MB)
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">
+                <i class="fas fa-plus"></i>Add Candidate
+            </button>
+            <button type="button" onclick="clearForm()" class="btn-secondary">
+                <i class="fas fa-refresh"></i>Clear Form
+            </button>
+        </div>
+    </form>
+
+    <!-- Candidate Assessment & Rating Section -->
+    <div class="assessment-container">
+        <div class="assessment-header">
+            <h2>
+                <i class="fas fa-star"></i>
+                Candidate Assessment & Rating
+            </h2>
+        </div>
+        
+        <div class="assessment-content">
+            <!-- Rating Categories Grid -->
+            <div class="rating-grid">
+                <!-- Communication Skills Card -->
+                <div class="rating-card">
+                    <div class="rating-card-header">
+                        <div class="rating-icon communication">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <h3 class="rating-title">Communication Skills <span class="rating-required">*</span></h3>
+                    </div>
+                    <div class="rating-buttons">
+                        <input type="radio" id="comm_1" name="communication_skills" value="1">
+                        <label for="comm_1" class="rating-btn">1</label>
+                        <input type="radio" id="comm_2" name="communication_skills" value="2">
+                        <label for="comm_2" class="rating-btn">2</label>
+                        <input type="radio" id="comm_3" name="communication_skills" value="3">
+                        <label for="comm_3" class="rating-btn">3</label>
+                        <input type="radio" id="comm_4" name="communication_skills" value="4">
+                        <label for="comm_4" class="rating-btn">4</label>
+                        <input type="radio" id="comm_5" name="communication_skills" value="5">
+                        <label for="comm_5" class="rating-btn">5</label>
+                    </div>
+                </div>
+                
+                <!-- Adaptability Card -->
+                <div class="rating-card">
+                    <div class="rating-card-header">
+                        <div class="rating-icon adaptability">
+                            <i class="fas fa-sync-alt"></i>
+                        </div>
+                        <h3 class="rating-title">Adaptability & Flexibility <span class="rating-required">*</span></h3>
+                    </div>
+                    <div class="rating-buttons">
+                        <input type="radio" id="adapt_1" name="adaptability" value="1">
+                        <label for="adapt_1" class="rating-btn">1</label>
+                        <input type="radio" id="adapt_2" name="adaptability" value="2">
+                        <label for="adapt_2" class="rating-btn">2</label>
+                        <input type="radio" id="adapt_3" name="adaptability" value="3">
+                        <label for="adapt_3" class="rating-btn">3</label>
+                        <input type="radio" id="adapt_4" name="adaptability" value="4">
+                        <label for="adapt_4" class="rating-btn">4</label>
+                        <input type="radio" id="adapt_5" name="adaptability" value="5">
+                        <label for="adapt_5" class="rating-btn">5</label>
+                    </div>
+                </div>
+                
+                <!-- Teamwork Card -->
+                <div class="rating-card">
+                    <div class="rating-card-header">
+                        <div class="rating-icon teamwork">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 class="rating-title">Teamwork & Collaboration <span class="rating-required">*</span></h3>
+                    </div>
+                    <div class="rating-buttons">
+                        <input type="radio" id="team_1" name="teamwork" value="1">
+                        <label for="team_1" class="rating-btn">1</label>
+                        <input type="radio" id="team_2" name="teamwork" value="2">
+                        <label for="team_2" class="rating-btn">2</label>
+                        <input type="radio" id="team_3" name="teamwork" value="3">
+                        <label for="team_3" class="rating-btn">3</label>
+                        <input type="radio" id="team_4" name="teamwork" value="4">
+                        <label for="team_4" class="rating-btn">4</label>
+                        <input type="radio" id="team_5" name="teamwork" value="5">
+                        <label for="team_5" class="rating-btn">5</label>
+                    </div>
+                </div>
+                
+                <!-- Job Fit Card -->
+                <div class="rating-card">
+                    <div class="rating-card-header">
+                        <div class="rating-icon job-fit">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <h3 class="rating-title">Perfect Fit for Job <span class="rating-required">*</span></h3>
+                    </div>
+                    <div class="rating-buttons">
+                        <input type="radio" id="fit_1" name="job_fit" value="1">
+                        <label for="fit_1" class="rating-btn">1</label>
+                        <input type="radio" id="fit_2" name="job_fit" value="2">
+                        <label for="fit_2" class="rating-btn">2</label>
+                        <input type="radio" id="fit_3" name="job_fit" value="3">
+                        <label for="fit_3" class="rating-btn">3</label>
+                        <input type="radio" id="fit_4" name="job_fit" value="4">
+                        <label for="fit_4" class="rating-btn">4</label>
+                        <input type="radio" id="fit_5" name="job_fit" value="5">
+                        <label for="fit_5" class="rating-btn">5</label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Summary Section -->
+            <div class="summary-section">
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <div class="summary-icon rating">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <h3 class="summary-title">Overall Rating</h3>
+                    </div>
+                    <div class="overall-rating-display">
+                        <span id="overallRating" class="overall-rating-value">--</span>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <div class="summary-icon notes">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
+                        <h3 class="summary-title">Additional Notes</h3>
+                    </div>
+                    <textarea id="additionalNotes" name="additional_notes" rows="4" placeholder="Additional comments..." class="notes-textarea"></textarea>
+                </div>
+            </div>
+            
+            <!-- Assessment Actions -->
+            <div class="assessment-actions">
+                <div class="ai-info">
+                    <i class="fas fa-brain"></i>
+                    <span>AI calculates overall rating automatically</span>
+                </div>
+                
+                <div class="action-buttons">
+                    <button type="button" onclick="calculateOverallRating()" class="btn-calculate">
+                        <i class="fas fa-calculator"></i>Calculate
+                    </button>
+                    <button type="button" onclick="saveRatings()" class="btn-save">
+                        <i class="fas fa-save"></i>Save Ratings
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Bottom Action Buttons -->
+            <div class="bottom-actions">
+                <button type="button" onclick="addCandidateWithRating()" class="btn-add-candidate">
+                    <i class="fas fa-plus"></i>Add Candidate
+                </button>
+                <button type="button" onclick="clearForm()" class="btn-clear">
+                    <i class="fas fa-refresh"></i>Clear Form
+                </button>
+                <button type="button" onclick="resetRatings()" class="btn-reset">
+                    <i class="fas fa-star"></i>Reset Ratings
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function clearForm() {
+    document.getElementById('addCandidateForm').reset();
+    resetRatings();
+}
+
+function calculateOverallRating() {
+    const communication = getRatingValue('communication_skills');
+    const adaptability = getRatingValue('adaptability');
+    const teamwork = getRatingValue('teamwork');
+    const jobFit = getRatingValue('job_fit');
+    
+    if (communication && adaptability && teamwork && jobFit) {
+        const overall = (communication + adaptability + teamwork + jobFit) / 4;
+        document.getElementById('overallRating').textContent = overall.toFixed(1);
+        document.getElementById('overallRating').style.animation = 'pulse 0.6s ease-in-out';
+    } else {
+        alert('Please rate all categories before calculating overall rating.');
+    }
+}
+
+function getRatingValue(name) {
+    const selected = document.querySelector(`input[name="${name}"]:checked`);
+    return selected ? parseInt(selected.value) : null;
+}
+
+function saveRatings() {
+    const ratings = {
+        communication: getRatingValue('communication_skills'),
+        adaptability: getRatingValue('adaptability'),
+        teamwork: getRatingValue('teamwork'),
+        jobFit: getRatingValue('job_fit'),
+        notes: document.getElementById('additionalNotes').value
+    };
+    
+    localStorage.setItem('candidateRatings', JSON.stringify(ratings));
+    alert('Ratings saved successfully!');
+}
+
+function resetRatings() {
+    document.querySelectorAll('input[type="radio"]').forEach(radio => radio.checked = false);
+    document.getElementById('overallRating').textContent = '--';
+    document.getElementById('additionalNotes').value = '';
+    localStorage.removeItem('candidateRatings');
+}
+
+function addCandidateWithRating() {
+    const ratings = {
+        communication: getRatingValue('communication_skills'),
+        adaptability: getRatingValue('adaptability'),
+        teamwork: getRatingValue('teamwork'),
+        jobFit: getRatingValue('job_fit'),
+        notes: document.getElementById('additionalNotes').value
+    };
+    
+    // Add ratings to form data
+    Object.keys(ratings).forEach(key => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = `rating_${key}`;
+        input.value = ratings[key] || '';
+        document.getElementById('addCandidateForm').appendChild(input);
+    });
+    
+    // Submit form
+    document.getElementById('addCandidateForm').submit();
+}
+
+function extractResumeData() {
+    const fileInput = document.getElementById('resume');
+    if (fileInput.files.length > 0) {
+        alert('Resume extraction feature will be implemented soon!');
+    } else {
+        alert('Please select a resume file first.');
+    }
+}
+
+// Load saved ratings on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const savedRatings = localStorage.getItem('candidateRatings');
+    if (savedRatings) {
+        const ratings = JSON.parse(savedRatings);
+        if (ratings.communication) document.querySelector(`input[name="communication_skills"][value="${ratings.communication}"]`).checked = true;
+        if (ratings.adaptability) document.querySelector(`input[name="adaptability"][value="${ratings.adaptability}"]`).checked = true;
+        if (ratings.teamwork) document.querySelector(`input[name="teamwork"][value="${ratings.teamwork}"]`).checked = true;
+        if (ratings.jobFit) document.querySelector(`input[name="job_fit"][value="${ratings.jobFit}"]`).checked = true;
+        if (ratings.notes) document.getElementById('additionalNotes').value = ratings.notes;
+    }
+});
+</script>
+{% endblock %}
