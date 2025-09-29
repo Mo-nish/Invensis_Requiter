@@ -1008,7 +1008,7 @@ function extractFromResume() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('HTTP error! status: ' + response.status);
         }
         // Check if response is JSON
         const contentType = response.headers.get('content-type');
@@ -1292,7 +1292,7 @@ function populateFormFields(data) {
                             if (option.value.toLowerCase() === value.trim().toLowerCase()) {
                                 option.selected = true;
                                 optionFound = true;
-                                console.log(`Gender option selected: ${option.value}`);
+                                console.log('Gender option selected: ' + option.value);
                                 break;
                             }
                         }
@@ -1746,13 +1746,13 @@ function updateCandidateRatings(candidateId, ratingData) {
     });
     
     // Send AJAX request to update ratings
-    fetch(`/recruiter/update_candidate_ratings/${candidateId}`, {
+    fetch('/recruiter/update_candidate_ratings/' + candidateId, {
         method: 'POST',
         body: formData
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('HTTP error! status: ' + response.status);
         }
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
@@ -2107,7 +2107,7 @@ function selectPhotoFile() {
 // Function to delete a candidate
 function deleteCandidate(candidateId, candidateName) {
     if (confirm(`Are you sure you want to delete candidate "${candidateName}"? This action cannot be undone.`)) {
-        fetch(`/recruiter/delete_candidate/${candidateId}`, {
+        fetch('/recruiter/delete_candidate/' + candidateId, {
             method: 'DELETE',
             headers: {
                 'X-Requested-With': 'XMLHttpRequest'
@@ -2278,7 +2278,7 @@ if (candidateForm) {
     .then(response => {
             console.log('Response received:', response);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('HTTP error! status: ' + response.status);
         }
         return response.json();
     })
@@ -2335,7 +2335,7 @@ if (assignForm) {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('HTTP error! status: ' + response.status);
         }
         return response.json();
     })
@@ -2495,7 +2495,7 @@ function updateCandidateList() {
     })
     .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('HTTP error! status: ' + response.status);
         }
         return response.text();
     })
@@ -2739,7 +2739,7 @@ function confirmBulkAction() {
 function viewCandidate(candidateId) {
     console.log('Viewing candidate:', candidateId);
     // Redirect to candidate details page
-    window.location.href = `/hr/candidate/${candidateId}`;
+    window.location.href = '/hr/candidate/' + candidateId;
 }
 
 // Assign candidate function
@@ -3392,7 +3392,7 @@ async function loadTabData(tabName) {
         
         const response = await fetch(`/recruiter/api/analytics`);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('HTTP error! status: ' + response.status);
         }
         
         // Check if response is JSON
