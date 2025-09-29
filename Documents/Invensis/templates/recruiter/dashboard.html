@@ -623,7 +623,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             {% for candidate in all_candidates[:5] %}
-                            <tr class="candidate-item hover:bg-gray-50 transition-colors" data-status="{% if candidate.onboarding_status == 'Onboarded' %}Onboarded{% else %}{{ candidate.status or 'Pending' }}{% endif %}" data-debug="Status: {{ candidate.status }}, Onboarding: {{ candidate.onboarding_status }}">
+                            <tr class="candidate-item hover:bg-gray-50 transition-colors" data-status="{{ candidate.status if candidate.status else 'Pending' }}" data-debug="Raw Status: '{{ candidate.status }}', Onboarding: '{{ candidate.onboarding_status }}', Final: '{{ candidate.status if candidate.status else 'Pending' }}'">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
@@ -1316,15 +1316,19 @@ function filterByStatus(status) {
     console.log('📊 Found candidate items:', candidateItems.length);
     
     // Debug: Log all data-status values
+    let debugInfo = `Filtering for: "${status}"\n\nFound ${candidateItems.length} candidates:\n`;
     candidateItems.forEach((item, index) => {
         const itemStatus = item.getAttribute('data-status');
-        const debugInfo = item.getAttribute('data-debug');
-        console.log(`🔍 Item ${index}: data-status="${itemStatus}", debug="${debugInfo}"`);
+        const debugDetail = item.getAttribute('data-debug');
+        debugInfo += `${index + 1}. data-status="${itemStatus}" (${debugDetail})\n`;
+        console.log(`🔍 Item ${index}: data-status="${itemStatus}", debug="${debugDetail}"`);
     });
+    
+    // Show debug popup to user
+    alert(debugInfo);
     
     if (candidateItems.length === 0) {
         console.warn('⚠️ No candidate items found!');
-        alert('No candidate items found! Check the table structure.');
         return;
     }
     
