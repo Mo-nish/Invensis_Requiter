@@ -327,11 +327,6 @@ def dashboard():
         # Return empty dashboard with error handling
         return render_template('recruiter/dashboard.html', all_candidates=[], candidate_requests=[])
 
-@recruiter_bp.route('/add-candidate')
-@recruiter_required
-def add_candidate_page():
-    """Add Candidate Profile Page"""
-    return render_template('recruiter/add_candidate_new.html')
 
 @recruiter_bp.route('/candidates')
 @recruiter_required
