@@ -1479,55 +1479,47 @@ function filterByDropdown() {
     const dropdown = document.getElementById('statusFilter');
     const selectedStatus = dropdown.value;
     
-    console.log('🔽 Dropdown filter selected:', selectedStatus);
-    alert(`Dropdown selected: "${selectedStatus}"`);
+    console.log('Dropdown filter selected:', selectedStatus);
+    alert('Dropdown selected: ' + selectedStatus);
     
     if (selectedStatus === '') {
-        // Show all candidates if "All Statuses" is selected
         clearFilter();
         return;
     }
     
-    // Use the existing filterByStatus function with popup for debugging
     filterByStatus(selectedStatus);
 }
 
 // Silent version of filterByStatus without popup
 function filterByStatusSilent(status) {
-    console.log('🔍 Filtering by status (silent):', status);
+    console.log('Filtering by status (silent):', status);
     
     const candidateItems = document.querySelectorAll('.candidate-item');
-    console.log('📊 Found candidate items:', candidateItems.length);
+    console.log('Found candidate items:', candidateItems.length);
     
     if (candidateItems.length === 0) {
-        console.warn('⚠️ No candidate items found!');
+        console.warn('No candidate items found!');
         return;
     }
     
     let visibleCount = 0;
     candidateItems.forEach((item, index) => {
         const itemStatus = item.getAttribute('data-status');
-        console.log(`📋 Item ${index}: status="${itemStatus}", filtering for="${status}"`);
+        console.log('Item ' + index + ': status=' + itemStatus + ', filtering for=' + status);
         
-        // Handle special case for 'all'
         if (status === 'all') {
             item.style.display = 'table-row';
             visibleCount++;
-            console.log(`✅ Showing item ${index} (all filter)`);
         } else if (itemStatus && itemStatus.trim() === status.trim()) {
             item.style.display = 'table-row';
             visibleCount++;
-            console.log(`✅ Showing item ${index} (status match)`);
         } else {
             item.style.display = 'none';
-            console.log(`❌ Hiding item ${index} (no match)`);
         }
     });
     
-    // Update table message if no candidates found
     updateNoResultsMessage(visibleCount);
-    
-    console.log(`Filter applied successfully. Showing ${visibleCount} candidates.`);
+    console.log('Filter applied successfully. Showing ' + visibleCount + ' candidates.');
 }
 
 // Helper function to update no results message
