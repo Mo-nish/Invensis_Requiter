@@ -1338,8 +1338,8 @@ function filterByStatus(status) {
         console.log(`🔍 Item ${index}: data-status="${itemStatus}", debug="${debugDetail}"`);
     });
     
-    // Debug info in console only (remove popup for production)
-    // alert(debugInfo);
+    // Debug info - temporarily enable popup to see the issue
+    alert(debugInfo);
     
     if (candidateItems.length === 0) {
         console.warn('⚠️ No candidate items found!');
@@ -1479,6 +1479,7 @@ function filterByDropdown() {
     const selectedStatus = dropdown.value;
     
     console.log('🔽 Dropdown filter selected:', selectedStatus);
+    alert(`Dropdown selected: "${selectedStatus}"`);
     
     if (selectedStatus === '') {
         // Show all candidates if "All Statuses" is selected
@@ -1486,8 +1487,8 @@ function filterByDropdown() {
         return;
     }
     
-    // Use the existing filterByStatus function but without popup
-    filterByStatusSilent(selectedStatus);
+    // Use the existing filterByStatus function with popup for debugging
+    filterByStatus(selectedStatus);
 }
 
 // Silent version of filterByStatus without popup
