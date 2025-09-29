@@ -28,105 +28,6 @@
         </div>
     </div>
 
-    <!-- Statistics Section - Candidate Counts -->
-            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-8 gap-6 mb-8">
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('all')">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-users text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">All Candidates</p>
-                    <p class="text-3xl font-bold text-gray-900" id="total-candidates">{{ all_candidates|length }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Selected')">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-user-check text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">Selected</p>
-                    <p class="text-3xl font-bold text-gray-900" id="selected-count">{{ all_candidates|selectattr('status', 'equalto', 'Selected')|selectattr('onboarding_status', 'ne', 'Onboarded')|list|length }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Not Selected')">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-red-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-user-times text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">Not Selected</p>
-                    <p class="text-3xl font-bold text-gray-900" id="not-selected-count">{{ all_candidates|selectattr('status', 'equalto', 'Not Selected')|list|length }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Reassigned')">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-exchange-alt text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">Reassigned</p>
-                    <p class="text-3xl font-bold text-gray-900" id="reassigned-count">{{ all_candidates|selectattr('status', 'equalto', 'Reassigned')|list|length }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Pending')">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-clock text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">Pending</p>
-                    <p class="text-3xl font-bold text-gray-900" id="pending-count">{{ all_candidates|selectattr('status', 'equalto', 'Pending')|list|length }}</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Assigned')">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-user-clock text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">Assigned</p>
-                    <p class="text-3xl font-bold text-gray-900" id="assigned-count">{{ all_candidates|selectattr('status', 'equalto', 'Assigned')|list|length }}</p>
-                </div>
-            </div>
-        </div>
-        
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Onboarded')">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-check-circle text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">Onboarded</p>
-                    <p class="text-3xl font-bold text-gray-900" id="onboarded-count">{{ all_candidates|selectattr('onboarding_status', 'equalto', 'Onboarded')|list|length }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Candidate Requests Card -->
-        <div class="bg-white rounded-xl shadow-lg p-6 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="window.location.href='/recruiter/candidate-requests'">
-            <div class="flex items-center">
-                <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
-                    <i class="fas fa-clipboard-list text-2xl text-white"></i>
-                </div>
-                <div>
-                    <p class="text-sm font-semibold text-gray-600 mb-2">Candidate Requests</p>
-                    <p class="text-3xl font-bold text-gray-900" id="total-requests">{{ candidate_requests|length if candidate_requests else 0 }}</p>
-                </div>
-            </div>
-        </div>
-        </div>
 
     <!-- Candidate Requests Section -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -565,6 +466,96 @@
             </form>
         </div>
 
+    <!-- Status Filter Cards - Positioned above Recent Candidates -->
+    <div class="mb-8">
+        <h3 class="text-xl font-bold text-gray-900 mb-4">Filter Candidates by Status</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
+            <div class="bg-white rounded-xl shadow-lg p-4 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('all')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <i class="fas fa-users text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-1">All Candidates</p>
+                        <p class="text-2xl font-bold text-gray-900" id="total-candidates">{{ all_candidates|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-4 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Selected')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <i class="fas fa-user-check text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-1">Selected</p>
+                        <p class="text-2xl font-bold text-gray-900" id="selected-count">{{ all_candidates|selectattr('status', 'equalto', 'Selected')|selectattr('onboarding_status', 'ne', 'Onboarded')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-4 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Not Selected')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-to-r from-red-500 to-red-700 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <i class="fas fa-user-times text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-1">Not Selected</p>
+                        <p class="text-2xl font-bold text-gray-900" id="not-selected-count">{{ all_candidates|selectattr('status', 'equalto', 'Not Selected')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-4 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Reassigned')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <i class="fas fa-exchange-alt text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-1">Reassigned</p>
+                        <p class="text-2xl font-bold text-gray-900" id="reassigned-count">{{ all_candidates|selectattr('status', 'equalto', 'Reassigned')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-4 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Pending')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-to-r from-yellow-500 to-yellow-600 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <i class="fas fa-clock text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-1">Pending</p>
+                        <p class="text-2xl font-bold text-gray-900" id="pending-count">{{ all_candidates|selectattr('status', 'equalto', 'Pending')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-4 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Assigned')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <i class="fas fa-user-clock text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-1">Assigned</p>
+                        <p class="text-2xl font-bold text-gray-900" id="assigned-count">{{ all_candidates|selectattr('status', 'equalto', 'Assigned')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-lg p-4 fade-in cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="filterByStatus('Onboarded')">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-3 shadow-lg">
+                        <i class="fas fa-check-circle text-xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-1">Onboarded</p>
+                        <p class="text-2xl font-bold text-gray-900" id="onboarded-count">{{ all_candidates|selectattr('onboarding_status', 'equalto', 'Onboarded')|list|length }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Candidate List -->
     <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
         <div class="flex items-center justify-between mb-6">
@@ -575,6 +566,9 @@
                 <h3 class="text-2xl font-bold text-gray-900">Recent Candidates</h3>
             </div>
             <div class="flex space-x-3">
+                <button onclick="clearFilter()" class="btn-3d bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 text-sm font-semibold">
+                    <i class="fas fa-times mr-2"></i>Clear Filter
+                </button>
                 <button onclick="updateCandidateList()" class="btn-3d btn-hr px-4 py-2 text-sm font-semibold">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh
                 </button>
@@ -601,7 +595,7 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             {% for candidate in all_candidates[:5] %}
-                            <tr class="hover:bg-gray-50 transition-colors" data-status="{% if candidate.onboarding_status == 'Onboarded' %}Onboarded{% else %}{{ candidate.status or 'Pending' }}{% endif %}">
+                            <tr class="candidate-item hover:bg-gray-50 transition-colors" data-status="{% if candidate.onboarding_status == 'Onboarded' %}Onboarded{% else %}{{ candidate.status or 'Pending' }}{% endif %}" data-debug="Status: {{ candidate.status }}, Onboarding: {{ candidate.onboarding_status }}">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
@@ -1288,33 +1282,131 @@ function populateFormFields(data) {
 
 // Function to filter candidates by status
 function filterByStatus(status) {
-    console.log('Filtering by status:', status);
-    try {
-        const candidateItems = document.querySelectorAll('.candidate-item');
-        console.log('Found candidate items:', candidateItems.length);
+    console.log('🔍 Filtering by status:', status);
+    
+    const candidateItems = document.querySelectorAll('.candidate-item');
+    console.log('📊 Found candidate items:', candidateItems.length);
+    
+    if (candidateItems.length === 0) {
+        console.warn('⚠️ No candidate items found!');
+        return;
+    }
+    
+    let visibleCount = 0;
+    candidateItems.forEach((item, index) => {
+        const itemStatus = item.getAttribute('data-status');
+        console.log(`📋 Item ${index}: status="${itemStatus}", filtering for="${status}"`);
         
-        candidateItems.forEach(item => {
-            if (status === 'all' || item.getAttribute('data-status') === status) {
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
+        if (status === 'all' || itemStatus === status) {
+            item.style.display = 'table-row';
+            item.style.visibility = 'visible';
+            visibleCount++;
+            console.log(`✅ Showing item ${index}`);
+        } else {
+            item.style.display = 'none';
+            item.style.visibility = 'hidden';
+            console.log(`❌ Hiding item ${index}`);
+        }
+    });
+    
+    // Remove active state from all filter buttons
+    document.querySelectorAll('[onclick^="filterByStatus"]').forEach(btn => {
+        btn.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50', 'bg-blue-50');
+    });
+    
+    // Add active state to clicked filter button
+    const activeFilter = document.querySelector(`[onclick="filterByStatus('${status}')"]`);
+    if (activeFilter) {
+        activeFilter.classList.add('ring-4', 'ring-blue-400', 'bg-blue-50');
+        console.log('🎯 Active filter highlighted');
+    } else {
+        console.warn('⚠️ Active filter button not found');
+    }
+    
+    // Update the table message if no candidates found
+    const tbody = document.querySelector('tbody');
+    let noResultsRow = document.getElementById('no-results-row');
+    
+    if (visibleCount === 0) {
+        if (!noResultsRow) {
+            noResultsRow = document.createElement('tr');
+            noResultsRow.id = 'no-results-row';
+            noResultsRow.innerHTML = `
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-search text-4xl text-gray-300 mb-2"></i>
+                        <p class="text-lg font-medium">No candidates found</p>
+                        <p class="text-sm">No candidates match the selected filter criteria.</p>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(noResultsRow);
+        }
+        noResultsRow.style.display = 'table-row';
+    } else {
+        if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+    }
+    
+    console.log(`Filter applied successfully. Showing ${visibleCount} candidates.`);
+}
+        
+        // Update the table message if no candidates found
+        const tbody = document.querySelector('tbody');
+        let noResultsRow = document.getElementById('no-results-row');
+        
+        if (visibleCount === 0) {
+            if (!noResultsRow) {
+                noResultsRow = document.createElement('tr');
+                noResultsRow.id = 'no-results-row';
+                noResultsRow.innerHTML = `
+                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                        <div class="flex flex-col items-center">
+                            <i class="fas fa-search text-4xl text-gray-300 mb-2"></i>
+                            <p class="text-lg font-medium">No candidates found</p>
+                            <p class="text-sm">No candidates match the selected filter criteria.</p>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(noResultsRow);
             }
-        });
-        
-        // Update active filter indicator
-        const allFilters = document.querySelectorAll('.bg-white.rounded-xl.shadow-lg');
-        allFilters.forEach(filter => filter.classList.remove('ring-4', 'ring-blue-400'));
-        
-        if (status !== 'all') {
-            const activeFilter = document.querySelector(`[onclick="filterByStatus('${status}')"]`);
-            if (activeFilter) {
-                activeFilter.classList.add('ring-4', 'ring-blue-400');
+            noResultsRow.style.display = 'table-row';
+        } else {
+            if (noResultsRow) {
+                noResultsRow.style.display = 'none';
             }
         }
         
-        console.log('Filter applied successfully');
+        console.log(`Filter applied successfully. Showing ${visibleCount} candidates.`);
     } catch (error) {
         console.error('Error in filterByStatus:', error);
+    }
+}
+
+// Function to clear all filters
+function clearFilter() {
+    console.log('Clearing all filters');
+    try {
+        const candidateItems = document.querySelectorAll('.candidate-item');
+        candidateItems.forEach(item => {
+            item.style.display = 'table-row';
+        });
+        
+        // Remove active state from all filter buttons
+        document.querySelectorAll('[onclick^="filterByStatus"]').forEach(btn => {
+            btn.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50', 'bg-blue-50');
+        });
+        
+        // Hide no results message
+        const noResultsRow = document.getElementById('no-results-row');
+        if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
+        
+        console.log('All filters cleared successfully');
+    } catch (error) {
+        console.error('Error in clearFilter:', error);
     }
 }
 
