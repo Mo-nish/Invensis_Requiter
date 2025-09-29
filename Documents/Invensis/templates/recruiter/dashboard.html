@@ -2511,8 +2511,8 @@ function updateCandidateList() {
             // Check if we actually got candidate data
             const candidateItems = newCandidateList.querySelectorAll('.candidate-item');
             if (candidateItems.length > 0) {
-            candidateListContainer.innerHTML = newCandidateList.innerHTML;
-                console.log(`Successfully updated candidate list with ${candidateItems.length} candidates`);
+                candidateListContainer.innerHTML = newCandidateList.innerHTML;
+                console.log('Successfully updated candidate list with ' + candidateItems.length + ' candidates');
             } else {
                 // No candidates found, show appropriate message
                 candidateListContainer.innerHTML = '<div class="text-center py-8"><i class="fas fa-users text-2xl text-gray-400"></i><p class="mt-2 text-gray-600">No candidates found</p></div>';
