@@ -28,6 +28,34 @@
         </div>
     </div>
 
+    <!-- Action Cards - Request Candidates & Analytics -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <!-- Request Candidates Card -->
+        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-xl p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="window.location.href='{{ url_for('recruiter.candidate_requests') }}'">
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                    <i class="fas fa-clipboard-list text-3xl text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-2">📝 Request Candidates</h3>
+                    <p class="text-green-100 text-sm">Submit Candidate Requirements</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Manager Data Analytics Card -->
+        <div class="bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl shadow-xl p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="openDataVisualization()">
+            <div class="flex items-center">
+                <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                    <i class="fas fa-chart-line text-3xl text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold mb-2">📊 Manager Data Analytics</h3>
+                    <p class="text-purple-100 text-sm">Advanced Performance Insights & Trends</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Candidate Requests Section -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
@@ -76,14 +104,14 @@
                         </td>
                         <td class="py-3 px-4">
                             {% if request.get('deadline') %}
-                                <div class="flex items-center">
+            <div class="flex items-center">
                                     <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
                                     <span class="font-medium">{{ request.deadline.strftime('%Y-%m-%d') if request.deadline else 'N/A' }}</span>
-                                </div>
+                </div>
                                 {% if request.get('days_remaining') is defined %}
                                     <div class="text-sm {{ 'text-red-600' if request.days_remaining < 0 else 'text-yellow-600' if request.days_remaining <= 7 else 'text-green-600' }}">
                                         {{ request.days_remaining }} days remaining
-                                    </div>
+                </div>
                                 {% endif %}
                             {% else %}
                                 <span class="text-gray-500">No deadline</span>
@@ -118,17 +146,17 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
+            </div>
         {% else %}
         <div class="text-center py-12">
             <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-clipboard-list text-3xl text-gray-400"></i>
-            </div>
+        </div>
             <h4 class="text-lg font-medium text-gray-900 mb-2">No Active Requests</h4>
             <p class="text-gray-500">There are currently no active candidate requests.</p>
-        </div>
+                </div>
         {% endif %}
-    </div>
+        </div>
 
     <!-- Add New Candidate Profile Section -->
     <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
@@ -554,7 +582,7 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
     <!-- Candidate List -->
     <div class="bg-white rounded-xl shadow-lg p-8 mb-8">
@@ -1287,8 +1315,16 @@ function filterByStatus(status) {
     const candidateItems = document.querySelectorAll('.candidate-item');
     console.log('📊 Found candidate items:', candidateItems.length);
     
+    // Debug: Log all data-status values
+    candidateItems.forEach((item, index) => {
+        const itemStatus = item.getAttribute('data-status');
+        const debugInfo = item.getAttribute('data-debug');
+        console.log(`🔍 Item ${index}: data-status="${itemStatus}", debug="${debugInfo}"`);
+    });
+    
     if (candidateItems.length === 0) {
         console.warn('⚠️ No candidate items found!');
+        alert('No candidate items found! Check the table structure.');
         return;
     }
     
@@ -1297,15 +1333,18 @@ function filterByStatus(status) {
         const itemStatus = item.getAttribute('data-status');
         console.log(`📋 Item ${index}: status="${itemStatus}", filtering for="${status}"`);
         
-        if (status === 'all' || itemStatus === status) {
+        // Handle special case for 'all'
+        if (status === 'all') {
             item.style.display = 'table-row';
-            item.style.visibility = 'visible';
             visibleCount++;
-            console.log(`✅ Showing item ${index}`);
+            console.log(`✅ Showing item ${index} (all filter)`);
+        } else if (itemStatus && itemStatus.trim() === status.trim()) {
+            item.style.display = 'table-row';
+            visibleCount++;
+            console.log(`✅ Showing item ${index} (status match)`);
         } else {
             item.style.display = 'none';
-            item.style.visibility = 'hidden';
-            console.log(`❌ Hiding item ${index}`);
+            console.log(`❌ Hiding item ${index} (no match)`);
         }
     });
     
@@ -1315,8 +1354,8 @@ function filterByStatus(status) {
     });
     
     // Add active state to clicked filter button
-    const activeFilter = document.querySelector(`[onclick="filterByStatus('${status}')"]`);
-    if (activeFilter) {
+            const activeFilter = document.querySelector(`[onclick="filterByStatus('${status}')"]`);
+            if (activeFilter) {
         activeFilter.classList.add('ring-4', 'ring-blue-400', 'bg-blue-50');
         console.log('🎯 Active filter highlighted');
     } else {
