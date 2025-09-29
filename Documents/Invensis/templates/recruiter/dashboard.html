@@ -593,7 +593,21 @@
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900">Recent Candidates</h3>
             </div>
-            <div class="flex space-x-3">
+            <div class="flex items-center space-x-3">
+                <!-- Filter Dropdown -->
+                <div class="relative">
+                    <label for="statusFilter" class="sr-only">Filter by Status</label>
+                    <select id="statusFilter" onchange="filterByDropdown()" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[150px]">
+                        <option value="">🔍 All Statuses</option>
+                        <option value="Selected">✅ Selected</option>
+                        <option value="Not Selected">❌ Not Selected</option>
+                        <option value="Reassigned">🔄 Reassigned</option>
+                        <option value="Pending">⏳ Pending</option>
+                        <option value="Assigned">👤 Assigned</option>
+                        <option value="New">🆕 New</option>
+                        <option value="Onboarded">🎯 Onboarded</option>
+                    </select>
+                </div>
                 <button onclick="clearFilter()" class="btn-3d bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 text-sm font-semibold">
                     <i class="fas fa-times mr-2"></i>Clear Filter
                 </button>
@@ -1324,8 +1338,8 @@ function filterByStatus(status) {
         console.log(`🔍 Item ${index}: data-status="${itemStatus}", debug="${debugDetail}"`);
     });
     
-    // Show debug popup to user
-    alert(debugInfo);
+    // Debug info in console only (remove popup for production)
+    // alert(debugInfo);
     
     if (candidateItems.length === 0) {
         console.warn('⚠️ No candidate items found!');
@@ -1448,8 +1462,98 @@ function clearFilter() {
         }
         
         console.log('All filters cleared successfully');
+        // Reset dropdown to "All Statuses"
+        const dropdown = document.getElementById('statusFilter');
+        if (dropdown) {
+            dropdown.value = '';
+        }
+        
     } catch (error) {
         console.error('Error in clearFilter:', error);
+    }
+}
+
+// Function to filter by dropdown selection
+function filterByDropdown() {
+    const dropdown = document.getElementById('statusFilter');
+    const selectedStatus = dropdown.value;
+    
+    console.log('🔽 Dropdown filter selected:', selectedStatus);
+    
+    if (selectedStatus === '') {
+        // Show all candidates if "All Statuses" is selected
+        clearFilter();
+        return;
+    }
+    
+    // Use the existing filterByStatus function but without popup
+    filterByStatusSilent(selectedStatus);
+}
+
+// Silent version of filterByStatus without popup
+function filterByStatusSilent(status) {
+    console.log('🔍 Filtering by status (silent):', status);
+    
+    const candidateItems = document.querySelectorAll('.candidate-item');
+    console.log('📊 Found candidate items:', candidateItems.length);
+    
+    if (candidateItems.length === 0) {
+        console.warn('⚠️ No candidate items found!');
+        return;
+    }
+    
+    let visibleCount = 0;
+    candidateItems.forEach((item, index) => {
+        const itemStatus = item.getAttribute('data-status');
+        console.log(`📋 Item ${index}: status="${itemStatus}", filtering for="${status}"`);
+        
+        // Handle special case for 'all'
+        if (status === 'all') {
+            item.style.display = 'table-row';
+            visibleCount++;
+            console.log(`✅ Showing item ${index} (all filter)`);
+        } else if (itemStatus && itemStatus.trim() === status.trim()) {
+            item.style.display = 'table-row';
+            visibleCount++;
+            console.log(`✅ Showing item ${index} (status match)`);
+        } else {
+            item.style.display = 'none';
+            console.log(`❌ Hiding item ${index} (no match)`);
+        }
+    });
+    
+    // Update table message if no candidates found
+    updateNoResultsMessage(visibleCount);
+    
+    console.log(`Filter applied successfully. Showing ${visibleCount} candidates.`);
+}
+
+// Helper function to update no results message
+function updateNoResultsMessage(visibleCount) {
+    const tbody = document.querySelector('tbody');
+    let noResultsRow = document.getElementById('no-results-row');
+    
+    if (visibleCount === 0) {
+        if (!noResultsRow) {
+            noResultsRow = document.createElement('tr');
+            noResultsRow.id = 'no-results-row';
+            noResultsRow.innerHTML = `
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                    <div class="flex flex-col items-center">
+                        <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+                        <p class="text-lg font-medium">No candidates found</p>
+                        <p class="text-sm">Try selecting a different filter or clear the current filter</p>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(noResultsRow);
+        } else {
+            noResultsRow.style.display = 'table-row';
+        }
+    } else {
+        if (noResultsRow) {
+            noResultsRow.style.display = 'none';
+        }
     }
 }
 
