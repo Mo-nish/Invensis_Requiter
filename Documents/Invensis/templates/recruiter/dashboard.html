@@ -1461,12 +1461,13 @@ function clearFilter() {
             noResultsRow.style.display = 'none';
         }
         
-        console.log('All filters cleared successfully');
         // Reset dropdown to "All Statuses"
         const dropdown = document.getElementById('statusFilter');
         if (dropdown) {
             dropdown.value = '';
         }
+        
+        console.log('All filters cleared successfully');
         
     } catch (error) {
         console.error('Error in clearFilter:', error);
