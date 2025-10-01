@@ -648,16 +648,6 @@
             </div>
         </div>
         
-        <!-- Debug Information -->
-        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
-            <strong>Debug Info:</strong> 
-            Candidates: {{ all_candidates|length if all_candidates else 'None' }}, 
-            Requests: {{ candidate_requests|length if candidate_requests else 'None' }}
-            {% if all_candidates %}
-                <br>Sample names: {{ all_candidates[:3]|map(attribute='name')|list }}
-            {% endif %}
-        </div>
-        
         <!-- Candidate List Container -->
         <div id="candidateList">
             {% if all_candidates %}
@@ -677,7 +667,7 @@
                             {% for candidate in all_candidates[:5] %}
                             <tr class="candidate-item hover:bg-gray-50 transition-colors" 
                                 data-status="{{ candidate.status if candidate.status else 'Pending' }}" 
-                                data-date="{{ candidate.created_at.strftime('%Y-%m-%d') if candidate.created_at else '' }}"
+                                data-date="{{ candidate.created_at.strftime('%Y-%m-%d') if candidate.created_at and candidate.created_at.strftime else (candidate.created_at[:10] if candidate.created_at and candidate.created_at|string else '') }}"
                                 data-debug="Raw Status: '{{ candidate.status }}', Onboarding: '{{ candidate.onboarding_status }}', Final: '{{ candidate.status if candidate.status else 'Pending' }}'">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
@@ -1376,7 +1366,7 @@ function filterByStatus(status) {
         const itemStatus = item.getAttribute('data-status');
         const debugDetail = item.getAttribute('data-debug');
         debugInfo += `${index + 1}. data-status="${itemStatus}" (${debugDetail})\n`;
-        console.log(`🔍 Item ${index}: data-status="${itemStatus}", debug="${debugDetail}"`);
+        console.log('🔍 Item ' + index + ': data-status="' + itemStatus + '", debug="' + debugDetail + '"');
     });
     
     // Debug info in console only
@@ -1390,20 +1380,20 @@ function filterByStatus(status) {
     let visibleCount = 0;
     candidateItems.forEach((item, index) => {
         const itemStatus = item.getAttribute('data-status');
-        console.log(`📋 Item ${index}: status="${itemStatus}", filtering for="${status}"`);
+        console.log('📋 Item ' + index + ': status="' + itemStatus + '", filtering for="' + status + '"');
         
         // Handle special case for 'all'
         if (status === 'all') {
             item.style.display = 'table-row';
             visibleCount++;
-            console.log(`✅ Showing item ${index} (all filter)`);
+            console.log('✅ Showing item ' + index + ' (all filter)');
         } else if (itemStatus && itemStatus.trim().toLowerCase() === status.trim().toLowerCase()) {
             item.style.display = 'table-row';
             visibleCount++;
-            console.log(`✅ Showing item ${index} (status match)`);
+            console.log('✅ Showing item ' + index + ' (status match)');
             } else {
                 item.style.display = 'none';
-            console.log(`❌ Hiding item ${index} (no match)`);
+            console.log('❌ Hiding item ' + index + ' (no match)');
         }
     });
     
@@ -1413,7 +1403,7 @@ function filterByStatus(status) {
     });
     
     // Add active state to clicked filter button
-            const activeFilter = document.querySelector(`[onclick="filterByStatus('${status}')"]`);
+            const activeFilter = document.querySelector('[onclick="filterByStatus(\'' + status + '\')"]');
             if (activeFilter) {
         activeFilter.classList.add('ring-4', 'ring-blue-400', 'bg-blue-50');
         console.log('🎯 Active filter highlighted');
@@ -1447,7 +1437,7 @@ function filterByStatus(status) {
         }
     }
     
-    console.log(`Filter applied successfully. Showing ${visibleCount} candidates.`);
+    console.log('Filter applied successfully. Showing ' + visibleCount + ' candidates.');
 }
         
         // Update the table message if no candidates found
@@ -1476,7 +1466,7 @@ function filterByStatus(status) {
             }
         }
         
-        console.log(`Filter applied successfully. Showing ${visibleCount} candidates.`);
+        console.log('Filter applied successfully. Showing ' + visibleCount + ' candidates.');
     } catch (error) {
         console.error('Error in filterByStatus:', error);
     }
@@ -2238,7 +2228,7 @@ function selectPhotoFile() {
 
 // Function to delete a candidate
 function deleteCandidate(candidateId, candidateName) {
-    if (confirm(`Are you sure you want to delete candidate "${candidateName}"? This action cannot be undone.`)) {
+    if (confirm('Are you sure you want to delete candidate "' + candidateName + '"? This action cannot be undone.')) {
         fetch('/recruiter/delete_candidate/' + candidateId, {
             method: 'DELETE',
             headers: {
