@@ -281,16 +281,37 @@ def dashboard():
                     request['requester_name'] = request.get('manager_email', 'Unknown')
                     request['requester_email'] = request.get('manager_email', 'N/A')
             
-            # Calculate deadline status based on requested_date (days since request)
-            if request.get('requested_date'):
+            # Map correct field names for template
+            request['job_title'] = request.get('position_title', 'N/A')
+            request['open_positions'] = request.get('quantity_needed', 0)
+            
+            # Calculate remaining positions
+            assigned_count = request.get('assigned_count', 0)
+            onboarded_count = request.get('onboarded_count', 0)
+            request['remaining_positions'] = request['open_positions'] - onboarded_count
+            
+            # Calculate deadline status based on created_at (days since request)
+            if request.get('created_at'):
                 try:
-                    if isinstance(request['requested_date'], str):
-                        requested_date = datetime.fromisoformat(request['requested_date'].replace('Z', '+00:00'))
+                    if isinstance(request['created_at'], str):
+                        # Handle ISO format with or without timezone
+                        created_at_str = request['created_at']
+                        if 'T' in created_at_str:
+                            # ISO format
+                            if created_at_str.endswith('Z'):
+                                created_at_str = created_at_str[:-1] + '+00:00'
+                            elif '+' not in created_at_str and 'Z' not in created_at_str:
+                                # No timezone info, assume UTC
+                                created_at_str += '+00:00'
+                            requested_date = datetime.fromisoformat(created_at_str)
+                        else:
+                            # Simple date format
+                            requested_date = datetime.fromisoformat(created_at_str)
                     else:
-                        requested_date = request['requested_date']
+                        requested_date = request['created_at']
                     
                     # Calculate days since request
-                    days_since_request = (datetime.now() - requested_date).days
+                    days_since_request = (datetime.now() - requested_date.replace(tzinfo=None)).days
                     
                     # Set deadline status based on days since request
                     if days_since_request > 15:
@@ -307,9 +328,10 @@ def dashboard():
                     request['requested_date_formatted'] = requested_date.strftime('%Y-%m-%d')
                     
                 except Exception as e:
-                    print(f"Error processing requested_date for request {request.get('_id')}: {e}")
+                    print(f"Error processing created_at for request {request.get('_id')}: {e}")
                     request['deadline_status'] = 'unknown'
                     request['deadline_color'] = 'gray'
+                    request['days_since_request'] = 0
             
             # Also handle legacy deadline field if it exists
             if request.get('deadline'):
