@@ -53,10 +53,10 @@
                     <h3 class="text-xl font-bold mb-2">📊 Manager Data Analytics</h3>
                     <p class="text-purple-100 text-sm">Advanced Performance Insights & Trends</p>
                 </div>
+                </div>
             </div>
         </div>
-    </div>
-
+        
     <!-- Candidate Requests Section -->
     <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
         <div class="flex items-center justify-between mb-6">
@@ -105,15 +105,15 @@
                                 <span class="text-xs text-gray-500">
                                     Total: {{ request.get('open_positions', 0) }}
                                 </span>
-                            </div>
+                </div>
                         </td>
                         <td class="py-3 px-4">
                             {% if request.get('requested_date_formatted') %}
                                 <div class="flex flex-col space-y-1">
-                                    <div class="flex items-center">
+            <div class="flex items-center">
                                         <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
                                         <span class="font-medium">{{ request.requested_date_formatted }}</span>
-                                    </div>
+                </div>
                                     {% if request.get('days_since_request') is defined %}
                                         <div class="flex items-center space-x-2">
                                             <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold {{ 'bg-red-100 text-red-800' if request.days_since_request > 15 else 'bg-yellow-100 text-yellow-800' if request.days_since_request > 7 else 'bg-green-100 text-green-800' }}">
@@ -122,9 +122,9 @@
                                             <span class="text-sm {{ 'text-red-600' if request.days_since_request > 15 else 'text-yellow-600' if request.days_since_request > 7 else 'text-green-600' }}">
                                                 days ago
                                             </span>
-                                        </div>
+                </div>
                                     {% endif %}
-                                </div>
+            </div>
                             {% else %}
                                 <span class="text-gray-500">No date</span>
                             {% endif %}
@@ -158,12 +158,12 @@
                     {% endfor %}
                 </tbody>
             </table>
-            </div>
+        </div>
         {% else %}
         <div class="text-center py-12">
             <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-clipboard-list text-3xl text-gray-400"></i>
-        </div>
+                </div>
             <h4 class="text-lg font-medium text-gray-900 mb-2">No Active Requests</h4>
             <p class="text-gray-500">There are currently no active candidate requests.</p>
                 </div>
@@ -615,6 +615,39 @@
             </div>
         </div>
         
+        <!-- Advanced Filters -->
+        <div class="bg-gray-50 rounded-lg p-4 mb-6">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Status Filter:</label>
+                    <select id="statusDropdown" onchange="filterByDropdown()" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">All Statuses</option>
+                        <option value="Selected">✅ Selected</option>
+                        <option value="Not Selected">❌ Not Selected</option>
+                        <option value="Reassigned">🔄 Reassigned</option>
+                        <option value="Pending">⏳ Pending</option>
+                        <option value="Assigned">👤 Assigned</option>
+                        <option value="New">🆕 New</option>
+                        <option value="Onboarded">🎯 Onboarded</option>
+                    </select>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Date Filter:</label>
+                    <input type="date" id="dateFilter" onchange="filterByDate()" class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <label class="text-sm font-medium text-gray-700">Search:</label>
+                    <input type="text" id="searchFilter" onkeyup="filterBySearch()" placeholder="Search candidates..." class="bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64">
+                </div>
+                
+                <button onclick="clearAllFilters()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fas fa-times mr-2"></i>Clear All Filters
+                </button>
+            </div>
+        </div>
+        
         <!-- Candidate List Container -->
         <div id="candidateList">
             {% if all_candidates %}
@@ -632,20 +665,23 @@
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
                             {% for candidate in all_candidates[:5] %}
-                            <tr class="candidate-item hover:bg-gray-50 transition-colors" data-status="{{ candidate.status if candidate.status else 'Pending' }}" data-debug="Raw Status: '{{ candidate.status }}', Onboarding: '{{ candidate.onboarding_status }}', Final: '{{ candidate.status if candidate.status else 'Pending' }}'">
+                            <tr class="candidate-item hover:bg-gray-50 transition-colors" 
+                                data-status="{{ candidate.status if candidate.status else 'Pending' }}" 
+                                data-date="{{ candidate.created_at.strftime('%Y-%m-%d') if candidate.created_at else '' }}"
+                                data-debug="Raw Status: '{{ candidate.status }}', Onboarding: '{{ candidate.onboarding_status }}', Final: '{{ candidate.status if candidate.status else 'Pending' }}'">
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-3">
                                             <i class="fas fa-user text-white"></i>
                                         </div>
                                         <div>
-                                            <div class="text-sm font-medium text-gray-900">{{ candidate.name or 'Unnamed' }}</div>
+                                            <div class="text-sm font-medium text-gray-900 candidate-name">{{ candidate.name or 'Unnamed' }}</div>
                                             <div class="text-sm text-gray-500">{{ candidate.reference_id or 'No ID' }}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
-                                    <div class="text-sm text-gray-900">{{ candidate.email or 'No email' }}</div>
+                                    <div class="text-sm text-gray-900 candidate-email">{{ candidate.email or 'No email' }}</div>
                                     <div class="text-sm text-gray-500">{{ candidate.phone or 'No phone' }}</div>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
@@ -664,7 +700,7 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">
+                                    <div class="text-sm text-gray-900 candidate-skills">
                                         {% if candidate.skills %}
                                             {% if candidate.skills is string %}
                                                 {{ candidate.skills[:50] }}{% if candidate.skills|length > 50 %}...{% endif %}
@@ -1321,7 +1357,7 @@ function populateFormFields(data) {
 function filterByStatus(status) {
     console.log('🔍 Filtering by status:', status);
     
-    const candidateItems = document.querySelectorAll('.candidate-item');
+        const candidateItems = document.querySelectorAll('.candidate-item');
     console.log('📊 Found candidate items:', candidateItems.length);
     
     // Debug: Log all data-status values
@@ -1355,8 +1391,8 @@ function filterByStatus(status) {
             item.style.display = 'table-row';
             visibleCount++;
             console.log(`✅ Showing item ${index} (status match)`);
-        } else {
-            item.style.display = 'none';
+            } else {
+                item.style.display = 'none';
             console.log(`❌ Hiding item ${index} (no match)`);
         }
     });
@@ -1434,6 +1470,97 @@ function filterByStatus(status) {
     } catch (error) {
         console.error('Error in filterByStatus:', error);
     }
+}
+
+// New filter functions for dropdown, date, and search
+function filterByDropdown() {
+    const dropdown = document.getElementById('statusDropdown');
+    const selectedStatus = dropdown.value;
+    console.log('Dropdown filter selected:', selectedStatus);
+    
+    if (selectedStatus === '') {
+        filterByStatus('all');
+    } else {
+        filterByStatus(selectedStatus);
+    }
+}
+
+function filterByDate() {
+    const dateInput = document.getElementById('dateFilter');
+    const selectedDate = dateInput.value;
+    console.log('Date filter selected:', selectedDate);
+    
+    if (!selectedDate) {
+        filterByStatus('all');
+        return;
+    }
+    
+    const candidateItems = document.querySelectorAll('.candidate-item');
+    let visibleCount = 0;
+    
+    candidateItems.forEach((item) => {
+        const itemDate = item.getAttribute('data-date');
+        if (itemDate && itemDate.includes(selectedDate)) {
+            item.style.display = 'table-row';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    updateNoResultsMessage(visibleCount);
+    console.log('Date filter applied. Showing ' + visibleCount + ' candidates.');
+}
+
+function filterBySearch() {
+    const searchInput = document.getElementById('searchFilter');
+    const searchTerm = searchInput.value.toLowerCase();
+    console.log('Search filter:', searchTerm);
+    
+    if (!searchTerm) {
+        filterByStatus('all');
+        return;
+    }
+    
+    const candidateItems = document.querySelectorAll('.candidate-item');
+    let visibleCount = 0;
+    
+    candidateItems.forEach((item) => {
+        const candidateName = item.querySelector('.candidate-name')?.textContent.toLowerCase() || '';
+        const candidateEmail = item.querySelector('.candidate-email')?.textContent.toLowerCase() || '';
+        const candidateSkills = item.querySelector('.candidate-skills')?.textContent.toLowerCase() || '';
+        
+        if (candidateName.includes(searchTerm) || 
+            candidateEmail.includes(searchTerm) || 
+            candidateSkills.includes(searchTerm)) {
+            item.style.display = 'table-row';
+            visibleCount++;
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    updateNoResultsMessage(visibleCount);
+    console.log('Search filter applied. Showing ' + visibleCount + ' candidates.');
+}
+
+function clearAllFilters() {
+    console.log('Clearing all filters');
+    
+    // Reset all filter inputs
+    document.getElementById('statusDropdown').value = '';
+    document.getElementById('dateFilter').value = '';
+    document.getElementById('searchFilter').value = '';
+    
+    // Clear status card highlights
+    document.querySelectorAll('[onclick^="filterByStatus"]').forEach(btn => {
+        btn.classList.remove('ring-4', 'ring-blue-400', 'ring-opacity-50', 'bg-blue-50');
+    });
+    
+    // Show all candidates
+    filterByStatus('all');
+    
+    console.log('All filters cleared');
 }
 
 // Function to clear all filters
@@ -2506,7 +2633,7 @@ function updateCandidateList() {
             // Check if we actually got candidate data
             const candidateItems = newCandidateList.querySelectorAll('.candidate-item');
             if (candidateItems.length > 0) {
-                candidateListContainer.innerHTML = newCandidateList.innerHTML;
+            candidateListContainer.innerHTML = newCandidateList.innerHTML;
                 console.log('Successfully updated candidate list with ' + candidateItems.length + ' candidates');
             } else {
                 // No candidates found, show appropriate message
