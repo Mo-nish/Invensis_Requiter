@@ -242,6 +242,32 @@ def correct_extracted_data(extracted_data, resume_text):
     
     return extracted_data
 
+@recruiter_bp.route('/debug-db')
+@recruiter_required
+def debug_db():
+    """Debug database connection"""
+    try:
+        from models_mongo import candidates_collection, candidate_requests_collection
+        
+        candidates_count = candidates_collection.count_documents({})
+        requests_count = candidate_requests_collection.count_documents({})
+        
+        candidates = list(candidates_collection.find({}).limit(3))
+        requests = list(candidate_requests_collection.find({}).limit(3))
+        
+        debug_info = {
+            'candidates_count': candidates_count,
+            'requests_count': requests_count,
+            'sample_candidates': [{'name': c.get('name'), 'email': c.get('email'), 'status': c.get('status')} for c in candidates],
+            'sample_requests': [{'title': r.get('position_title'), 'manager': r.get('manager_email'), 'quantity': r.get('quantity_needed')} for r in requests],
+            'mongodb_uri': os.getenv('MONGODB_URI', 'NOT_SET')[:50] + '...' if os.getenv('MONGODB_URI') else 'NOT_SET'
+        }
+        
+        return jsonify(debug_info)
+        
+    except Exception as e:
+        return jsonify({'error': str(e), 'type': type(e).__name__})
+
 @recruiter_bp.route('/dashboard')
 @recruiter_required
 def dashboard():
