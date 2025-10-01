@@ -416,7 +416,9 @@ def dashboard():
         
     except Exception as e:
         print(f"Error loading dashboard: {str(e)}")
-        flash('Error loading dashboard data', 'error')
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading dashboard data: {str(e)}', 'error')
         # Return empty dashboard with error handling
         return render_template('recruiter/dashboard.html', all_candidates=[], candidate_requests=[])
 
