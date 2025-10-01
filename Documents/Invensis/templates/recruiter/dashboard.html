@@ -103,18 +103,18 @@
                             </span>
                         </td>
                         <td class="py-3 px-4">
-                            {% if request.get('deadline') %}
-            <div class="flex items-center">
+                            {% if request.get('requested_date_formatted') %}
+                                <div class="flex items-center">
                                     <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
-                                    <span class="font-medium">{{ request.deadline.strftime('%Y-%m-%d') if request.deadline else 'N/A' }}</span>
-                </div>
-                                {% if request.get('days_remaining') is defined %}
-                                    <div class="text-sm {{ 'text-red-600' if request.days_remaining < 0 else 'text-yellow-600' if request.days_remaining <= 7 else 'text-green-600' }}">
-                                        {{ request.days_remaining }} days remaining
-                </div>
+                                    <span class="font-medium">{{ request.requested_date_formatted }}</span>
+                                </div>
+                                {% if request.get('days_since_request') is defined %}
+                                    <div class="text-sm {{ 'text-red-600' if request.days_since_request > 15 else 'text-yellow-600' if request.days_since_request > 7 else 'text-green-600' }}">
+                                        {{ request.days_since_request }} days ago
+                                    </div>
                                 {% endif %}
                             {% else %}
-                                <span class="text-gray-500">No deadline</span>
+                                <span class="text-gray-500">No date</span>
                             {% endif %}
                         </td>
                         <td class="py-3 px-4">

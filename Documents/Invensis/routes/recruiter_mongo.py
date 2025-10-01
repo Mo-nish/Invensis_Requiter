@@ -266,9 +266,52 @@ def dashboard():
                 reference_id = f'REF-{current_date}-{unique_id}'
                 candidate['reference_id'] = reference_id
         
-        # Process candidate requests with deadline status
+        # Process candidate requests with deadline status and manager info
+        from models_mongo import users_collection
         for request in candidate_requests:
             request['_id'] = str(request['_id'])
+            
+            # Add manager information
+            if request.get('manager_email'):
+                manager = users_collection.find_one({'email': request['manager_email']})
+                if manager:
+                    request['requester_name'] = f"{manager.get('first_name', '')} {manager.get('last_name', '')}"
+                    request['requester_email'] = request['manager_email']
+                else:
+                    request['requester_name'] = request.get('manager_email', 'Unknown')
+                    request['requester_email'] = request.get('manager_email', 'N/A')
+            
+            # Calculate deadline status based on requested_date (days since request)
+            if request.get('requested_date'):
+                try:
+                    if isinstance(request['requested_date'], str):
+                        requested_date = datetime.fromisoformat(request['requested_date'].replace('Z', '+00:00'))
+                    else:
+                        requested_date = request['requested_date']
+                    
+                    # Calculate days since request
+                    days_since_request = (datetime.now() - requested_date).days
+                    
+                    # Set deadline status based on days since request
+                    if days_since_request > 15:
+                        request['deadline_status'] = 'overdue'
+                        request['deadline_color'] = 'red'
+                    elif days_since_request > 7:
+                        request['deadline_status'] = 'urgent'
+                        request['deadline_color'] = 'yellow'
+                    else:
+                        request['deadline_status'] = 'active'
+                        request['deadline_color'] = 'green'
+                    
+                    request['days_since_request'] = days_since_request
+                    request['requested_date_formatted'] = requested_date.strftime('%Y-%m-%d')
+                    
+                except Exception as e:
+                    print(f"Error processing requested_date for request {request.get('_id')}: {e}")
+                    request['deadline_status'] = 'unknown'
+                    request['deadline_color'] = 'gray'
+            
+            # Also handle legacy deadline field if it exists
             if request.get('deadline'):
                 deadline = request['deadline']
                 if isinstance(deadline, str):
