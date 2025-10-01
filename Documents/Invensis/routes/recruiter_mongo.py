@@ -1007,8 +1007,8 @@ def get_analytics_data():
 @recruiter_bp.route('/requests')
 @recruiter_required
 def candidate_requests():
-    """View candidate requests from managers"""
-    return render_template('recruiter/requests.html')
+    """Redirect to the main candidate requests page"""
+    return redirect(url_for('recruiter.view_candidate_requests'))
 
 @recruiter_bp.route('/api/requests')
 @recruiter_required
