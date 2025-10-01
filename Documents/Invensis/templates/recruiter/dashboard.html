@@ -98,21 +98,33 @@
                             <div class="text-sm text-gray-500">{{ request.get('requester_email', 'N/A') }}</div>
                         </td>
                         <td class="py-3 px-4">
-                            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                                {{ request.get('open_positions', 0) }} positions
-                            </span>
+                            <div class="flex flex-col space-y-1">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+                                    {{ request.get('remaining_positions', request.get('open_positions', 0)) }} remaining
+                                </span>
+                                <span class="text-xs text-gray-500">
+                                    Total: {{ request.get('open_positions', 0) }}
+                                </span>
+                            </div>
                         </td>
                         <td class="py-3 px-4">
                             {% if request.get('requested_date_formatted') %}
-                                <div class="flex items-center">
-                                    <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
-                                    <span class="font-medium">{{ request.requested_date_formatted }}</span>
-                                </div>
-                                {% if request.get('days_since_request') is defined %}
-                                    <div class="text-sm {{ 'text-red-600' if request.days_since_request > 15 else 'text-yellow-600' if request.days_since_request > 7 else 'text-green-600' }}">
-                                        {{ request.days_since_request }} days ago
+                                <div class="flex flex-col space-y-1">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-calendar-alt mr-2 text-gray-400"></i>
+                                        <span class="font-medium">{{ request.requested_date_formatted }}</span>
                                     </div>
-                                {% endif %}
+                                    {% if request.get('days_since_request') is defined %}
+                                        <div class="flex items-center space-x-2">
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold {{ 'bg-red-100 text-red-800' if request.days_since_request > 15 else 'bg-yellow-100 text-yellow-800' if request.days_since_request > 7 else 'bg-green-100 text-green-800' }}">
+                                                {{ request.days_since_request }}
+                                            </span>
+                                            <span class="text-sm {{ 'text-red-600' if request.days_since_request > 15 else 'text-yellow-600' if request.days_since_request > 7 else 'text-green-600' }}">
+                                                days ago
+                                            </span>
+                                        </div>
+                                    {% endif %}
+                                </div>
                             {% else %}
                                 <span class="text-gray-500">No date</span>
                             {% endif %}
