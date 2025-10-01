@@ -605,24 +605,7 @@
                 </div>
                 <h3 class="text-2xl font-bold text-gray-900">Recent Candidates</h3>
             </div>
-            <div class="flex items-center space-x-3">
-                <!-- Filter Dropdown -->
-                <div class="relative">
-                    <label for="statusFilter" class="sr-only">Filter by Status</label>
-                    <select id="statusFilter" onchange="filterByDropdown()" class="bg-white border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[150px]">
-                        <option value="">🔍 All Statuses</option>
-                        <option value="Selected">✅ Selected</option>
-                        <option value="Not Selected">❌ Not Selected</option>
-                        <option value="Reassigned">🔄 Reassigned</option>
-                        <option value="Pending">⏳ Pending</option>
-                        <option value="Assigned">👤 Assigned</option>
-                        <option value="New">🆕 New</option>
-                        <option value="Onboarded">🎯 Onboarded</option>
-                    </select>
-                </div>
-                <button onclick="clearFilter()" class="btn-3d bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 text-sm font-semibold">
-                    <i class="fas fa-times mr-2"></i>Clear Filter
-                </button>
+            <div class="flex space-x-3">
                 <button onclick="updateCandidateList()" class="btn-3d btn-hr px-4 py-2 text-sm font-semibold">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh
                 </button>
@@ -1350,8 +1333,8 @@ function filterByStatus(status) {
         console.log(`🔍 Item ${index}: data-status="${itemStatus}", debug="${debugDetail}"`);
     });
     
-    // Debug info - temporarily enable popup to see the issue
-    alert(debugInfo);
+    // Debug info in console only
+    console.log(debugInfo);
     
     if (candidateItems.length === 0) {
         console.warn('⚠️ No candidate items found!');
@@ -1368,7 +1351,7 @@ function filterByStatus(status) {
             item.style.display = 'table-row';
             visibleCount++;
             console.log(`✅ Showing item ${index} (all filter)`);
-        } else if (itemStatus && itemStatus.trim() === status.trim()) {
+        } else if (itemStatus && itemStatus.trim().toLowerCase() === status.trim().toLowerCase()) {
             item.style.display = 'table-row';
             visibleCount++;
             console.log(`✅ Showing item ${index} (status match)`);
@@ -1522,7 +1505,7 @@ function filterByStatusSilent(status) {
         if (status === 'all') {
             item.style.display = 'table-row';
             visibleCount++;
-        } else if (itemStatus && itemStatus.trim() === status.trim()) {
+        } else if (itemStatus && itemStatus.trim().toLowerCase() === status.trim().toLowerCase()) {
             item.style.display = 'table-row';
             visibleCount++;
         } else {
