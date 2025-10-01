@@ -127,8 +127,20 @@
                             <i class="fas fa-briefcase text-white"></i>
                         </div>
                         <div>
-                            <h3 class="text-lg font-semibold text-gray-900">{{ request.position_title }}</h3>
-                            <p class="text-sm text-gray-600">Requested on {{ request.created_at[:10] }}</p>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ request.get('job_title', request.position_title) }}</h3>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="text-sm text-gray-600">Requested on {{ request.get('requested_date_formatted', request.created_at[:10]) }}</span>
+                                {% if request.get('days_since_request') is defined %}
+                                <div class="flex items-center space-x-1">
+                                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold {{ 'bg-red-100 text-red-800' if request.days_since_request > 15 else 'bg-yellow-100 text-yellow-800' if request.days_since_request > 7 else 'bg-green-100 text-green-800' }}">
+                                        {{ request.days_since_request }}
+                                    </span>
+                                    <span class="text-xs {{ 'text-red-600' if request.days_since_request > 15 else 'text-yellow-600' if request.days_since_request > 7 else 'text-green-600' }}">
+                                        days ago
+                                    </span>
+                                </div>
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
                     <div class="flex items-center space-x-3">
@@ -149,7 +161,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                     <div class="text-center">
                         <p class="text-sm font-medium text-gray-600">Quantity Needed</p>
-                        <p class="text-2xl font-bold text-blue-600">{{ request.quantity_needed }}</p>
+                        <p class="text-2xl font-bold text-blue-600">{{ request.get('open_positions', request.quantity_needed) }}</p>
                     </div>
                     <div class="text-center">
                         <p class="text-sm font-medium text-gray-600">Assigned</p>
@@ -161,7 +173,7 @@
                     </div>
                     <div class="text-center">
                         <p class="text-sm font-medium text-gray-600">Remaining</p>
-                        <p class="text-2xl font-bold text-orange-600">{{ request.remaining_count }}</p>
+                        <p class="text-2xl font-bold text-orange-600">{{ request.get('remaining_positions', request.get('remaining_count', request.get('open_positions', request.quantity_needed) - request.onboarded_count)) }}</p>
                     </div>
                 </div>
                 
