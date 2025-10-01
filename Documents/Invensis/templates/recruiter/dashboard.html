@@ -648,6 +648,16 @@
             </div>
         </div>
         
+        <!-- Debug Information -->
+        <div class="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded mb-4">
+            <strong>Debug Info:</strong> 
+            Candidates: {{ all_candidates|length if all_candidates else 'None' }}, 
+            Requests: {{ candidate_requests|length if candidate_requests else 'None' }}
+            {% if all_candidates %}
+                <br>Sample names: {{ all_candidates[:3]|map(attribute='name')|list }}
+            {% endif %}
+        </div>
+        
         <!-- Candidate List Container -->
         <div id="candidateList">
             {% if all_candidates %}
