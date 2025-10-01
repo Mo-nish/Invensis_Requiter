@@ -381,6 +381,8 @@ def dashboard():
                     print(f"Error updating name field for candidate {candidate.get('_id')}: {update_error}")
         
         print(f"DEBUG: Dashboard loaded {len(all_candidates)} candidates and {len(candidate_requests)} requests")
+        print(f"DEBUG: Sample candidate names: {[c.get('name', 'No name') for c in all_candidates[:3]]}")
+        print(f"DEBUG: Sample request titles: {[r.get('position_title', 'No title') for r in candidate_requests[:3]]}")
         
         return render_template('recruiter/dashboard.html', 
                              all_candidates=all_candidates, 
