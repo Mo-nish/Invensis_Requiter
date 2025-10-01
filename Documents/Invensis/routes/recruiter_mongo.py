@@ -1487,25 +1487,108 @@ def api_analytics():
 @recruiter_required
 def view_candidate_requests():
     """Page to display all candidate requests from all managers"""
-    from models_mongo import CandidateRequest
-    requests = CandidateRequest.find_all_active()
-    
-    # Calculate totals
-    total_requested = sum(req.quantity_needed for req in requests)
-    total_remaining = sum(req.remaining_count for req in requests)
-    total_assigned = sum(req.assigned_count for req in requests)
-    total_onboarded = sum(req.onboarded_count for req in requests)
-    
-    # Get unique manager emails for filtering
-    manager_emails = list(set(req.manager_email for req in requests))
-    
-    return render_template('recruiter/candidate_requests.html', 
-                         requests=requests,
-                         total_requested=total_requested,
-                         total_remaining=total_remaining,
-                         total_assigned=total_assigned,
-                         total_onboarded=total_onboarded,
-                         manager_emails=manager_emails)
+    try:
+        from models_mongo import candidate_requests_collection, users_collection
+        
+        # Get all active requests directly from collection
+        requests_data = list(candidate_requests_collection.find({'status': {'$ne': 'Completed'}}))
+        
+        # Process each request with enhanced data
+        enhanced_requests = []
+        for request in requests_data:
+            request['_id'] = str(request['_id'])
+            
+            # Add manager information
+            if request.get('manager_email'):
+                manager = users_collection.find_one({'email': request['manager_email']})
+                if manager:
+                    request['requester_name'] = f"{manager.get('first_name', '')} {manager.get('last_name', '')}"
+                    request['requester_email'] = request['manager_email']
+                else:
+                    request['requester_name'] = request.get('manager_email', 'Unknown')
+                    request['requester_email'] = request.get('manager_email', 'N/A')
+            
+            # Map correct field names for template
+            request['job_title'] = request.get('position_title', 'N/A')
+            request['open_positions'] = request.get('quantity_needed', 0)
+            
+            # Calculate remaining positions
+            assigned_count = request.get('assigned_count', 0)
+            onboarded_count = request.get('onboarded_count', 0)
+            request['remaining_positions'] = request['open_positions'] - onboarded_count
+            
+            # Calculate deadline status based on created_at
+            if request.get('created_at'):
+                try:
+                    if isinstance(request['created_at'], str):
+                        created_at_str = request['created_at']
+                        if 'T' in created_at_str:
+                            if created_at_str.endswith('Z'):
+                                created_at_str = created_at_str[:-1] + '+00:00'
+                            elif '+' not in created_at_str and 'Z' not in created_at_str:
+                                created_at_str += '+00:00'
+                            requested_date = datetime.fromisoformat(created_at_str)
+                        else:
+                            requested_date = datetime.fromisoformat(created_at_str)
+                    else:
+                        requested_date = request['created_at']
+                    
+                    # Calculate days since request
+                    days_since_request = (datetime.now() - requested_date.replace(tzinfo=None)).days
+                    
+                    # Set deadline status based on days since request
+                    if days_since_request > 15:
+                        request['deadline_status'] = 'overdue'
+                        request['deadline_color'] = 'red'
+                        request['urgency_level'] = 'Critical'
+                    elif days_since_request > 7:
+                        request['deadline_status'] = 'urgent'
+                        request['deadline_color'] = 'yellow'
+                        request['urgency_level'] = 'High'
+                    else:
+                        request['deadline_status'] = 'active'
+                        request['deadline_color'] = 'green'
+                        request['urgency_level'] = 'Normal'
+                    
+                    request['days_since_request'] = days_since_request
+                    request['requested_date_formatted'] = requested_date.strftime('%Y-%m-%d')
+                    
+                except Exception as e:
+                    print(f"Error processing created_at for request {request.get('_id')}: {e}")
+                    request['deadline_status'] = 'unknown'
+                    request['deadline_color'] = 'gray'
+                    request['days_since_request'] = 0
+                    request['urgency_level'] = 'Unknown'
+            
+            enhanced_requests.append(request)
+        
+        # Calculate totals
+        total_requested = sum(req['open_positions'] for req in enhanced_requests)
+        total_remaining = sum(req['remaining_positions'] for req in enhanced_requests)
+        total_assigned = sum(req.get('assigned_count', 0) for req in enhanced_requests)
+        total_onboarded = sum(req.get('onboarded_count', 0) for req in enhanced_requests)
+        
+        # Get unique manager emails for filtering
+        manager_emails = list(set(req.get('manager_email', '') for req in enhanced_requests if req.get('manager_email')))
+        
+        return render_template('recruiter/candidate_requests.html', 
+                             requests=enhanced_requests,
+                             total_requested=total_requested,
+                             total_remaining=total_remaining,
+                             total_assigned=total_assigned,
+                             total_onboarded=total_onboarded,
+                             manager_emails=manager_emails)
+                             
+    except Exception as e:
+        print(f"Error loading candidate requests: {str(e)}")
+        flash('Error loading candidate requests', 'error')
+        return render_template('recruiter/candidate_requests.html', 
+                             requests=[],
+                             total_requested=0,
+                             total_remaining=0,
+                             total_assigned=0,
+                             total_onboarded=0,
+                             manager_emails=[])
 
 @recruiter_bp.route('/get-request-stats', methods=['GET'])
 @recruiter_required
