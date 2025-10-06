@@ -1185,21 +1185,21 @@ function extractFromResume() {
             // Show validation results
             let validationMessage = '';
             if (extractedName && extractedName !== 'Alice Johnson') {
-                validationMessage += `<div class="text-green-600 mb-2">✅ Name extracted: ${extractedName}</div>`;
+                validationMessage += '<div class="text-green-600 mb-2">✅ Name extracted: ' + extractedName + '</div>';
             } else if (extractedName === 'Alice Johnson') {
-                validationMessage += `<div class="text-red-600 mb-2">❌ WRONG NAME EXTRACTED: ${extractedName} (This appears to be cached data)</div>`;
+                validationMessage += '<div class="text-red-600 mb-2">❌ WRONG NAME EXTRACTED: ' + extractedName + ' (This appears to be cached data)</div>';
             }
             
             if (extractedEmail && extractedEmail !== 'alice.johnson@example.com') {
-                validationMessage += `<div class="text-green-600 mb-2">✅ Email extracted: ${extractedEmail}</div>`;
+                validationMessage += '<div class="text-green-600 mb-2">✅ Email extracted: ' + extractedEmail + '</div>';
             } else if (extractedEmail === 'alice.johnson@example.com') {
-                validationMessage += `<div class="text-red-600 mb-2">❌ WRONG EMAIL EXTRACTED: ${extractedEmail} (This appears to be cached data)</div>`;
+                validationMessage += '<div class="text-red-600 mb-2">❌ WRONG EMAIL EXTRACTED: ' + extractedEmail + ' (This appears to be cached data)</div>';
             }
             
             if (extractedPhone && extractedPhone !== '123-456-7890') {
-                validationMessage += `<div class="text-green-600 mb-2">✅ Phone extracted: ${extractedPhone}</div>`;
+                validationMessage += '<div class="text-green-600 mb-2">✅ Phone extracted: ' + extractedPhone + '</div>';
             } else if (extractedPhone === '123-456-7890') {
-                validationMessage += `<div class="text-red-600 mb-2">❌ WRONG PHONE EXTRACTED: ${extractedPhone} (This appears to be cached data)</div>`;
+                validationMessage += '<div class="text-red-600 mb-2">❌ WRONG PHONE EXTRACTED: ' + extractedPhone + ' (This appears to be cached data)</div>';
             }
             
             // Display validation results
