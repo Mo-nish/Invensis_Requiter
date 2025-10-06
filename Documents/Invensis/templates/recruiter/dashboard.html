@@ -875,181 +875,75 @@ window.selectResumeFile = function() {
     if (el && typeof el.click === 'function') { el.click(); }
 };
 
-// Full extractFromResume implementation with fallback for HTTP/2 errors
-window.extractFromResume = function() {
+// Clean, simple extractFromResume implementation - no AbortController
+window.extractFromResume = async function() {
     console.log('🔍 Extract button clicked - starting resume extraction...');
     
-    const resumeFile = document.getElementById('resume').files[0];
+    const fileInput = document.querySelector('input[name="resume"]');
+    const file = fileInput.files[0];
     const statusDiv = document.getElementById('extractionStatus');
     
-    if (!resumeFile) {
+    if (!file) {
         statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Please upload a resume first.</div>';
         return;
     }
     
-    // Clear form fields first to prevent data mixing from previous resumes
-    if (typeof clearFormFields === 'function') {
-        clearFormFields();
-        console.log('Form cleared before starting new resume extraction');
-    }
-    
-    // Also clear any previous extraction results
+    // Clear previous extraction results
     const extractionResults = document.getElementById('extractionResults');
     if (extractionResults) {
         extractionResults.classList.add('hidden');
     }
     
-    // Check if all form fields exist
-    if (typeof checkFormFields === 'function' && !checkFormFields()) {
-        statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Form fields not found. Please refresh the page.</div>';
-        return;
-    }
-    
     statusDiv.innerHTML = '<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Extracting information from resume...</div>';
     
-    // Check if user is likely authenticated by checking for recruiter-specific elements
-    const recruiterElements = document.querySelectorAll('[href*="recruiter"], .recruiter-dashboard');
-    const isLikelyAuthenticated = recruiterElements.length > 0 || window.location.pathname.includes('/recruiter/');
-    
-    if (!isLikelyAuthenticated) {
-        console.log('⚠️ User may not be authenticated as recruiter');
-        statusDiv.innerHTML = '<div class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>Authentication check failed. Using fallback extraction...</div>';
+    try {
+        const formData = new FormData();
+        formData.append("resume", file);
         
-        // Skip server call and go directly to fallback
-        setTimeout(() => {
-            const mockData = {
-                name: 'John Doe',
-                email: 'john.doe@example.com',
-                phone: '+1-555-0123',
-                skills: 'Python, JavaScript, React, Node.js, SQL',
-                education: 'Bachelor of Computer Science - University of Technology (2020)',
-                experience: 'Software Developer at Tech Corp (2020-2024) - Developed web applications using React and Node.js'
-            };
-            
-            const fields = ['name', 'email', 'phone', 'skills', 'education', 'experience'];
-            fields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                const value = mockData[fieldId];
-                if (field && value) {
-                    field.value = value;
-                }
-            });
-            
-            statusDiv.innerHTML = '<div class="text-orange-600"><i class="fas fa-info-circle mr-2"></i>Fallback extraction completed! Please review and modify the extracted information as needed.</div>';
-        }, 1000);
-        return;
-    }
-    
-    // Try server-side extraction first
-    const formData = new FormData();
-    formData.append('resume', resumeFile);
-    
-    // Set a longer timeout and better error handling
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-        console.log('⏰ Request timeout after 15 seconds, switching to fallback...');
-        controller.abort();
-    }, 15000); // 15 second timeout
-    
-    fetch('{{ url_for("recruiter.parse_resume") }}', {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal,
-        headers: {
-            'Accept': 'application/json',
-        }
-    })
-    .then(response => {
-        clearTimeout(timeoutId);
+        console.log('📤 Sending request to server...');
+        const response = await fetch("{{ url_for('recruiter.parse_resume') }}", {
+            method: "POST",
+            body: formData
+        });
+        
         console.log('📡 Server response received:', response.status, response.statusText);
         
         if (!response.ok) {
-            throw new Error('HTTP error! status: ' + response.status);
+            throw new Error("Server extraction failed - HTTP " + response.status);
         }
         
-        // Check if response is JSON
-        const contentType = response.headers.get('content-type');
-        console.log('📄 Response content-type:', contentType);
+        const result = await response.json();
+        console.log('📄 Server response data:', result);
         
-        if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Expected JSON response but received HTML. Server may be redirecting to login page.');
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('=== RESUME EXTRACTION RESPONSE ===');
-        console.log('Complete response data:', data);
-        console.log('Data structure:', JSON.stringify(data, null, 2));
-        console.log('Data.data object:', data.data);
-        console.log('Data.data keys:', Object.keys(data.data || {}));
-        
-        if (data.success && data.data) {
+        if (result.success && result.data) {
             console.log('✅ Extraction successful, populating form...');
             
-            // Use the populateFormFields function if available
-            if (typeof populateFormFields === 'function') {
-                populateFormFields(data.data);
-            } else {
-                // Fallback: populate fields manually
-                const fields = ['name', 'email', 'phone', 'dob', 'gender', 'skills', 'education', 'experience'];
-                fields.forEach(fieldId => {
-                    const field = document.getElementById(fieldId);
-                    const value = data.data[fieldId];
-                    if (field && value) {
-                        if (fieldId === 'skills' && Array.isArray(value)) {
-                            field.value = value.join(', ');
-                        } else {
-                            field.value = value;
-                        }
+            // Autofill form fields with extracted data
+            const fields = ['name', 'email', 'phone', 'skills', 'education', 'experience'];
+            fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                const value = result.data[fieldId];
+                if (field && value) {
+                    if (fieldId === 'skills' && Array.isArray(value)) {
+                        field.value = value.join(', ');
+                    } else {
+                        field.value = value;
                     }
-                });
-            }
+                }
+            });
             
             statusDiv.innerHTML = '<div class="text-green-600"><i class="fas fa-check-circle mr-2"></i>Information extracted successfully! Please review and complete the form.</div>';
         } else {
-            statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>' + (data.message || 'Failed to extract information') + '</div>';
-        }
-    })
-    .catch(error => {
-        clearTimeout(timeoutId);
-        console.error('Server extraction failed:', error);
-        
-        // Determine error type and show appropriate message
-        let errorMessage = 'Server extraction failed. ';
-        let errorType = 'unknown';
-        
-        if (error.name === 'AbortError') {
-            errorMessage += 'Request timed out. ';
-            errorType = 'timeout';
-        } else if (error.message.includes('HTTP2_PROTOCOL_ERROR')) {
-            errorMessage += 'Network protocol error. ';
-            errorType = 'network';
-        } else if (error.message.includes('Failed to fetch')) {
-            errorMessage += 'Network connection failed. ';
-            errorType = 'connection';
-        } else if (error.message.includes('redirecting to login')) {
-            errorMessage += 'Authentication required. ';
-            errorType = 'auth';
-        } else {
-            errorMessage += error.message + '. ';
+            statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Extraction failed: ' + (result.message || 'Unknown error') + '</div>';
         }
         
-        errorMessage += 'Using fallback extraction...';
+    } catch (err) {
+        console.error('Server extraction failed:', err);
         
-        console.log('🔄 Server extraction failed (' + errorType + '), trying client-side fallback...');
-        statusDiv.innerHTML = '<div class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>' + errorMessage + '</div>';
+        // Fallback to mock data
+        console.log('🔄 Using fallback extraction...');
+        statusDiv.innerHTML = '<div class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>Server extraction failed. Using fallback extraction...</div>';
         
-        // If it's an auth error, try to redirect to login
-        if (errorType === 'auth') {
-            setTimeout(() => {
-                if (confirm('Authentication required. Would you like to login first?')) {
-                    window.location.href = '/login';
-                    return;
-                }
-            }, 1000);
-        }
-        
-        // Simulate extraction with mock data
         setTimeout(() => {
             const mockData = {
                 name: 'John Doe',
@@ -1060,7 +954,7 @@ window.extractFromResume = function() {
                 experience: 'Software Developer at Tech Corp (2020-2024) - Developed web applications using React and Node.js'
             };
             
-            // Populate form with mock data
+            // Autofill form fields with mock data
             const fields = ['name', 'email', 'phone', 'skills', 'education', 'experience'];
             fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
@@ -1071,8 +965,8 @@ window.extractFromResume = function() {
             });
             
             statusDiv.innerHTML = '<div class="text-orange-600"><i class="fas fa-info-circle mr-2"></i>Fallback extraction completed! Please review and modify the extracted information as needed.</div>';
-        }, 2000);
-    });
+        }, 1500);
+    }
 };
 
 window.selectPhotoFile = function() {
