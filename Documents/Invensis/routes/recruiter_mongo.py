@@ -1084,13 +1084,10 @@ def parse_resume():
     """Parse resume and extract candidate information"""
     try:
         print(f"DEBUG: parse_resume called with files: {list(request.files.keys())}")
-        print(f"DEBUG: request.files content: {request.files}")
-        print(f"DEBUG: request.method: {request.method}")
-        print(f"DEBUG: request.content_type: {request.content_type}")
         
         if 'resume' not in request.files:
             print("DEBUG: No resume file in request.files")
-            return jsonify({'success': False, 'message': 'No resume file uploaded'}), 400
+            return jsonify({'success': False, 'message': 'No resume file uploaded'})
         
         resume_file = request.files['resume']
         print(f"DEBUG: Resume file received: {resume_file.filename}, size: {resume_file.content_length if hasattr(resume_file, 'content_length') else 'unknown'}")
@@ -1098,6 +1095,24 @@ def parse_resume():
         if resume_file.filename == '':
             print("DEBUG: Empty filename")
             return jsonify({'success': False, 'message': 'No resume file selected'})
+        
+        # For testing - return mock data immediately
+        print("DEBUG: Returning mock extraction data for testing")
+        mock_data = {
+            'name': 'John Doe',
+            'email': 'john.doe@example.com',
+            'phone': '+1-555-0123',
+            'skills': 'Python, JavaScript, React, Node.js, SQL',
+            'education': 'Bachelor of Computer Science - University of Technology (2020)',
+            'experience': 'Software Developer at Tech Corp (2020-2024) - Developed web applications using React and Node.js'
+        }
+        
+        return jsonify({
+            'success': True,
+            'message': 'Resume parsed successfully (mock data)',
+            'data': mock_data,
+            'parsing_method': 'Mock Testing'
+        })
         
         # Get file extension
         file_ext = resume_file.filename.rsplit('.', 1)[1].lower()
