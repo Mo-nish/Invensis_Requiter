@@ -868,6 +868,29 @@
     </div>
 </div>
 
+<script type="text/javascript">
+// Minimal globally-available handlers to ensure buttons work even if later scripts fail
+window.selectResumeFile = function() {
+    var el = document.getElementById('resume') || document.querySelector('input[name="resume"]');
+    if (el && typeof el.click === 'function') { el.click(); }
+};
+
+window.extractFromResume = function() {
+    var input = document.getElementById('resume') || document.querySelector('input[name="resume"]');
+    if (!input || !input.files || !input.files.length) {
+        alert('Please upload a resume first.');
+        return;
+    }
+    // Placeholder action; actual extraction handled elsewhere
+    console.log('Resume selected: ', input.files[0] ? input.files[0].name : '(none)');
+};
+
+window.selectPhotoFile = function() {
+    var el = document.getElementById('photo') || document.querySelector('input[name="photo"]');
+    if (el && typeof el.click === 'function') { el.click(); }
+};
+</script>
+
 <script>
 let currentCandidateId = null;
 
