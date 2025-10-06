@@ -875,14 +875,17 @@ window.selectResumeFile = function() {
     if (el && typeof el.click === 'function') { el.click(); }
 };
 
+// Placeholder - will be replaced by full implementation
 window.extractFromResume = function() {
-    var input = document.getElementById('resume') || document.querySelector('input[name="resume"]');
-    if (!input || !input.files || !input.files.length) {
-        alert('Please upload a resume first.');
-        return;
-    }
-    // Placeholder action; actual extraction handled elsewhere
-    console.log('Resume selected: ', input.files[0] ? input.files[0].name : '(none)');
+    console.log('Extract button clicked - waiting for full implementation to load...');
+    setTimeout(() => {
+        if (typeof extractFromResume === 'function' && extractFromResume !== window.extractFromResume) {
+            console.log('Calling full extractFromResume implementation...');
+            extractFromResume();
+        } else {
+            alert('Extract function not ready yet. Please try again in a moment.');
+        }
+    }, 100);
 };
 
 window.selectPhotoFile = function() {
@@ -976,7 +979,7 @@ document.head.appendChild(style);
 function previewFile(input, previewId) {
     const preview = document.getElementById(previewId);
     if (!preview) {
-        console.warn(`Preview element with ID '${previewId}' not found`);
+        console.warn('Preview element with ID \'' + previewId + '\' not found');
         return;
     }
     
@@ -987,16 +990,16 @@ function previewFile(input, previewId) {
             // Image preview
             const reader = new FileReader();
             reader.onload = function(e) {
-                preview.innerHTML = `<img src="${e.target.result}" class="w-20 h-20 object-cover rounded-lg border">`;
+                preview.innerHTML = '<img src="' + e.target.result + '" class="w-20 h-20 object-cover rounded-lg border">';
             };
             reader.readAsDataURL(file);
         } else {
             // Document preview
-            preview.innerHTML = `<div class="p-3 bg-gray-100 rounded-lg border">
-                <i class="fas fa-file-alt text-gray-600 mr-2"></i>
-                <span class="text-sm text-gray-700">${file.name}</span>
-                <br><span class="text-xs text-gray-500">${(file.size / 1024).toFixed(1)} KB</span>
-            </div>`;
+            preview.innerHTML = '<div class="p-3 bg-gray-100 rounded-lg border">' +
+                '<i class="fas fa-file-alt text-gray-600 mr-2"></i>' +
+                '<span class="text-sm text-gray-700">' + file.name + '</span>' +
+                '<br><span class="text-xs text-gray-500">' + (file.size / 1024).toFixed(1) + ' KB</span>' +
+            '</div>';
         }
     } else {
         preview.innerHTML = '';
@@ -1011,7 +1014,7 @@ function checkFormFields() {
     requiredFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (!field) {
-            console.error(`Field ${fieldId} not found in DOM`);
+            console.error('Field ' + fieldId + ' not found in DOM');
             allFieldsExist = false;
         }
     });
@@ -1184,6 +1187,9 @@ function extractFromResume() {
         statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to extract information. Please enter manually.</div>';
     });
 }
+
+// Bind the full implementation to window object
+window.extractFromResume = extractFromResume;
 
 // Function to verify that extracted fields are properly populated
 function verifyFieldPopulation() {
