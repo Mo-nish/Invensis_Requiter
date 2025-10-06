@@ -918,17 +918,30 @@ window.extractFromResume = async function() {
         if (result.success && result.data) {
             console.log('✅ Extraction successful, populating form...');
             
-            // Autofill form fields with extracted data
-            const fields = ['name', 'email', 'phone', 'skills', 'education', 'experience'];
-            fields.forEach(fieldId => {
+            // Autofill form fields with extracted data - map correctly
+            const fieldMapping = {
+                'full_name': 'name',
+                'email': 'email', 
+                'phone': 'phone',
+                'skills': 'skills',
+                'education': 'education',
+                'experience': 'experience'
+            };
+            
+            Object.keys(fieldMapping).forEach(dataKey => {
+                const fieldId = fieldMapping[dataKey];
                 const field = document.getElementById(fieldId);
-                const value = result.data[fieldId];
+                const value = result.data[dataKey];
+                
                 if (field && value) {
                     if (fieldId === 'skills' && Array.isArray(value)) {
                         field.value = value.join(', ');
-                    } else {
-                        field.value = value;
+                    } else if (typeof value === 'string' && value.trim()) {
+                        field.value = value.trim();
                     }
+                    console.log(`✅ Populated ${fieldId}: "${value}"`);
+                } else {
+                    console.log(`⚠️ Field ${fieldId} not found or no value for ${dataKey}`);
                 }
             });
             
@@ -945,26 +958,7 @@ window.extractFromResume = async function() {
         statusDiv.innerHTML = '<div class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>Server extraction failed. Using fallback extraction...</div>';
         
         setTimeout(() => {
-            const mockData = {
-                name: 'John Doe',
-                email: 'john.doe@example.com',
-                phone: '+1-555-0123',
-                skills: 'Python, JavaScript, React, Node.js, SQL',
-                education: 'Bachelor of Computer Science - University of Technology (2020)',
-                experience: 'Software Developer at Tech Corp (2020-2024) - Developed web applications using React and Node.js'
-            };
-            
-            // Autofill form fields with mock data
-            const fields = ['name', 'email', 'phone', 'skills', 'education', 'experience'];
-            fields.forEach(fieldId => {
-                const field = document.getElementById(fieldId);
-                const value = mockData[fieldId];
-                if (field && value) {
-                    field.value = value;
-                }
-            });
-            
-            statusDiv.innerHTML = '<div class="text-orange-600"><i class="fas fa-info-circle mr-2"></i>Fallback extraction completed! Please review and modify the extracted information as needed.</div>';
+            statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Resume extraction failed. Please enter candidate information manually.</div>';
         }, 1500);
     }
 };
