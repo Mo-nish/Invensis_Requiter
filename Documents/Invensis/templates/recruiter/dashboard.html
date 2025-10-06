@@ -4155,6 +4155,15 @@ function showNotification(message, type = 'info') {
 
 </script>
 
+<!-- Ensure global handlers point to full implementations -->
+<script type="text/javascript">
+try {
+  if (typeof extractFromResume === 'function') {
+    window.extractFromResume = extractFromResume;
+  }
+} catch (e) { console.warn('extractFromResume binding warn:', e); }
+</script>
+
 <!-- Data Visualization Modal -->
 <div id="dataVisualizationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-screen flex flex-col transform transition-all duration-300">
