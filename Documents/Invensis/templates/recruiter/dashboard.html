@@ -918,30 +918,17 @@ window.extractFromResume = async function() {
         if (result.success && result.data) {
             console.log('✅ Extraction successful, populating form...');
             
-            // Autofill form fields with extracted data - map correctly
-            const fieldMapping = {
-                'full_name': 'name',
-                'email': 'email', 
-                'phone': 'phone',
-                'skills': 'skills',
-                'education': 'education',
-                'experience': 'experience'
-            };
-            
-            Object.keys(fieldMapping).forEach(dataKey => {
-                const fieldId = fieldMapping[dataKey];
+            // Autofill form fields with extracted data
+            const fields = ['name', 'email', 'phone', 'skills', 'education', 'experience'];
+            fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
-                const value = result.data[dataKey];
-                
+                const value = result.data[fieldId];
                 if (field && value) {
                     if (fieldId === 'skills' && Array.isArray(value)) {
                         field.value = value.join(', ');
-                    } else if (typeof value === 'string' && value.trim()) {
-                        field.value = value.trim();
+                    } else {
+                        field.value = value;
                     }
-                    console.log(`✅ Populated ${fieldId}: "${value}"`);
-                } else {
-                    console.log(`⚠️ Field ${fieldId} not found or no value for ${dataKey}`);
                 }
             });
             
