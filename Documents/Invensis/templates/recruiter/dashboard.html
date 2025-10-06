@@ -875,17 +875,94 @@ window.selectResumeFile = function() {
     if (el && typeof el.click === 'function') { el.click(); }
 };
 
-// Placeholder - will be replaced by full implementation
+// Full extractFromResume implementation - defined early to avoid timing issues
 window.extractFromResume = function() {
-    console.log('Extract button clicked - waiting for full implementation to load...');
-    setTimeout(() => {
-        if (typeof extractFromResume === 'function' && extractFromResume !== window.extractFromResume) {
-            console.log('Calling full extractFromResume implementation...');
-            extractFromResume();
-        } else {
-            alert('Extract function not ready yet. Please try again in a moment.');
+    console.log('🔍 Extract button clicked - starting resume extraction...');
+    
+    const resumeFile = document.getElementById('resume').files[0];
+    const statusDiv = document.getElementById('extractionStatus');
+    
+    if (!resumeFile) {
+        statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Please upload a resume first.</div>';
+        return;
+    }
+    
+    // Clear form fields first to prevent data mixing from previous resumes
+    if (typeof clearFormFields === 'function') {
+        clearFormFields();
+        console.log('Form cleared before starting new resume extraction');
+    }
+    
+    // Also clear any previous extraction results
+    const extractionResults = document.getElementById('extractionResults');
+    if (extractionResults) {
+        extractionResults.classList.add('hidden');
+    }
+    
+    // Check if all form fields exist
+    if (typeof checkFormFields === 'function' && !checkFormFields()) {
+        statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Form fields not found. Please refresh the page.</div>';
+        return;
+    }
+    
+    statusDiv.innerHTML = '<div class="text-blue-600"><i class="fas fa-spinner fa-spin mr-2"></i>Extracting information from resume...</div>';
+    
+    const formData = new FormData();
+    formData.append('resume', resumeFile);
+    
+    fetch('{{ url_for("recruiter.parse_resume") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('HTTP error! status: ' + response.status);
         }
-    }, 100);
+        // Check if response is JSON
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Expected JSON response but received HTML. Please check if you are logged in.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('=== RESUME EXTRACTION RESPONSE ===');
+        console.log('Complete response data:', data);
+        console.log('Data structure:', JSON.stringify(data, null, 2));
+        console.log('Data.data object:', data.data);
+        console.log('Data.data keys:', Object.keys(data.data || {}));
+        
+        if (data.success && data.data) {
+            console.log('✅ Extraction successful, populating form...');
+            
+            // Use the populateFormFields function if available
+            if (typeof populateFormFields === 'function') {
+                populateFormFields(data.data);
+            } else {
+                // Fallback: populate fields manually
+                const fields = ['name', 'email', 'phone', 'dob', 'gender', 'skills', 'education', 'experience'];
+                fields.forEach(fieldId => {
+                    const field = document.getElementById(fieldId);
+                    const value = data.data[fieldId];
+                    if (field && value) {
+                        if (fieldId === 'skills' && Array.isArray(value)) {
+                            field.value = value.join(', ');
+                        } else {
+                            field.value = value;
+                        }
+                    }
+                });
+            }
+            
+            statusDiv.innerHTML = '<div class="text-green-600"><i class="fas fa-check-circle mr-2"></i>Information extracted successfully! Please review and complete the form.</div>';
+        } else {
+            statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>' + (data.message || 'Failed to extract information') + '</div>';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Failed to extract information. Please enter manually.</div>';
+    });
 };
 
 window.selectPhotoFile = function() {
