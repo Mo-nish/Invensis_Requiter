@@ -1195,9 +1195,9 @@ function forceFieldUpdate() {
             // Trigger input event to ensure the field updates visually
             field.dispatchEvent(new Event('input', { bubbles: true }));
             field.dispatchEvent(new Event('change', { bubbles: true }));
-            console.log(`Field ${fieldId} updated, current value:`, field.value);
+            console.log('Field ' + fieldId + ' updated, current value:', field.value);
         } else {
-            console.error(`Field ${fieldId} not found`);
+            console.error('Field ' + fieldId + ' not found');
         }
     });
 }
@@ -2129,7 +2129,7 @@ function showExtractionResults(data, parsingMethod) {
 }
 
 // Function to select resume file with debugging
-function selectResumeFile() {
+window.selectResumeFile = function() {
     console.log('🔍 selectResumeFile called');
     const resumeInput = document.getElementById('resume');
     console.log('📁 Resume input element:', resumeInput);
@@ -2213,7 +2213,7 @@ function selectResumeFile() {
 }
 
 // Function to select photo file with debugging
-function selectPhotoFile() {
+window.selectPhotoFile = function() {
     console.log('selectPhotoFile called');
     const photoInput = document.getElementById('photo');
     if (photoInput) {
