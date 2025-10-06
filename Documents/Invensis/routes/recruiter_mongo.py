@@ -46,33 +46,33 @@ def parse_resume_with_ai(resume_text):
         session_id = str(uuid.uuid4())
         print(f"DEBUG: Session ID for this parsing: {session_id}")
         
-        system_message = f"""You are an intelligent resume parser for session {session_id}. Your job is to read raw text from resumes and extract candidate details in a clean, structured JSON format. You must strictly follow the JSON schema provided, avoid mixing unrelated information between fields, and remove duplicates or noise words. IMPORTANT: Only extract information that is explicitly present in the provided resume text. Do not use any external knowledge or previous data."""
+        system_message = f"""You are a precise resume parser for session {session_id}. Extract information with 100% accuracy - copy EXACT text as written in the resume. Do not modify, interpret, or add any information. Only extract what is explicitly present in the text."""
         
-        user_prompt = f"""Session {session_id}: Extract the following fields from the given resume text ONLY:
-
-- full_name
-- email
-- phone
-- date_of_birth (format: YYYY-MM-DD if available, else null)
-- gender
-- skills (array of clean skill names only, no extra words)
-- education (array of objects with: degree, field_of_study, institution, start_year, end_year)
-- experience (array of objects with: job_title, company, start_date, end_date, responsibilities)
-
-CRITICAL RULES:
-1. ONLY extract information that is EXPLICITLY present in the provided resume text
-2. Do NOT use any external knowledge, previous data, or cached information
-3. Do NOT mix information from other resumes or sources
-4. If a field is missing from the text, set its value to null
-5. Education entries must be chronological from earliest to latest
-6. For skills, list only unique, clearly identifiable skills from the text
-7. For education, link each degree with its institution and years from the text
-8. Return ONLY valid JSON, no additional text or explanations
-
-Resume text to parse:
+        user_prompt = f"""Session {session_id}: Extract information with 100% accuracy from this resume:
+ 
+Resume text:
 {resume_text}
-
-Return ONLY the JSON object for session {session_id}."""
+ 
+CRITICAL REQUIREMENTS FOR 100% ACCURACY:
+1. Copy EXACT text as written in the resume - do not modify anything
+2. If information is not found, return empty string "" or empty array []
+3. For names, preserve exact spelling, capitalization, and formatting
+4. For phone numbers, keep exact format (spaces, dashes, parentheses)
+5. For email, preserve exact case and format
+6. For skills, list only what is explicitly mentioned in the resume
+7. For education and experience, copy exact text as written
+ 
+Return ONLY this JSON format:
+{{
+    "full_name": "exact name from resume or empty string",
+    "email": "exact email from resume or empty string",
+    "phone": "exact phone from resume or empty string",
+    "skills": ["exact skills from resume or empty array"],
+    "education": "exact education text from resume or empty string",
+    "experience": "exact experience text from resume or empty string"
+}}
+ 
+Return ONLY the JSON object, no other text."""
 
         # Call OpenAI API
         client = openai.OpenAI(api_key=openai.api_key)
@@ -1096,23 +1096,8 @@ def parse_resume():
             print("DEBUG: Empty filename")
             return jsonify({'success': False, 'message': 'No resume file selected'})
         
-        # For testing - return mock data immediately
-        print("DEBUG: Returning mock extraction data for testing")
-        mock_data = {
-            'name': 'John Doe',
-            'email': 'john.doe@example.com',
-            'phone': '+1-555-0123',
-            'skills': 'Python, JavaScript, React, Node.js, SQL',
-            'education': 'Bachelor of Computer Science - University of Technology (2020)',
-            'experience': 'Software Developer at Tech Corp (2020-2024) - Developed web applications using React and Node.js'
-        }
-        
-        return jsonify({
-            'success': True,
-            'message': 'Resume parsed successfully (mock data)',
-            'data': mock_data,
-            'parsing_method': 'Mock Testing'
-        })
+        # Process the actual resume file for real data extraction
+        print("DEBUG: Processing real resume file for accurate data extraction")
         
         # Get file extension
         file_ext = resume_file.filename.rsplit('.', 1)[1].lower()
@@ -1319,18 +1304,14 @@ def parse_resume():
             unique_id = str(uuid.uuid4())[:8].upper()
             reference_id = f'REF-{current_date}-{unique_id}'
             
-            # Map AI response to our expected format
+            # Map AI response to frontend field names for 100% accuracy
             extracted_data = {
                 'name': ai_data.get('full_name', ''),
-                'first_name': ai_data.get('full_name', '').split()[0] if ai_data.get('full_name') else '',
-                'last_name': ' '.join(ai_data.get('full_name', '').split()[1:]) if ai_data.get('full_name') and len(ai_data.get('full_name', '').split()) > 1 else '',
                 'email': ai_data.get('email', ''),
                 'phone': ai_data.get('phone', ''),
-                'dob': ai_data.get('date_of_birth', ''),
-                'gender': ai_data.get('gender', ''),
                 'skills': ai_data.get('skills', []),
-                'education': format_ai_education(ai_data.get('education', [])),
-                'experience': format_ai_experience(ai_data.get('experience', [])),
+                'education': ai_data.get('education', ''),
+                'experience': ai_data.get('experience', ''),
                 'reference_id': reference_id
             }
             
@@ -1360,8 +1341,6 @@ def parse_resume():
             'name': '',
             'email': '',
             'phone': '',
-            'dob': '',
-            'gender': '',
             'skills': [],
             'education': '',
             'experience': ''
