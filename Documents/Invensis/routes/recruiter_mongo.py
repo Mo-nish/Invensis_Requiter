@@ -20,9 +20,15 @@ def recruiter_required(f):
     def decorated_function(*args, **kwargs):
         if not current_user.is_authenticated:
             flash('Please login first.', 'error')
+            # Return JSON error for API endpoints
+            if request.path.startswith('/recruiter/') and request.method == 'POST':
+                return jsonify({'success': False, 'message': 'Authentication required. Please login first.'}), 401
             return redirect(url_for('login'))
         if current_user.role != 'recruiter':
             flash('Access denied. Recruiter privileges required.', 'error')
+            # Return JSON error for API endpoints
+            if request.path.startswith('/recruiter/') and request.method == 'POST':
+                return jsonify({'success': False, 'message': 'Access denied. Recruiter privileges required.'}), 403
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     decorated_function.__name__ = f.__name__
@@ -1073,7 +1079,7 @@ def test_parse():
     return jsonify({'success': True, 'message': 'Parse endpoint is accessible'})
 
 @recruiter_bp.route('/parse_resume', methods=['POST'])
-# @recruiter_required  # Temporarily disabled for testing
+@recruiter_required  # Re-enabled with better error handling
 def parse_resume():
     """Parse resume and extract candidate information"""
     try:
