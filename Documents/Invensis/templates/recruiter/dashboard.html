@@ -911,24 +911,35 @@ window.extractFromResume = function() {
     const formData = new FormData();
     formData.append('resume', resumeFile);
     
-    // Set a timeout for the fetch request
+    // Set a longer timeout and better error handling
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => {
+        console.log('⏰ Request timeout after 15 seconds, switching to fallback...');
+        controller.abort();
+    }, 15000); // 15 second timeout
     
     fetch('{{ url_for("recruiter.parse_resume") }}', {
         method: 'POST',
         body: formData,
-        signal: controller.signal
+        signal: controller.signal,
+        headers: {
+            'Accept': 'application/json',
+        }
     })
     .then(response => {
         clearTimeout(timeoutId);
+        console.log('📡 Server response received:', response.status, response.statusText);
+        
         if (!response.ok) {
             throw new Error('HTTP error! status: ' + response.status);
         }
+        
         // Check if response is JSON
         const contentType = response.headers.get('content-type');
+        console.log('📄 Response content-type:', contentType);
+        
         if (!contentType || !contentType.includes('application/json')) {
-            throw new Error('Expected JSON response but received HTML. Please check if you are logged in.');
+            throw new Error('Expected JSON response but received HTML. Server may be redirecting to login page.');
         }
         return response.json();
     })
@@ -970,9 +981,30 @@ window.extractFromResume = function() {
         clearTimeout(timeoutId);
         console.error('Server extraction failed:', error);
         
-        // Fallback to client-side mock extraction
-        console.log('🔄 Server extraction failed, trying client-side fallback...');
-        statusDiv.innerHTML = '<div class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>Server extraction failed. Using fallback extraction...</div>';
+        // Determine error type and show appropriate message
+        let errorMessage = 'Server extraction failed. ';
+        let errorType = 'unknown';
+        
+        if (error.name === 'AbortError') {
+            errorMessage += 'Request timed out. ';
+            errorType = 'timeout';
+        } else if (error.message.includes('HTTP2_PROTOCOL_ERROR')) {
+            errorMessage += 'Network protocol error. ';
+            errorType = 'network';
+        } else if (error.message.includes('Failed to fetch')) {
+            errorMessage += 'Network connection failed. ';
+            errorType = 'connection';
+        } else if (error.message.includes('redirecting to login')) {
+            errorMessage += 'Authentication required. ';
+            errorType = 'auth';
+        } else {
+            errorMessage += error.message + '. ';
+        }
+        
+        errorMessage += 'Using fallback extraction...';
+        
+        console.log('🔄 Server extraction failed (' + errorType + '), trying client-side fallback...');
+        statusDiv.innerHTML = '<div class="text-yellow-600"><i class="fas fa-exclamation-triangle mr-2"></i>' + errorMessage + '</div>';
         
         // Simulate extraction with mock data
         setTimeout(() => {
