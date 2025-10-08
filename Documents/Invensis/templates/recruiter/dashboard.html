@@ -2079,7 +2079,7 @@ function showExtractionResults(data, parsingMethod) {
             statusIcon = 'fas fa-check-circle text-green-600';
         } else if (extractedCount > 0) {
             // Partial extraction
-            statusMessage = `⚠️ Partial Extraction: ${extractedCount}/${fields.length} fields extracted. Please enter the following fields manually: ${missingFields.join(', ')}`;
+            statusMessage = '⚠️ Partial Extraction: ' + extractedCount + '/' + fields.length + ' fields extracted. Please enter the following fields manually: ' + missingFields.join(', ');
             statusClass = 'bg-yellow-100 border-yellow-300 text-yellow-800';
             statusIcon = 'fas fa-exclamation-triangle text-yellow-600';
         } else {
@@ -2090,14 +2090,13 @@ function showExtractionResults(data, parsingMethod) {
         }
         
         // Build extraction results with status message
-        let extractionHTML = `
-            <div class="p-4 rounded-lg border ${statusClass} mb-4">
-                <div class="flex items-center space-x-3">
-                    <i class="${statusIcon} text-xl"></i>
-                    <div class="font-semibold">${statusMessage}</div>
-                </div>
-            </div>
-        `;
+        let extractionHTML = 
+            '<div class="p-4 rounded-lg border ' + statusClass + ' mb-4">' +
+                '<div class="flex items-center space-x-3">' +
+                    '<i class="' + statusIcon + ' text-xl"></i>' +
+                    '<div class="font-semibold">' + statusMessage + '</div>' +
+                '</div>' +
+            '</div>';
         
         // Add individual field results
         fields.forEach(field => {
@@ -2112,28 +2111,26 @@ function showExtractionResults(data, parsingMethod) {
                 if (field.key === 'experience' && displayValue.length > 100) {
                     displayValue = displayValue.substring(0, 100) + '...';
                 }
-                extractionHTML += `
-                    <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-semibold text-green-700">${field.label} extracted:</div>
-                            <div class="text-sm text-green-600">${displayValue}</div>
-                        </div>
-                    </div>
-                `;
+                extractionHTML += 
+                    '<div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">' +
+                        '<div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">' +
+                            '<i class="fas fa-check text-white text-xs"></i>' +
+                        '</div>' +
+                        '<div class="flex-1">' +
+                            '<div class="font-semibold text-green-700">' + field.label + ' extracted:</div>' +
+                            '<div class="text-sm text-green-600">' + displayValue + '</div>' +
+                        '</div>' +
+                    '</div>';
             } else {
-                extractionHTML += `
-                    <div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-times text-white text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-semibold text-red-700">${field.label} not found in resume, please enter manually</div>
-                        </div>
-                    </div>
-                `;
+                extractionHTML += 
+                    '<div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">' +
+                        '<div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">' +
+                            '<i class="fas fa-times text-white text-xs"></i>' +
+                        '</div>' +
+                        '<div class="flex-1">' +
+                            '<div class="font-semibold text-red-700">' + field.label + ' not found in resume, please enter manually</div>' +
+                        '</div>' +
+                    '</div>';
             }
         });
         
@@ -2147,29 +2144,27 @@ function showExtractionResults(data, parsingMethod) {
                 if (field.key === 'experience' && displayValue.length > 100) {
                     displayValue = displayValue.substring(0, 100) + '...';
                 }
-                verificationHTML += `
-                    <div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                        <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-check text-white text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-semibold text-green-700">${field.label}:</div>
-                            <div class="text-sm text-green-600">"${displayValue}"</div>
-                        </div>
-                    </div>
-                `;
+                verificationHTML += 
+                    '<div class="flex items-center space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">' +
+                        '<div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">' +
+                            '<i class="fas fa-check text-white text-xs"></i>' +
+                        '</div>' +
+                        '<div class="flex-1">' +
+                            '<div class="font-semibold text-green-700">' + field.label + ':</div>' +
+                            '<div class="text-sm text-green-600">"' + displayValue + '"</div>' +
+                        '</div>' +
+                    '</div>';
             } else {
-                verificationHTML += `
-                    <div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">
-                        <div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
-                            <i class="fas fa-times text-white text-xs"></i>
-                        </div>
-                        <div class="flex-1">
-                            <div class="font-semibold text-red-700">${field.label}:</div>
-                            <div class="text-sm text-red-600">Empty</div>
-                        </div>
-                    </div>
-                `;
+                verificationHTML += 
+                    '<div class="flex items-center space-x-3 p-3 bg-red-50 rounded-lg border border-red-200">' +
+                        '<div class="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">' +
+                            '<i class="fas fa-times text-white text-xs"></i>' +
+                        '</div>' +
+                        '<div class="flex-1">' +
+                            '<div class="font-semibold text-red-700">' + field.label + ':</div>' +
+                            '<div class="text-sm text-red-600">Empty</div>' +
+                        '</div>' +
+                    '</div>';
             }
         });
         
