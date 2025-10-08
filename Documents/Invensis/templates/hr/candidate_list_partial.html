@@ -6,7 +6,7 @@
             <div class="flex items-center space-x-4 mb-4 sm:mb-0">
                 <div class="w-16 h-16 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center shadow-lg">
                     {% if candidate.image_path %}
-                    <img src="{{ url_for('static', filename=candidate.image_path.replace('static/', '')) }}" 
+                    <img src="{{ url_for('static', filename=candidate.image_path)) }}" 
                          alt="{{ candidate.first_name }} {{ candidate.last_name }}" 
                          class="w-16 h-16 rounded-full object-cover">
                     {% else %}
