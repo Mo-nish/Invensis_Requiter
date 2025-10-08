@@ -1359,7 +1359,7 @@ function retryFieldPopulation(data) {
                     }
                 }
             } else {
-                console.error(`Retry: Field ${fieldId} not found`);
+                console.error('Retry: Field ' + fieldId + ' not found');
             }
         }
     });
@@ -1402,11 +1402,11 @@ function populateFormFields(data) {
         console.log('Field mappings:', fieldMappings);
         
         Object.entries(fieldMappings).forEach(([fieldId, value]) => {
-            console.log(`Processing field ${fieldId} with value:`, value);
+            console.log('Processing field ' + fieldId + ' with value:', value);
             if (value && value.trim()) {
                 const field = document.getElementById(fieldId);
                 if (field) {
-                    console.log(`Field ${fieldId} found, setting value:`, value.trim());
+                    console.log('Field ' + fieldId + ' found, setting value:', value.trim());
                     if (fieldId === 'gender' && field.tagName === 'SELECT') {
                         // Special handling for gender select field
                         let optionFound = false;
@@ -1428,12 +1428,12 @@ function populateFormFields(data) {
                     // Add visual feedback
                     field.style.backgroundColor = '#e8f5e8';
                     field.style.borderColor = '#4caf50';
-                    console.log(`Field ${fieldId} populated successfully`);
+                    console.log('Field ' + fieldId + ' populated successfully');
                 } else {
-                    console.warn(`Field ${fieldId} not found in DOM`);
+                    console.warn('Field ' + fieldId + ' not found in DOM');
                 }
             } else {
-                console.log(`Field ${fieldId} has no value or empty value:`, value);
+                console.log('Field ' + fieldId + ' has no value or empty value:', value);
             }
         });
         
@@ -1452,11 +1452,11 @@ function filterByStatus(status) {
     console.log('📊 Found candidate items:', candidateItems.length);
     
     // Debug: Log all data-status values
-    let debugInfo = `Filtering for: "${status}"\n\nFound ${candidateItems.length} candidates:\n`;
+    let debugInfo = 'Filtering for: "' + status + '"\n\nFound ' + candidateItems.length + ' candidates:\n';
     candidateItems.forEach((item, index) => {
         const itemStatus = item.getAttribute('data-status');
         const debugDetail = item.getAttribute('data-debug');
-        debugInfo += `${index + 1}. data-status="${itemStatus}" (${debugDetail})\n`;
+        debugInfo += (index + 1) + '. data-status="' + itemStatus + '" (' + debugDetail + ')\n';
         console.log('🔍 Item ' + index + ': data-status="' + itemStatus + '", debug="' + debugDetail + '"');
     });
     
@@ -1997,11 +1997,11 @@ function updateCandidateRatings(candidateId, ratingData) {
 function showNotification(message, type = 'info') {
     // Create notification element
     const notification = document.createElement('div');
-    notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+    notification.className = 'fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ' + (
         type === 'success' ? 'bg-green-500 text-white' : 
         type === 'error' ? 'bg-red-500 text-white' : 
         'bg-blue-500 text-white'
-    }`;
+    );
     notification.textContent = message;
     
     // Add to page
