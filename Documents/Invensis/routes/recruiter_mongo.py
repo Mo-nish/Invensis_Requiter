@@ -434,9 +434,13 @@ def dashboard():
 def candidates():
     """List all candidates for recruiter"""
     try:
+        print("DEBUG: Starting candidates route...")
         from models_mongo import candidates_collection
         from bson import ObjectId
+        
+        print("DEBUG: Fetching candidates from database...")
         candidates = list(candidates_collection.find({}))
+        print(f"DEBUG: Found {len(candidates)} candidates")
         
         # Convert ObjectId to string and handle date conversion
         for candidate in candidates:
@@ -490,12 +494,15 @@ def candidates():
                     # If it's some other type, set to None
                     candidate['created_at'] = None
             
+        print(f"DEBUG: Successfully processed {len(candidates)} candidates, rendering template...")
         return render_template('recruiter/candidates.html', candidates=candidates)
     except Exception as e:
-        print(f"Error loading candidates: {str(e)}")
+        print(f"ERROR: Error loading candidates: {str(e)}")
+        print(f"ERROR: Exception type: {type(e).__name__}")
         import traceback
         traceback.print_exc()
         flash('Error loading candidates', 'error')
+        # Return to dashboard with error
         return redirect(url_for('recruiter.dashboard'))
 
 @recruiter_bp.route('/candidate/<candidate_id>')
