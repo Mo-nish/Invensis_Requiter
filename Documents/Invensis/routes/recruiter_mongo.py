@@ -766,14 +766,14 @@ def upload_candidate():
                 unique_filename = f"{uuid.uuid4()}_{filename}"
                 resume_path = os.path.join('static/uploads', unique_filename)
                 resume_file.save(resume_path)
-                candidate_data['resume_path'] = resume_path
+                candidate_data['resume_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
             
             if image_file and image_file.filename:
                 filename = secure_filename(image_file.filename)
                 unique_filename = f"{uuid.uuid4()}_{filename}"
                 image_path = os.path.join('static/uploads', unique_filename)
                 image_file.save(image_path)
-                candidate_data['image_path'] = image_path
+                candidate_data['image_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
             
             # Save to database
             from models_mongo import candidates_collection

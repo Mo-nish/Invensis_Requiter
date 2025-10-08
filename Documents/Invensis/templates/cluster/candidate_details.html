@@ -342,7 +342,7 @@
         
         <div class="flex flex-wrap gap-3">
             {% if candidate.resume_path %}
-            <a href="{{ url_for('static', filename=candidate.resume_path.replace('static/', '')) }}" 
+            <a href="{{ url_for('static', filename=candidate.resume_path)) }}" 
                target="_blank"
                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center">
                 <i class="fas fa-download mr-2"></i>Download Resume
@@ -350,7 +350,7 @@
             {% endif %}
             
             {% if candidate.image_path %}
-            <a href="{{ url_for('static', filename=candidate.image_path.replace('static/', '')) }}" 
+            <a href="{{ url_for('static', filename=candidate.image_path)) }}" 
                target="_blank"
                class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center">
                 <i class="fas fa-image mr-2"></i>View Image
