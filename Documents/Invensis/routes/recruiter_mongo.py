@@ -248,6 +248,55 @@ def correct_extracted_data(extracted_data, resume_text):
     
     return extracted_data
 
+@recruiter_bp.route('/fix-file-paths')
+@recruiter_required
+def fix_file_paths():
+    """Migration route to fix file paths in database"""
+    try:
+        from models_mongo import candidates_collection
+        
+        # Find all candidates with paths starting with 'static/'
+        candidates_to_fix = list(candidates_collection.find({
+            '$or': [
+                {'resume_path': {'$regex': '^static/'}},
+                {'image_path': {'$regex': '^static/'}}
+            ]
+        }))
+        
+        fixed_count = 0
+        
+        for candidate in candidates_to_fix:
+            candidate_id = candidate['_id']
+            updates = {}
+            
+            # Fix resume_path
+            if 'resume_path' in candidate and candidate['resume_path'].startswith('static/'):
+                old_resume_path = candidate['resume_path']
+                new_resume_path = old_resume_path.replace('static/', '', 1)
+                updates['resume_path'] = new_resume_path
+            
+            # Fix image_path
+            if 'image_path' in candidate and candidate['image_path'].startswith('static/'):
+                old_image_path = candidate['image_path']
+                new_image_path = old_image_path.replace('static/', '', 1)
+                updates['image_path'] = new_image_path
+            
+            # Update the candidate if there are changes
+            if updates:
+                candidates_collection.update_one(
+                    {'_id': candidate_id},
+                    {'$set': updates}
+                )
+                fixed_count += 1
+        
+        flash(f'Successfully fixed {fixed_count} candidate file paths!', 'success')
+        return redirect(url_for('recruiter.dashboard'))
+        
+    except Exception as e:
+        print(f"Error fixing file paths: {str(e)}")
+        flash(f'Error fixing file paths: {str(e)}', 'error')
+        return redirect(url_for('recruiter.dashboard'))
+
 @recruiter_bp.route('/debug-db')
 @recruiter_required
 def debug_db():
