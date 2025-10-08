@@ -52,10 +52,10 @@ def dashboard():
         else:
             candidate['rejected_by'] = 'You'
     
-    # Get reassigned candidates
+    # Get reassigned candidates (candidates that were reassigned by this manager)
     reassigned_candidates = list(candidates_collection.find({
-        'manager_email': current_user.email,
-        'status': 'Reassigned'
+        'reassigned_by_manager': current_user.email,
+        'status': 'Pending'
     }).sort('updated_at', -1))
     
     return render_template('manager/dashboard.html', 
@@ -195,7 +195,16 @@ def add_feedback():
     candidate = Candidate.find_by_id(candidate_id)
     if candidate and candidate.manager_email == current_user.email:
         # Update candidate status, feedback, and detailed ratings
-        candidate.status = status
+        # If status is "Reassign to Hr", set to "Pending" for recruiter visibility
+        if status == "Reassign to Hr":
+            candidate.status = "Pending"
+            # Reset assignment so recruiter can see it
+            candidate.assigned_to_manager = False
+            candidate.manager_email = None
+            # Track who reassigned this candidate
+            candidate.reassigned_by_manager = current_user.email
+        else:
+            candidate.status = status
         candidate.manager_feedback = detailed_feedback
         candidate.reviewed_at = datetime.utcnow()
         candidate.updated_at = datetime.utcnow()
@@ -230,7 +239,7 @@ def add_feedback():
             candidate_id=candidate_id,
             manager_email=current_user.email,
             feedback_text=detailed_feedback,
-            status=status,
+            status="Pending" if status == "Reassign to Hr" else status,
             overall_impression=overall_impression,
             communication_rating=int(communication_skills) if communication_skills and status == "Selected" else None,
             technical_rating=int(technical_skills) if technical_skills and status == "Selected" else None,
@@ -277,6 +286,7 @@ def reassign_candidate():
         candidate.manager_feedback = None
         candidate.reviewed_at = None
         candidate.reassignment_note = note  # Store the reassignment note
+        candidate.reassigned_by_manager = current_user.email  # Track who reassigned this candidate
         candidate.save()
         
         # Log activity
@@ -462,7 +472,8 @@ def bulk_reassign_candidates():
                 },
                 '$set': {
                     'status': 'Pending',
-                    'assigned_to_manager': False
+                    'assigned_to_manager': False,
+                    'reassigned_by_manager': current_user.email
                 }
             }
         )
