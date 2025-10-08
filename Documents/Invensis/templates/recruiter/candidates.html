@@ -326,9 +326,14 @@
                                     </a>
                                     {% if candidate.resume_path %}
                                     <a href="{{ url_for('static', filename=candidate.resume_path) }}" 
-                                       target="_blank" class="text-green-600 hover:text-green-900 btn-animate" title="Download Resume">
+                                       target="_blank" class="text-green-600 hover:text-green-900 btn-animate" title="Download Resume"
+                                       onclick="alert('Note: Resume files are stored temporarily. For permanent storage, cloud storage integration is needed.'); return true;">
                                         <i class="fas fa-download"></i>
                                     </a>
+                                    {% else %}
+                                    <span class="text-gray-400" title="No resume uploaded">
+                                        <i class="fas fa-download"></i>
+                                    </span>
                                     {% endif %}
                                     {% if candidate.image_path %}
                                     <a href="{{ url_for('static', filename=candidate.image_path) }}" 
