@@ -435,6 +435,7 @@ def candidates():
     """List all candidates for recruiter"""
     try:
         from models_mongo import candidates_collection
+        from bson import ObjectId
         candidates = list(candidates_collection.find({}))
         
         # Convert ObjectId to string and handle date conversion
@@ -492,6 +493,8 @@ def candidates():
         return render_template('recruiter/candidates.html', candidates=candidates)
     except Exception as e:
         print(f"Error loading candidates: {str(e)}")
+        import traceback
+        traceback.print_exc()
         flash('Error loading candidates', 'error')
         return redirect(url_for('recruiter.dashboard'))
 
