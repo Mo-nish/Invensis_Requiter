@@ -502,8 +502,18 @@ def candidate_details(candidate_id):
         from models_mongo import candidates_collection
         from bson import ObjectId
         
-        # Try to find the candidate directly from the collection
-        candidate_data = candidates_collection.find_one({'_id': ObjectId(candidate_id)})
+        # Validate candidate_id format
+        if not candidate_id or len(candidate_id) != 24:
+            flash('Invalid candidate ID', 'error')
+            return redirect(url_for('recruiter.dashboard'))
+        
+        try:
+            # Try to find the candidate directly from the collection
+            candidate_data = candidates_collection.find_one({'_id': ObjectId(candidate_id)})
+        except Exception as oid_error:
+            print(f"Error converting candidate_id to ObjectId: {str(oid_error)}")
+            flash('Invalid candidate ID format', 'error')
+            return redirect(url_for('recruiter.dashboard'))
         
         if candidate_data:
             # Convert ObjectId to string for template compatibility
