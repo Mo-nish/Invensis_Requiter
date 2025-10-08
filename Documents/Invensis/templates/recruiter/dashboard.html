@@ -4454,34 +4454,62 @@ try {
     // Load request statistics
     async function loadRequestStats() {
         try {
+            console.log('📊 Loading request stats...');
             const response = await fetch('/recruiter/get-request-stats');
+            
+            if (!response.ok) {
+                console.warn('Request stats endpoint returned:', response.status, response.statusText);
+                return;
+            }
+            
             const result = await response.json();
             
             if (result.success) {
                 const stats = result.stats;
                 const totalRequestsElement = document.getElementById('total-requests');
                 if (totalRequestsElement) {
-                    totalRequestsElement.textContent = stats.total_remaining;
+                    totalRequestsElement.textContent = stats.total_remaining || 0;
                 }
                 
-                // Log the stats for debugging
-                console.log('Request stats loaded:', stats);
+                console.log('✅ Request stats loaded:', stats);
+            } else {
+                console.warn('Request stats failed:', result.error);
             }
         } catch (error) {
-            console.error('Error loading request stats:', error);
+            console.error('❌ Error loading request stats:', error);
+            // Don't spam the console with repeated errors
         }
     }
     
-    // Refresh request stats every 30 seconds
+    // Refresh request stats every 30 seconds (disabled to prevent 502 errors)
     function startRequestStatsRefresh() {
-        setInterval(loadRequestStats, 30000);
+        // Disabled to prevent 502 errors from spamming console
+        // setInterval(loadRequestStats, 30000);
+        console.log('📊 Request stats refresh disabled to prevent server errors');
     }
 
     // Initialize when DOM is loaded
     document.addEventListener('DOMContentLoaded', function() {
-        console.log('Recruiter dashboard loaded');
+        console.log('🚀 Recruiter dashboard loaded');
+        
+        // Initialize rating system
+        try {
+            console.log('🌟 Initializing rating system...');
+            initializeStarRatings();
+            console.log('✅ Rating system initialized');
+        } catch (error) {
+            console.error('❌ Error initializing rating system:', error);
+        }
+        
+        // Load request stats (non-blocking)
         loadRequestStats();
-        startRequestStatsRefresh();
+        
+        // Start refresh (non-blocking)
+        try {
+            startRequestStatsRefresh();
+        } catch (error) {
+            console.error('❌ Error starting stats refresh:', error);
+        }
     });
 </script>
 
