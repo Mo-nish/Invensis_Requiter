@@ -720,7 +720,11 @@
                                                 <br><i class="fas fa-calendar mr-1"></i>{{ candidate.onboarding_date if candidate.onboarding_date else 'Not set' }}
                                             {% endif %}
                                         {% elif candidate.status == 'Pending' %}
-                                            <i class="fas fa-clock mr-1"></i>Can be assigned or deleted
+                                            {% if candidate.reassigned_by_manager %}
+                                                <i class="fas fa-exchange-alt mr-1"></i>Reassigned by Manager
+                                            {% else %}
+                                                <i class="fas fa-clock mr-1"></i>Can be assigned or deleted
+                                            {% endif %}
                                         {% elif candidate.status == 'Assigned' %}
                                             <i class="fas fa-user-check mr-1"></i>Already assigned
                                         {% elif candidate.status == 'Selected' %}
