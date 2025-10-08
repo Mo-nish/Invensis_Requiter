@@ -217,9 +217,22 @@
                                         Selected
                                     </span>
                                 {% elif candidate.status == 'Not Selected' %}
-                                    <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                                        Not Selected
-                                    </span>
+                                    <div class="flex flex-col">
+                                        <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            Not Selected
+                                        </span>
+                                        {% if candidate.rejection_reasons %}
+                                            <div class="mt-1 text-xs text-gray-600">
+                                                <strong>Reasons:</strong>
+                                                {% for reason in candidate.rejection_reasons[:2] %}
+                                                    {{ reason }}{% if not loop.last %}, {% endif %}
+                                                {% endfor %}
+                                                {% if candidate.rejection_reasons|length > 2 %}
+                                                    +{{ candidate.rejection_reasons|length - 2 }} more
+                                                {% endif %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
                                 {% elif candidate.status == 'Reassigned' %}
                                     <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
                                         Reassigned

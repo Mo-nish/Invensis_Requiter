@@ -727,6 +727,17 @@
                                             <i class="fas fa-star mr-1"></i>Selected by manager
                                         {% elif candidate.status == 'Not Selected' %}
                                             <i class="fas fa-times mr-1"></i>Not selected
+                                            {% if candidate.rejection_reasons %}
+                                                <div class="mt-1 text-xs text-gray-600">
+                                                    <strong>Reasons:</strong>
+                                                    {% for reason in candidate.rejection_reasons[:2] %}
+                                                        {{ reason }}{% if not loop.last %}, {% endif %}
+                                                    {% endfor %}
+                                                    {% if candidate.rejection_reasons|length > 2 %}
+                                                        +{{ candidate.rejection_reasons|length - 2 }} more
+                                                    {% endif %}
+                                                </div>
+                                            {% endif %}
                                         {% endif %}
                                     </div>
                                 </td>
