@@ -2686,7 +2686,7 @@ function showTab(tabName) {
     if (tabName === 'candidates-list-tab') {
         const candidateItems = document.querySelectorAll('.candidate-item');
         if (candidateItems.length > 0) {
-        startAutoRefresh();
+            startAutoRefresh();
         } else {
             console.log('No candidates found, skipping auto-refresh');
         }
@@ -3130,8 +3130,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Initialize star rating system
-    initializeStarRatings();
+    // Initialize star rating system (moved to DOMContentLoaded)
+    // initializeStarRatings();
 });
 
 // Global flags to track Chart.js loading and canvas issues
