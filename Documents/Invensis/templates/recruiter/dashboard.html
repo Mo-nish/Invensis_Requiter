@@ -1192,7 +1192,7 @@ function extractFromResume() {
                 statusDiv.innerHTML = `
                     <div class="p-4 bg-blue-50 border border-blue-200 rounded-lg mb-4">
                         <h4 class="font-semibold text-blue-800 mb-2">Data Validation Results:</h4>
-                        ${validationMessage}
+                        ' + validationMessage + '
                     </div>
                 `;
             }
@@ -1224,7 +1224,7 @@ function extractFromResume() {
                 console.log('UI updated successfully');
             } catch (error) {
                 console.error('Error in extraction display:', error);
-                statusDiv.innerHTML = `<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Error displaying results: ${error.message}</div>`;
+                statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>Error displaying results: ' + error.message + '</div>';
             }
             
             // Verify all fields are populated correctly
@@ -1241,7 +1241,7 @@ function extractFromResume() {
             }, 100);
             
         } else {
-            statusDiv.innerHTML = `<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>${data.message}</div>`;
+            statusDiv.innerHTML = '<div class="text-red-600"><i class="fas fa-exclamation-triangle mr-2"></i>' + data.message + '</div>';
         }
     })
     .catch(error => {
@@ -1262,9 +1262,9 @@ function verifyFieldPopulation() {
         const field = document.getElementById(fieldId);
         const value = field ? field.value.trim() : '';
         if (value) {
-            verificationResults += `✅ ${fieldId.charAt(0).toUpperCase() + fieldId.slice(1)}: "${value}"<br>`;
+            verificationResults += '✅ ' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1) + ': "' + value + '"<br>';
         } else {
-            verificationResults += `❌ ${fieldId.charAt(0).toUpperCase() + fieldId.slice(1)}: Empty<br>`;
+            verificationResults += '❌ ' + fieldId.charAt(0).toUpperCase() + fieldId.slice(1) + ': Empty<br>';
         }
     });
     
@@ -1350,7 +1350,7 @@ function retryFieldPopulation(data) {
                 } else {
                     // Standard field population
                     field.value = value.trim();
-                    console.log(`Retry: Field ${fieldId} populated with:`, value.trim());
+                    console.log('Retry: Field ' + fieldId + ' populated with:', value.trim());
                     
                     // Add visual feedback for populated fields
                     if (fieldId !== 'gender') {
