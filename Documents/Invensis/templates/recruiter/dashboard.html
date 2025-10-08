@@ -1446,8 +1446,9 @@ function populateFormFields(data) {
 
 // Function to filter candidates by status
 function filterByStatus(status) {
-    console.log('🔍 Filtering by status:', status);
-    
+    try {
+        console.log('🔍 Filtering by status:', status);
+        
         const candidateItems = document.querySelectorAll('.candidate-item');
     console.log('📊 Found candidate items:', candidateItems.length);
     
