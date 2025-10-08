@@ -31,7 +31,7 @@
     <!-- Action Cards - Request Candidates & Analytics -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         <!-- Request Candidates Card -->
-        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-xl p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300" onclick="window.location.href='{{ url_for('recruiter.view_candidate_requests') }}'">
+        <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl shadow-xl p-6 text-white cursor-pointer transform hover:scale-105 transition-all duration-300" data-url="{{ url_for('recruiter.view_candidate_requests') }}" onclick="window.location.href=this.getAttribute('data-url')">
             <div class="flex items-center">
                 <div class="w-16 h-16 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
                     <i class="fas fa-clipboard-list text-3xl text-white"></i>
