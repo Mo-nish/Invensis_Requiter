@@ -209,7 +209,7 @@
                                     </div>
                                     {% endif %}
                                 {% elif candidate.status == 'Pending' %}
-                                    {% if candidate.reassigned_by_manager %}
+                                    {% if candidate.get('reassigned_by_manager') %}
                                         <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-orange-100 text-orange-800">
                                             Reassigned by Manager
                                         </span>
