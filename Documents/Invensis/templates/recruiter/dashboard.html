@@ -1510,15 +1510,14 @@ function filterByStatus(status) {
         if (!noResultsRow) {
             noResultsRow = document.createElement('tr');
             noResultsRow.id = 'no-results-row';
-            noResultsRow.innerHTML = `
-                <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                    <div class="flex flex-col items-center">
-                        <i class="fas fa-search text-4xl text-gray-300 mb-2"></i>
-                        <p class="text-lg font-medium">No candidates found</p>
-                        <p class="text-sm">No candidates match the selected filter criteria.</p>
-                    </div>
-                </td>
-            `;
+            noResultsRow.innerHTML = 
+                '<td colspan="6" class="px-6 py-8 text-center text-gray-500">' +
+                    '<div class="flex flex-col items-center">' +
+                        '<i class="fas fa-search text-4xl text-gray-300 mb-2"></i>' +
+                        '<p class="text-lg font-medium">No candidates found</p>' +
+                        '<p class="text-sm">No candidates match the selected filter criteria.</p>' +
+                    '</div>' +
+                '</td>';
             tbody.appendChild(noResultsRow);
         }
         noResultsRow.style.display = 'table-row';
@@ -1527,35 +1526,6 @@ function filterByStatus(status) {
             noResultsRow.style.display = 'none';
         }
     }
-    
-    console.log('Filter applied successfully. Showing ' + visibleCount + ' candidates.');
-}
-        
-        // Update the table message if no candidates found
-        const tbody = document.querySelector('tbody');
-        let noResultsRow = document.getElementById('no-results-row');
-        
-        if (visibleCount === 0) {
-            if (!noResultsRow) {
-                noResultsRow = document.createElement('tr');
-                noResultsRow.id = 'no-results-row';
-                noResultsRow.innerHTML = `
-                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
-                        <div class="flex flex-col items-center">
-                            <i class="fas fa-search text-4xl text-gray-300 mb-2"></i>
-                            <p class="text-lg font-medium">No candidates found</p>
-                            <p class="text-sm">No candidates match the selected filter criteria.</p>
-                        </div>
-                    </td>
-                `;
-                tbody.appendChild(noResultsRow);
-            }
-            noResultsRow.style.display = 'table-row';
-        } else {
-            if (noResultsRow) {
-                noResultsRow.style.display = 'none';
-            }
-        }
         
         console.log('Filter applied successfully. Showing ' + visibleCount + ' candidates.');
     } catch (error) {
