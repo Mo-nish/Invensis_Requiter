@@ -1766,7 +1766,9 @@ function updateNoResultsMessage(visibleCount) {
 
 // Star Rating System Functions
 function initializeStarRatings() {
+    console.log('🌟 Initializing star ratings...');
     const starRatings = document.querySelectorAll('.star-rating');
+    console.log('Found', starRatings.length, 'star rating containers');
     
     starRatings.forEach(ratingContainer => {
         const stars = ratingContainer.querySelectorAll('.star');
@@ -1776,6 +1778,7 @@ function initializeStarRatings() {
         stars.forEach((star, index) => {
             star.addEventListener('click', () => {
                 const rating = index + 1;
+                console.log('⭐ Star clicked:', rating, 'for field:', fieldName);
                 
                 // Update visual stars
                 stars.forEach((s, i) => {
