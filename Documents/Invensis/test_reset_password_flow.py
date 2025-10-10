@@ -4,11 +4,17 @@ Simple test script to test the password reset flow
 """
 
 import requests
+import pytest
 import time
 import json
 
 def test_password_reset_flow():
     base_url = "http://localhost:5001"
+    # Skip test if the Flask app isn't running
+    try:
+        requests.get(f"{base_url}/", timeout=3)
+    except requests.exceptions.RequestException:
+        pytest.skip("Flask app not running on http://localhost:5001; skipping integration test")
     
     print("🧪 Testing Password Reset Flow")
     print("=" * 40)
