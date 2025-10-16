@@ -10,6 +10,20 @@
                 <h1 class="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
                 <p class="text-gray-600">Review candidates and provide feedback</p>
             </div>
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('manager.request_candidates_page') }}" 
+                   class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-plus mr-2"></i>Request Candidates
+                </a>
+                <a href="{{ url_for('manager.export_feedback') }}?format=csv"
+                   class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-download mr-2"></i>Export CSV
+                </a>
+                <a href="{{ url_for('manager.export_feedback') }}?format=pdf"
+                   class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-file-pdf mr-2"></i>Export PDF
+                </a>
+            </div>
         </div>
     </div>
     
@@ -32,33 +46,300 @@
             <p class="text-3xl font-bold text-yellow-600">{{ reassigned_candidates|length }}</p>
         </div>
     </div>
-    
-    <!-- Assigned Candidates Section -->
-    <div class="bg-white rounded-xl shadow-lg p-6">
-        <h2 class="text-2xl font-bold text-gray-900 mb-4">Assigned Candidates</h2>
-        {% if assigned_candidates %}
-            <div class="space-y-4">
-                {% for candidate in assigned_candidates %}
-                <div class="border border-gray-200 rounded-lg p-4">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">
-                                {{ candidate.first_name }} {{ candidate.last_name }}
-                            </h3>
-                            <p class="text-gray-600">{{ candidate.email }}</p>
-                            <p class="text-sm text-gray-500">Status: {{ candidate.status }}</p>
-                        </div>
-                        <a href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}" 
-                           class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
-                            View Details
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
+
+    <!-- Tab Navigation -->
+    <div class="bg-white rounded-xl shadow-lg">
+        <div class="border-b border-gray-200">
+            <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
+                <button onclick="showTab('assigned')" id="assigned-tab" class="tab-button active border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
+                    Assigned Candidates ({{ assigned_candidates|length }})
+                </button>
+                <button onclick="showTab('selected')" id="selected-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Selected ({{ selected_candidates|length }})
+                </button>
+                <button onclick="showTab('not-selected')" id="not-selected-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Not Selected ({{ not_selected_candidates|length }})
+                </button>
+                <button onclick="showTab('reassigned')" id="reassigned-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                    Reassigned ({{ reassigned_candidates|length }})
+                </button>
+            </nav>
+        </div>
+
+        <!-- Assigned Candidates Tab -->
+        <div id="assigned-content" class="tab-content p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-gray-900">Assigned Candidates</h2>
+                {% if assigned_candidates %}
+                <button onclick="bulkAction('assigned')" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                    <i class="fas fa-tasks mr-2"></i>Bulk Actions
+                </button>
+                {% endif %}
             </div>
-        {% else %}
-            <p class="text-gray-500 text-center py-8">No assigned candidates found.</p>
-        {% endif %}
+            {% if assigned_candidates %}
+                <div class="space-y-4">
+                    {% for candidate in assigned_candidates %}
+                    <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    {{ candidate.first_name }} {{ candidate.last_name }}
+                                </h3>
+                                <p class="text-gray-600">{{ candidate.email }}</p>
+                                <p class="text-sm text-gray-500">
+                                    Status: <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">{{ candidate.status }}</span>
+                                </p>
+                                {% if candidate.created_at %}
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Assigned: {{ candidate.created_at.strftime('%Y-%m-%d %H:%M') if candidate.created_at.strftime else 'N/A' }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}" 
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                    <i class="fas fa-eye mr-1"></i>View Details
+                                </a>
+                                <button onclick="quickFeedback('{{ candidate._id }}')" 
+                                        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                                    <i class="fas fa-comment mr-1"></i>Quick Feedback
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-users text-gray-300 text-6xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No assigned candidates found.</p>
+                    <p class="text-gray-400">Candidates will appear here once they are assigned to you.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Selected Candidates Tab -->
+        <div id="selected-content" class="tab-content p-6 hidden">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Selected Candidates</h2>
+            {% if selected_candidates %}
+                <div class="space-y-4">
+                    {% for candidate in selected_candidates %}
+                    <div class="border border-green-200 rounded-lg p-4 bg-green-50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    {{ candidate.first_name }} {{ candidate.last_name }}
+                                </h3>
+                                <p class="text-gray-600">{{ candidate.email }}</p>
+                                <p class="text-sm text-green-600">
+                                    <i class="fas fa-check-circle mr-1"></i>Selected
+                                </p>
+                                {% if candidate.reviewed_at %}
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Selected on: {{ candidate.reviewed_at.strftime('%Y-%m-%d %H:%M') if candidate.reviewed_at.strftime else 'N/A' }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}" 
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                    <i class="fas fa-eye mr-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-check-circle text-gray-300 text-6xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No selected candidates yet.</p>
+                    <p class="text-gray-400">Candidates you select will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Not Selected Candidates Tab -->
+        <div id="not-selected-content" class="tab-content p-6 hidden">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Not Selected Candidates</h2>
+            {% if not_selected_candidates %}
+                <div class="space-y-4">
+                    {% for candidate in not_selected_candidates %}
+                    <div class="border border-red-200 rounded-lg p-4 bg-red-50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    {{ candidate.first_name }} {{ candidate.last_name }}
+                                </h3>
+                                <p class="text-gray-600">{{ candidate.email }}</p>
+                                <p class="text-sm text-red-600">
+                                    <i class="fas fa-times-circle mr-1"></i>{{ candidate.status }}
+                                </p>
+                                {% if candidate.rejected_by %}
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Rejected by: {{ candidate.rejected_by }}
+                                </p>
+                                {% endif %}
+                                {% if candidate.rejection_reasons %}
+                                <p class="text-xs text-gray-500 mt-1">
+                                    Reasons: {{ candidate.rejection_reasons|join(', ') }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}" 
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                    <i class="fas fa-eye mr-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-times-circle text-gray-300 text-6xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No rejected candidates.</p>
+                    <p class="text-gray-400">Candidates you reject will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Reassigned Candidates Tab -->
+        <div id="reassigned-content" class="tab-content p-6 hidden">
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Reassigned Candidates</h2>
+            {% if reassigned_candidates %}
+                <div class="space-y-4">
+                    {% for candidate in reassigned_candidates %}
+                    <div class="border border-yellow-200 rounded-lg p-4 bg-yellow-50">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-semibold text-gray-900">
+                                    {{ candidate.first_name }} {{ candidate.last_name }}
+                                </h3>
+                                <p class="text-gray-600">{{ candidate.email }}</p>
+                                <p class="text-sm text-yellow-600">
+                                    <i class="fas fa-redo mr-1"></i>Reassigned to HR
+                                </p>
+                                {% if candidate.updated_at %}
+                                <p class="text-xs text-gray-400 mt-1">
+                                    Reassigned: {{ candidate.updated_at.strftime('%Y-%m-%d %H:%M') if candidate.updated_at.strftime else 'N/A' }}
+                                </p>
+                                {% endif %}
+                            </div>
+                            <div class="flex space-x-2">
+                                <a href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}" 
+                                   class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                                    <i class="fas fa-eye mr-1"></i>View Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-redo text-gray-300 text-6xl mb-4"></i>
+                    <p class="text-gray-500 text-lg">No reassigned candidates.</p>
+                    <p class="text-gray-400">Candidates you reassign to HR will appear here.</p>
+                </div>
+            {% endif %}
+        </div>
     </div>
 </div>
+
+<!-- Quick Feedback Modal -->
+<div id="quickFeedbackModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50">
+    <div class="flex items-center justify-center min-h-screen p-4">
+        <div class="bg-white rounded-lg max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-semibold text-gray-900">Quick Feedback</h3>
+                <button onclick="closeQuickFeedbackModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="quickFeedbackForm">
+                <input type="hidden" id="candidateId" name="candidate_id">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <select name="status" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2">
+                            <option value="Selected">Selected</option>
+                            <option value="Not Selected">Not Selected</option>
+                            <option value="Reassign to Hr">Reassign to HR</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Feedback</label>
+                        <textarea name="detailed_feedback" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md px-3 py-2" placeholder="Enter your feedback..."></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" onclick="closeQuickFeedbackModal()" class="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button type="submit" class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                        Submit Feedback
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function showTab(tabName) {
+    // Hide all tab contents
+    const contents = ['assigned', 'selected', 'not-selected', 'reassigned'];
+    contents.forEach(content => {
+        document.getElementById(content + '-content').classList.add('hidden');
+        document.getElementById(content + '-tab').classList.remove('active', 'border-blue-500', 'text-blue-600');
+        document.getElementById(content + '-tab').classList.add('border-transparent', 'text-gray-500');
+    });
+    
+    // Show selected tab
+    document.getElementById(tabName + '-content').classList.remove('hidden');
+    document.getElementById(tabName + '-tab').classList.add('active', 'border-blue-500', 'text-blue-600');
+    document.getElementById(tabName + '-tab').classList.remove('border-transparent', 'text-gray-500');
+}
+
+function quickFeedback(candidateId) {
+    document.getElementById('candidateId').value = candidateId;
+    document.getElementById('quickFeedbackModal').classList.remove('hidden');
+}
+
+function closeQuickFeedbackModal() {
+    document.getElementById('quickFeedbackModal').classList.add('hidden');
+}
+
+// Handle quick feedback form submission
+document.getElementById('quickFeedbackForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    fetch('{{ url_for("manager.add_feedback") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Feedback submitted successfully!');
+            closeQuickFeedbackModal();
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while submitting feedback');
+    });
+});
+
+function bulkAction(type) {
+    alert('Bulk actions feature will be implemented soon!');
+}
+</script>
 {% endblock %}
