@@ -3,13 +3,14 @@
 Invensis Hiring Portal - Main Application
 """
 
-from flask import Flask, render_template, redirect, url_for, request, session, jsonify
+from flask import Flask, render_template, redirect, url_for, request, session, jsonify, make_response
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user, logout_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo import MongoClient
 from datetime import datetime
 import os
 from dotenv import load_dotenv
+import time
 
 # Load environment variables
 load_dotenv()
@@ -89,11 +90,18 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/manager/dashboard')
+@app.route('/manager/dashboard?v=<version>')
 @login_required
-def manager_dashboard():
+def manager_dashboard(version=None):
     if current_user.role != 'manager':
-        return redirect(url_for('login'))
-    
+        response = make_response(redirect(url_for('login')))
+        # Add cache-busting headers
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['X-Cache-Bust'] = str(int(time.time()))
+        return response
+
     try:
         # Get assigned candidates
         assigned_candidates = list(candidates_collection.find({
@@ -125,15 +133,21 @@ def manager_dashboard():
             'status': 'Pending'
         }).sort('updated_at', -1))
         
-        return render_template('manager/dashboard.html',
+        response = make_response(render_template('manager/dashboard.html',
                              assigned_candidates=assigned_candidates,
                              selected_candidates=selected_candidates,
                              not_selected_candidates=not_selected_candidates,
-                             reassigned_candidates=reassigned_candidates)
+                             reassigned_candidates=reassigned_candidates))
+        # Add cache-busting headers to prevent caching of dashboard
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['X-Cache-Bust'] = str(int(time.time()))
+        return response
     
     except Exception as e:
         print(f"Error in manager dashboard: {str(e)}")
-        return f"""
+        response = make_response(f"""
         <html>
         <head><title>Manager Dashboard Error</title></head>
         <body>
@@ -144,7 +158,13 @@ def manager_dashboard():
             <a href="/">Return to Home</a>
         </body>
         </html>
-        """, 500
+        """, 500)
+        # Add cache-busting headers even for error responses
+        response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+        response.headers['Pragma'] = 'no-cache'
+        response.headers['Expires'] = '0'
+        response.headers['X-Cache-Bust'] = str(int(time.time()))
+        return response
 
 # Debug routes
 @app.route('/debug/status')
