@@ -89,6 +89,23 @@ def logout():
     logout_user()
     return redirect(url_for('login'))
 
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Simple dashboard route that redirects to appropriate role dashboard"""
+    response = None
+    if current_user.role == 'manager':
+        response = redirect(url_for('manager_dashboard'))
+    else:
+        response = redirect(url_for('login'))
+
+    # Add cache-busting headers to prevent any caching
+    response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate, max-age=0'
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    response.headers['X-Cache-Bust'] = str(int(time.time()))
+    return response
+
 @app.route('/manager/dashboard')
 @app.route('/manager/dashboard?v=<version>')
 @login_required
