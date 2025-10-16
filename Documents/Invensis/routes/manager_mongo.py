@@ -26,43 +26,49 @@ def manager_required(f):
 @manager_bp.route('/dashboard')
 @manager_required
 def dashboard():
-    # Get assigned candidates
-    from models_mongo import candidates_collection
-    assigned_candidates = list(candidates_collection.find({
-        'manager_email': current_user.email,
-        'status': {'$in': ['New', 'Assigned']}
-    }).sort('created_at', -1))
-    
-    # Get selected candidates
-    selected_candidates = list(candidates_collection.find({
-        'manager_email': current_user.email,
-        'status': 'Selected'
-    }).sort('updated_at', -1))
-    
-    # Get not selected candidates - show ALL rejected candidates to ALL managers
-    # This allows managers to see candidates rejected by other managers for transparency
-    not_selected_candidates = list(candidates_collection.find({
-        'status': {'$in': ['Not Selected', 'Rejected', 'Declined', 'Failed', 'Not Approved']}
-    }).sort('updated_at', -1))
-    
-    # Add a note to each candidate indicating which manager originally rejected them
-    for candidate in not_selected_candidates:
-        if candidate.get('manager_email') != current_user.email:
-            candidate['rejected_by'] = candidate.get('manager_email', 'Unknown Manager')
-        else:
-            candidate['rejected_by'] = 'You'
-    
-    # Get reassigned candidates (candidates that were reassigned by this manager)
-    reassigned_candidates = list(candidates_collection.find({
-        'reassigned_by_manager': current_user.email,
-        'status': 'Pending'
-    }).sort('updated_at', -1))
-    
-    return render_template('manager/dashboard.html', 
-                         assigned_candidates=assigned_candidates,
-                         selected_candidates=selected_candidates,
-                         not_selected_candidates=not_selected_candidates,
-                         reassigned_candidates=reassigned_candidates)
+    try:
+        # Get assigned candidates
+        from models_mongo import candidates_collection
+        assigned_candidates = list(candidates_collection.find({
+            'manager_email': current_user.email,
+            'status': {'$in': ['New', 'Assigned']}
+        }).sort('created_at', -1))
+        
+        # Get selected candidates
+        selected_candidates = list(candidates_collection.find({
+            'manager_email': current_user.email,
+            'status': 'Selected'
+        }).sort('updated_at', -1))
+        
+        # Get not selected candidates - show ALL rejected candidates to ALL managers
+        # This allows managers to see candidates rejected by other managers for transparency
+        not_selected_candidates = list(candidates_collection.find({
+            'status': {'$in': ['Not Selected', 'Rejected', 'Declined', 'Failed', 'Not Approved']}
+        }).sort('updated_at', -1))
+        
+        # Add a note to each candidate indicating which manager originally rejected them
+        for candidate in not_selected_candidates:
+            if candidate.get('manager_email') != current_user.email:
+                candidate['rejected_by'] = candidate.get('manager_email', 'Unknown Manager')
+            else:
+                candidate['rejected_by'] = 'You'
+        
+        # Get reassigned candidates (candidates that were reassigned by this manager)
+        reassigned_candidates = list(candidates_collection.find({
+            'reassigned_by_manager': current_user.email,
+            'status': 'Pending'
+        }).sort('updated_at', -1))
+        
+        return render_template('manager/dashboard_simple.html', 
+                             assigned_candidates=assigned_candidates,
+                             selected_candidates=selected_candidates,
+                             not_selected_candidates=not_selected_candidates,
+                             reassigned_candidates=reassigned_candidates)
+    except Exception as e:
+        print(f"Error in manager dashboard: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return f"Error: {str(e)}", 500
 
 @manager_bp.route('/candidate/<candidate_id>')
 @manager_required
