@@ -52,9 +52,19 @@ def load_user(user_id):
 # Routes
 @app.route('/')
 def index():
-    if current_user.is_authenticated:
-        return redirect(url_for(f'{current_user.role}_dashboard'))
-    return redirect(url_for('login'))
+    return jsonify({
+        'status': 'ok',
+        'message': 'Invensis Hiring Portal is running',
+        'version': '2.0',
+        'timestamp': str(datetime.now())
+    })
+
+@app.route('/health')
+def health():
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': str(datetime.now())
+    })
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
