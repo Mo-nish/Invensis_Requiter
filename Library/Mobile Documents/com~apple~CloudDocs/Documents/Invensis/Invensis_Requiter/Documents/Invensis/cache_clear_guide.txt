@@ -1,0 +1,37 @@
+🔧 COMPLETE BROWSER CACHE CLEARING GUIDE
+===============================================================
+
+PROBLEM: Browser is showing cached 500 error pages
+SOLUTION: Your server is actually working! Need to clear browser cache
+
+🌐 CHROME/EDGE (Windows):
+   1. Press: Ctrl + Shift + Delete
+   2. Select: "Cached images and files"
+   3. Click: "Clear data"
+   4. Hard refresh: Ctrl + F5
+
+🍎 SAFARI (Mac):
+   1. Safari > Preferences > Advanced
+   2. Check: "Show Develop menu"
+   3. Develop > Empty Caches
+   4. Hard refresh: Cmd + Shift + R
+
+🦊 FIREFOX (All platforms):
+   1. Press: Ctrl + Shift + Delete
+   2. Select: "Cache"
+   3. Click: "Clear"
+   4. Hard refresh: Ctrl + F5
+
+💡 ALTERNATIVE METHODS:
+   1. Use Incognito/Private mode
+   2. Try a different browser
+   3. Test on mobile device
+   4. Use curl command to verify server works:
+      curl -I https://invensis-requiter.onrender.com/manager/dashboard
+
+✅ AFTER CLEARING CACHE:
+   - Manager dashboard should redirect to login (302)
+   - No more 500 errors
+   - Application works perfectly
+
+===============================================================
