@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: invensis-hiring-portal
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MONGODB_URI
+        value: mongodb+srv://pmonishreddy19:Invensis2024!@cluster0.7m6bwkx.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+      - key: DEFAULT_ADMIN_EMAIL
+        value: admin@invensis.com
+      - key: DEFAULT_ADMIN_PASSWORD
+        value: InvensisAdmin2025!
+      - key: EMAIL_USER
+        value: testhrdp23@gmail.com
+      - key: EMAIL_PASS
+        value: ujvdblbhpkxopqii
+      - key: BASE_URL
+        fromService:
+          type: web
+          name: invensis-hiring-portal
+          property: host
+      - key: FLASK_ENV
+        value: production
+      - key: JWT_SECRET
+        value: d01ae62c9039aed4ec33146ede1c4b5aacdf73138e146b38ba7754619bed51ec148d5ab3d8e971561161ba6522ee9de0a9c4e6f6fc0ddb81f8052db3491db0bc
+      - key: ADMIN_JWT_SECRET
+        value: cbe6f24fa5dc7c7d7f16e5426d263e9ceb3ead7201024b8693040bedb49a4aac065cf0c7cc82ba9f5f0e0bc19a7d0fa62a1fefd440a1fa31315bc19bcf61959d
