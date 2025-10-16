@@ -360,6 +360,15 @@ def reset_password():
     
     return render_template('reset_password.html', token=token)
 
+# Template context processor to handle current_user safely
+@app.context_processor
+def inject_user():
+    try:
+        from flask_login import current_user
+        return dict(current_user=current_user if current_user.is_authenticated else None)
+    except:
+        return dict(current_user=None)
+
 # Register blueprints
 app.register_blueprint(admin_bp, url_prefix='/admin')
 app.register_blueprint(hr_bp, url_prefix='/hr')
