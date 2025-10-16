@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Manager Dashboard - Invensis Hiring Portal{% endblock %}
+
+{% block head %}
+<style>
+    .dashboard-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+    
+    .stats-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 10px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .candidate-list {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .candidate-item {
+        border-bottom: 1px solid #eee;
+        padding: 15px 0;
+    }
+    
+    .candidate-item:last-child {
+        border-bottom: none;
+    }
+    
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+    
+    .status-assigned { background: #e3f2fd; color: #1976d2; }
+    .status-selected { background: #e8f5e8; color: #2e7d32; }
+    .status-rejected { background: #ffebee; color: #c62828; }
+    .status-pending { background: #fff3e0; color: #ef6c00; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>Manager Dashboard</h1>
+    <p>Welcome to your manager dashboard. Here you can view and manage assigned candidates.</p>
+    
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ assigned_candidates|length }}</h3>
+                <p>Assigned Candidates</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ selected_candidates|length }}</h3>
+                <p>Selected Candidates</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ not_selected_candidates|length }}</h3>
+                <p>Not Selected</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card">
+                <h3>{{ reassigned_candidates|length }}</h3>
+                <p>Reassigned</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Assigned Candidates -->
+    {% if assigned_candidates %}
+    <div class="candidate-list">
+        <h3>Assigned Candidates</h3>
+        {% for candidate in assigned_candidates %}
+        <div class="candidate-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>{{ candidate.get('name', candidate.get('first_name', 'Unknown')) }}</h5>
+                    <p>{{ candidate.get('email', 'No email') }}</p>
+                    <p>{{ candidate.get('position_applied', 'No position') }}</p>
+                </div>
+                <div class="col-md-3">
+                    <span class="status-badge status-assigned">{{ candidate.get('status', 'Unknown') }}</span>
+                </div>
+                <div class="col-md-3">
+                    <a href="/manager/candidate/{{ candidate.get('_id') }}" class="btn btn-primary btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="candidate-list">
+        <h3>Assigned Candidates</h3>
+        <p>No assigned candidates found.</p>
+    </div>
+    {% endif %}
+    
+    <!-- Selected Candidates -->
+    {% if selected_candidates %}
+    <div class="candidate-list">
+        <h3>Selected Candidates</h3>
+        {% for candidate in selected_candidates %}
+        <div class="candidate-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>{{ candidate.get('name', candidate.get('first_name', 'Unknown')) }}</h5>
+                    <p>{{ candidate.get('email', 'No email') }}</p>
+                    <p>{{ candidate.get('position_applied', 'No position') }}</p>
+                </div>
+                <div class="col-md-3">
+                    <span class="status-badge status-selected">{{ candidate.get('status', 'Unknown') }}</span>
+                </div>
+                <div class="col-md-3">
+                    <a href="/manager/candidate/{{ candidate.get('_id') }}" class="btn btn-success btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Not Selected Candidates -->
+    {% if not_selected_candidates %}
+    <div class="candidate-list">
+        <h3>Not Selected Candidates</h3>
+        {% for candidate in not_selected_candidates %}
+        <div class="candidate-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>{{ candidate.get('name', candidate.get('first_name', 'Unknown')) }}</h5>
+                    <p>{{ candidate.get('email', 'No email') }}</p>
+                    <p>{{ candidate.get('position_applied', 'No position') }}</p>
+                    {% if candidate.get('rejected_by') %}
+                    <small class="text-muted">Rejected by: {{ candidate.get('rejected_by') }}</small>
+                    {% endif %}
+                </div>
+                <div class="col-md-3">
+                    <span class="status-badge status-rejected">{{ candidate.get('status', 'Unknown') }}</span>
+                </div>
+                <div class="col-md-3">
+                    <a href="/manager/candidate/{{ candidate.get('_id') }}" class="btn btn-secondary btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Reassigned Candidates -->
+    {% if reassigned_candidates %}
+    <div class="candidate-list">
+        <h3>Reassigned Candidates</h3>
+        {% for candidate in reassigned_candidates %}
+        <div class="candidate-item">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>{{ candidate.get('name', candidate.get('first_name', 'Unknown')) }}</h5>
+                    <p>{{ candidate.get('email', 'No email') }}</p>
+                    <p>{{ candidate.get('position_applied', 'No position') }}</p>
+                </div>
+                <div class="col-md-3">
+                    <span class="status-badge status-pending">{{ candidate.get('status', 'Unknown') }}</span>
+                </div>
+                <div class="col-md-3">
+                    <a href="/manager/candidate/{{ candidate.get('_id') }}" class="btn btn-warning btn-sm">View Details</a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Actions -->
+    <div class="candidate-list">
+        <h3>Quick Actions</h3>
+        <a href="/manager/request-candidates" class="btn btn-primary">Request New Candidates</a>
+        <a href="/manager/analytics/overview" class="btn btn-info">View Analytics</a>
+    </div>
+</div>
+{% endblock %}
