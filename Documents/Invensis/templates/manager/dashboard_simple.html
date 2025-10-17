@@ -51,16 +51,16 @@
     <div class="bg-white rounded-xl shadow-lg">
         <div class="border-b border-gray-200">
             <nav class="-mb-px flex space-x-8 px-6" aria-label="Tabs">
-                <button onclick="showTab('assigned')" id="assigned-tab" class="tab-button active border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
+                <button onclick="showManagerTab('assigned')" id="assigned-tab" class="tab-button active border-b-2 border-blue-500 py-4 px-1 text-sm font-medium text-blue-600">
                     Assigned Candidates ({{ assigned_candidates|length }})
                 </button>
-                <button onclick="showTab('selected')" id="selected-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                <button onclick="showManagerTab('selected')" id="selected-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
                     Selected ({{ selected_candidates|length }})
                 </button>
-                <button onclick="showTab('not-selected')" id="not-selected-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                <button onclick="showManagerTab('not-selected')" id="not-selected-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
                     Not Selected ({{ not_selected_candidates|length }})
                 </button>
-                <button onclick="showTab('reassigned')" id="reassigned-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
+                <button onclick="showManagerTab('reassigned')" id="reassigned-tab" class="tab-button border-b-2 border-transparent py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700">
                     Reassigned ({{ reassigned_candidates|length }})
                 </button>
             </nav>
@@ -288,7 +288,7 @@
 </div>
 
 <script>
-function showTab(tabName) {
+function showManagerTab(tabName) {
     console.log('Switching to tab:', tabName);
     
     // Define the mapping between tab names and their IDs
