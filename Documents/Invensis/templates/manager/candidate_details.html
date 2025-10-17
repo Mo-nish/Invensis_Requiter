@@ -773,6 +773,11 @@ document.addEventListener('DOMContentLoaded', function() {
         container.dataset.currentRating = rating;
         hiddenInput.value = rating;
         highlightStars(container, rating);
+        
+        // Automatically calculate overall rating when any star is clicked
+        setTimeout(() => {
+            calculateManagerOverallRating();
+        }, 100);
     }
 
     // Highlight stars up to the given rating
@@ -843,21 +848,47 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to calculate manager overall rating
     function calculateManagerOverallRating() {
-        const communicationRating = parseInt(document.getElementById('communication_skills').value) || 0;
-        const technicalRating = parseInt(document.getElementById('technical_skills').value) || 0;
-        const problemSolvingRating = parseInt(document.getElementById('problem_solving').value) || 0;
-        const culturalFitRating = parseInt(document.getElementById('cultural_fit').value) || 0;
+        const communicationRating = parseInt(document.getElementById('communication_skills')?.value || '0');
+        const technicalRating = parseInt(document.getElementById('technical_skills')?.value || '0');
+        const problemSolvingRating = parseInt(document.getElementById('problem_solving')?.value || '0');
+        const culturalFitRating = parseInt(document.getElementById('cultural_fit')?.value || '0');
 
-        if (communicationRating === 0 || technicalRating === 0 || problemSolvingRating === 0 || culturalFitRating === 0) {
-            alert('Please provide all four ratings before calculating the overall rating.');
+        console.log('Ratings:', { communicationRating, technicalRating, problemSolvingRating, culturalFitRating });
+
+        // Check if at least one rating is provided
+        const ratings = [communicationRating, technicalRating, problemSolvingRating, culturalFitRating];
+        const validRatings = ratings.filter(rating => rating > 0);
+
+        if (validRatings.length === 0) {
+            document.getElementById('manager_overall_rating_display').textContent = '--';
+            document.getElementById('manager_overall_rating').value = '0';
+            alert('Please provide at least one rating before calculating the overall rating.');
             return;
         }
 
-        const overallRating = (communicationRating + technicalRating + problemSolvingRating + culturalFitRating) / 4;
+        // Calculate average of provided ratings
+        const overallRating = validRatings.reduce((sum, rating) => sum + rating, 0) / validRatings.length;
         const roundedRating = Math.round(overallRating * 10) / 10;
 
-        document.getElementById('manager_overall_rating_display').textContent = roundedRating.toFixed(1);
-        document.getElementById('manager_overall_rating').value = roundedRating.toFixed(1);
+        console.log('Calculated overall rating:', roundedRating);
+
+        // Update display
+        const displayElement = document.getElementById('manager_overall_rating_display');
+        const hiddenInput = document.getElementById('manager_overall_rating');
+        
+        if (displayElement && hiddenInput) {
+            displayElement.textContent = roundedRating.toFixed(1);
+            hiddenInput.value = roundedRating.toFixed(1);
+            
+            // Add color coding based on score
+            if (roundedRating >= 4.5) {
+                displayElement.className = 'text-3xl font-bold text-green-400 mb-2';
+            } else if (roundedRating >= 3.5) {
+                displayElement.className = 'text-3xl font-bold text-yellow-400 mb-2';
+            } else {
+                displayElement.className = 'text-3xl font-bold text-red-400 mb-2';
+            }
+        }
     }
 
     // Function to reset manager ratings
@@ -989,6 +1020,23 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
     };
+    
+    // Ensure star ratings are properly initialized and connected
+    const starContainers = document.querySelectorAll('.star-rating');
+    starContainers.forEach(container => {
+        const stars = container.querySelectorAll('.star');
+        const fieldName = container.dataset.field;
+        const hiddenInput = document.getElementById(fieldName);
+        
+        if (hiddenInput) {
+            stars.forEach((star, index) => {
+                star.addEventListener('click', function() {
+                    const rating = index + 1;
+                    setRating(container, rating, hiddenInput);
+                });
+            });
+        }
+    });
 });
 </script>
 {% endblock %}
