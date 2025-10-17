@@ -123,25 +123,47 @@ def candidate_details(candidate_id):
             
             # Also check for feedback stored directly in the candidate document
             if candidate.manager_feedback:
-                # Create a feedback object from candidate data
-                candidate_feedback = Feedback(
-                    candidate_id=str(candidate._id),
-                    manager_email=candidate.manager_feedback.get('manager_email', 'Unknown'),
-                    feedback_text=candidate.manager_feedback.get('feedback', ''),
-                    status=candidate.status,
-                    overall_impression=candidate.manager_feedback.get('overall_impression', ''),
-                    communication_rating=candidate.manager_feedback.get('communication_skills', 0),
-                    technical_rating=candidate.manager_feedback.get('technical_skills', 0),
-                    problem_solving_rating=candidate.manager_feedback.get('problem_solving', 0),
-                    cultural_fit_rating=candidate.manager_feedback.get('cultural_fit', 0),
-                    manager_rating=candidate.manager_feedback.get('overall_rating', 0),
-                    rejection_reasons=candidate.rejection_reasons or [],
-                    rejection_notes=candidate.rejection_notes or '',
-                    next_review_date=None,
-                    timestamp=candidate.reviewed_at or candidate.updated_at,
-                    _id=f"candidate_{candidate._id}"
-                )
-                feedback_objects.append(candidate_feedback)
+                # Handle both string and dictionary formats for manager_feedback
+                if isinstance(candidate.manager_feedback, dict):
+                    # Create a feedback object from candidate data (dictionary format)
+                    candidate_feedback = Feedback(
+                        candidate_id=str(candidate._id),
+                        manager_email=candidate.manager_feedback.get('manager_email', 'Unknown'),
+                        feedback_text=candidate.manager_feedback.get('feedback', ''),
+                        status=candidate.status,
+                        overall_impression=candidate.manager_feedback.get('overall_impression', ''),
+                        communication_rating=candidate.manager_feedback.get('communication_skills', 0),
+                        technical_rating=candidate.manager_feedback.get('technical_skills', 0),
+                        problem_solving_rating=candidate.manager_feedback.get('problem_solving', 0),
+                        cultural_fit_rating=candidate.manager_feedback.get('cultural_fit', 0),
+                        manager_rating=candidate.manager_feedback.get('overall_rating', 0),
+                        rejection_reasons=candidate.rejection_reasons or [],
+                        rejection_notes=candidate.rejection_notes or '',
+                        next_review_date=None,
+                        timestamp=candidate.reviewed_at or candidate.updated_at,
+                        _id=f"candidate_{candidate._id}"
+                    )
+                    feedback_objects.append(candidate_feedback)
+                elif isinstance(candidate.manager_feedback, str):
+                    # Handle string format - create a simple feedback object
+                    candidate_feedback = Feedback(
+                        candidate_id=str(candidate._id),
+                        manager_email='Unknown',
+                        feedback_text=candidate.manager_feedback,  # Use the string as feedback text
+                        status=candidate.status,
+                        overall_impression='',
+                        communication_rating=0,
+                        technical_rating=0,
+                        problem_solving_rating=0,
+                        cultural_fit_rating=0,
+                        manager_rating=0,
+                        rejection_reasons=candidate.rejection_reasons or [],
+                        rejection_notes=candidate.rejection_notes or '',
+                        next_review_date=None,
+                        timestamp=candidate.reviewed_at or candidate.updated_at,
+                        _id=f"candidate_{candidate._id}"
+                    )
+                    feedback_objects.append(candidate_feedback)
             
             # Get the latest feedback to pre-fill the form
             latest_feedback = feedback_objects[0] if feedback_objects else None
