@@ -857,8 +857,30 @@ def request_candidates_page():
     try:
         from models_mongo import candidate_requests_collection, users_collection
         
+        # Debug: Print current user email
+        print(f"DEBUG: Current user email: {current_user.email}")
+        print(f"DEBUG: Current user type: {type(current_user.email)}")
+        
         # Get requests for current manager directly from collection
         requests_data = list(candidate_requests_collection.find({'manager_email': current_user.email}))
+        
+        print(f"DEBUG: Found {len(requests_data)} requests for {current_user.email}")
+        for req in requests_data:
+            print(f"DEBUG: Request ID: {req.get('_id')}, Position: {req.get('position_title')}")
+        
+        # If no requests found with exact match, try case-insensitive search
+        if len(requests_data) == 0:
+            print(f"DEBUG: No exact matches found, trying case-insensitive search...")
+            all_requests = list(candidate_requests_collection.find({}))
+            print(f"DEBUG: All requests in database:")
+            for req in all_requests:
+                print(f"  - Manager: '{req.get('manager_email')}', Position: {req.get('position_title')}")
+            
+            # Try case-insensitive match
+            for req in all_requests:
+                if req.get('manager_email', '').lower() == current_user.email.lower():
+                    print(f"DEBUG: Found case-insensitive match: {req.get('_id')}")
+                    requests_data.append(req)
         
         # Process each request with enhanced data
         enhanced_requests = []
