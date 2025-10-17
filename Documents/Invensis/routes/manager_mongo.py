@@ -935,7 +935,9 @@ def request_candidates_page():
                              
     except Exception as e:
         print(f"Error loading candidate requests: {str(e)}")
-        flash('Error loading candidate requests', 'error')
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading candidate requests: {str(e)}', 'error')
         return render_template('manager/request_candidates.html', 
                              requests=[],
                              total_requested=0,
