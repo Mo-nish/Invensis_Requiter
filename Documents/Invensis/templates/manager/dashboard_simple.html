@@ -289,18 +289,51 @@
 
 <script>
 function showTab(tabName) {
+    console.log('Switching to tab:', tabName);
+    
+    // Define the mapping between tab names and their IDs
+    const tabMapping = {
+        'assigned': 'assigned',
+        'selected': 'selected', 
+        'not-selected': 'not-selected',
+        'reassigned': 'reassigned'
+    };
+    
+    const actualTabName = tabMapping[tabName];
+    
     // Hide all tab contents
     const contents = ['assigned', 'selected', 'not-selected', 'reassigned'];
     contents.forEach(content => {
-        document.getElementById(content + '-content').classList.add('hidden');
-        document.getElementById(content + '-tab').classList.remove('active', 'border-blue-500', 'text-blue-600');
-        document.getElementById(content + '-tab').classList.add('border-transparent', 'text-gray-500');
+        const contentElement = document.getElementById(content + '-content');
+        const tabElement = document.getElementById(content + '-tab');
+        
+        if (contentElement) {
+            contentElement.classList.add('hidden');
+        }
+        
+        if (tabElement) {
+            tabElement.classList.remove('active', 'border-blue-500', 'text-blue-600');
+            tabElement.classList.add('border-transparent', 'text-gray-500');
+        }
     });
     
     // Show selected tab
-    document.getElementById(tabName + '-content').classList.remove('hidden');
-    document.getElementById(tabName + '-tab').classList.add('active', 'border-blue-500', 'text-blue-600');
-    document.getElementById(tabName + '-tab').classList.remove('border-transparent', 'text-gray-500');
+    const targetContent = document.getElementById(actualTabName + '-content');
+    const targetTab = document.getElementById(actualTabName + '-tab');
+    
+    console.log('Target content element:', targetContent);
+    console.log('Target tab element:', targetTab);
+    
+    if (targetContent) {
+        targetContent.classList.remove('hidden');
+        console.log('Showing content for tab:', actualTabName);
+    }
+    
+    if (targetTab) {
+        targetTab.classList.add('active', 'border-blue-500', 'text-blue-600');
+        targetTab.classList.remove('border-transparent', 'text-gray-500');
+        console.log('Activating tab:', actualTabName);
+    }
 }
 
 function quickFeedback(candidateId) {
