@@ -888,7 +888,7 @@ def request_candidates_page():
             request['_id'] = str(request['_id'])
             
             # Add manager information (self in this case)
-            request['requester_name'] = f"{current_user.first_name} {current_user.last_name}"
+            request['requester_name'] = current_user.name
             request['requester_email'] = current_user.email
             
             # Map correct field names for template
