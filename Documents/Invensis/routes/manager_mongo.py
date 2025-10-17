@@ -73,87 +73,93 @@ def dashboard():
 @manager_bp.route('/candidate/<candidate_id>')
 @manager_required
 def candidate_details(candidate_id):
-    
-    candidate = Candidate.find_by_id(candidate_id)
-    if candidate:
-        # Allow all managers to view any candidate for transparency
-        # The original assignment check is removed to enable cross-manager visibility
-        
-        # Fetch feedback history for this candidate
-        from models_mongo import feedback_collection
-        feedback_history = list(feedback_collection.find({'candidate_id': candidate_id}).sort('timestamp', -1))
-        
-        # Convert feedback documents to Feedback objects
-        feedback_objects = []
-        for feedback_data in feedback_history:
-            # Check if this feedback needs migration (has status but no rejection_reasons)
-            if (feedback_data.get('status') in ['Not Selected', 'Rejected'] and 
-                not feedback_data.get('rejection_reasons') and 
-                candidate.rejection_reasons):
-                # Migrate rejection reasons from candidate to feedback
-                feedback_data['rejection_reasons'] = candidate.rejection_reasons
-                feedback_data['rejection_notes'] = candidate.rejection_notes
-                # Update the feedback record in the database
-                feedback_collection.update_one(
-                    {'_id': feedback_data['_id']},
-                    {'$set': {
-                        'rejection_reasons': candidate.rejection_reasons,
-                        'rejection_notes': candidate.rejection_notes
-                    }}
-                )
+    try:
+        candidate = Candidate.find_by_id(candidate_id)
+        if candidate:
+            # Allow all managers to view any candidate for transparency
+            # The original assignment check is removed to enable cross-manager visibility
             
-            feedback = Feedback(
-                candidate_id=feedback_data['candidate_id'],
-                manager_email=feedback_data['manager_email'],
-                feedback_text=feedback_data['feedback_text'],
-                status=feedback_data['status'],
-                overall_impression=feedback_data.get('overall_impression'),
-                communication_rating=feedback_data.get('communication_rating'),
-                technical_rating=feedback_data.get('technical_rating'),
-                problem_solving_rating=feedback_data.get('problem_solving_rating'),
-                cultural_fit_rating=feedback_data.get('cultural_fit_rating'),
-                manager_rating=feedback_data.get('manager_rating'),
-                rejection_reasons=feedback_data.get('rejection_reasons'),
-                rejection_notes=feedback_data.get('rejection_notes'),
-                next_review_date=feedback_data.get('next_review_date'),
-                timestamp=feedback_data.get('timestamp'),
-                _id=str(feedback_data['_id'])
-            )
-            feedback_objects.append(feedback)
-        
-        # Also check for feedback stored directly in the candidate document
-        if candidate.manager_feedback:
-            # Create a feedback object from candidate data
-            candidate_feedback = Feedback(
-                candidate_id=str(candidate._id),
-                manager_email=candidate.manager_feedback.get('manager_email', 'Unknown'),
-                feedback_text=candidate.manager_feedback.get('feedback', ''),
-                status=candidate.status,
-                overall_impression=candidate.manager_feedback.get('overall_impression', ''),
-                communication_rating=candidate.manager_feedback.get('communication_skills', 0),
-                technical_rating=candidate.manager_feedback.get('technical_skills', 0),
-                problem_solving_rating=candidate.manager_feedback.get('problem_solving', 0),
-                cultural_fit_rating=candidate.manager_feedback.get('cultural_fit', 0),
-                manager_rating=candidate.manager_feedback.get('overall_rating', 0),
-                rejection_reasons=candidate.rejection_reasons or [],
-                rejection_notes=candidate.rejection_notes or '',
-                next_review_date=None,
-                timestamp=candidate.reviewed_at or candidate.updated_at,
-                _id=f"candidate_{candidate._id}"
-            )
-            feedback_objects.append(candidate_feedback)
-        
-        # Get the latest feedback to pre-fill the form
-        latest_feedback = feedback_objects[0] if feedback_objects else None
-        
-        return render_template('manager/candidate_details.html', 
-                             candidate=candidate, 
-                             feedback_history=feedback_objects,
-                             latest_feedback=latest_feedback)
-    else:
-        flash('Candidate not found', 'error')
+            # Fetch feedback history for this candidate
+            from models_mongo import feedback_collection
+            feedback_history = list(feedback_collection.find({'candidate_id': candidate_id}).sort('timestamp', -1))
+            
+            # Convert feedback documents to Feedback objects
+            feedback_objects = []
+            for feedback_data in feedback_history:
+                # Check if this feedback needs migration (has status but no rejection_reasons)
+                if (feedback_data.get('status') in ['Not Selected', 'Rejected'] and 
+                    not feedback_data.get('rejection_reasons') and 
+                    candidate.rejection_reasons):
+                    # Migrate rejection reasons from candidate to feedback
+                    feedback_data['rejection_reasons'] = candidate.rejection_reasons
+                    feedback_data['rejection_notes'] = candidate.rejection_notes
+                    # Update the feedback record in the database
+                    feedback_collection.update_one(
+                        {'_id': feedback_data['_id']},
+                        {'$set': {
+                            'rejection_reasons': candidate.rejection_reasons,
+                            'rejection_notes': candidate.rejection_notes
+                        }}
+                    )
+                
+                feedback = Feedback(
+                    candidate_id=feedback_data['candidate_id'],
+                    manager_email=feedback_data['manager_email'],
+                    feedback_text=feedback_data['feedback_text'],
+                    status=feedback_data['status'],
+                    overall_impression=feedback_data.get('overall_impression'),
+                    communication_rating=feedback_data.get('communication_rating'),
+                    technical_rating=feedback_data.get('technical_rating'),
+                    problem_solving_rating=feedback_data.get('problem_solving_rating'),
+                    cultural_fit_rating=feedback_data.get('cultural_fit_rating'),
+                    manager_rating=feedback_data.get('manager_rating'),
+                    rejection_reasons=feedback_data.get('rejection_reasons'),
+                    rejection_notes=feedback_data.get('rejection_notes'),
+                    next_review_date=feedback_data.get('next_review_date'),
+                    timestamp=feedback_data.get('timestamp'),
+                    _id=str(feedback_data['_id'])
+                )
+                feedback_objects.append(feedback)
+            
+            # Also check for feedback stored directly in the candidate document
+            if candidate.manager_feedback:
+                # Create a feedback object from candidate data
+                candidate_feedback = Feedback(
+                    candidate_id=str(candidate._id),
+                    manager_email=candidate.manager_feedback.get('manager_email', 'Unknown'),
+                    feedback_text=candidate.manager_feedback.get('feedback', ''),
+                    status=candidate.status,
+                    overall_impression=candidate.manager_feedback.get('overall_impression', ''),
+                    communication_rating=candidate.manager_feedback.get('communication_skills', 0),
+                    technical_rating=candidate.manager_feedback.get('technical_skills', 0),
+                    problem_solving_rating=candidate.manager_feedback.get('problem_solving', 0),
+                    cultural_fit_rating=candidate.manager_feedback.get('cultural_fit', 0),
+                    manager_rating=candidate.manager_feedback.get('overall_rating', 0),
+                    rejection_reasons=candidate.rejection_reasons or [],
+                    rejection_notes=candidate.rejection_notes or '',
+                    next_review_date=None,
+                    timestamp=candidate.reviewed_at or candidate.updated_at,
+                    _id=f"candidate_{candidate._id}"
+                )
+                feedback_objects.append(candidate_feedback)
+            
+            # Get the latest feedback to pre-fill the form
+            latest_feedback = feedback_objects[0] if feedback_objects else None
+            
+            return render_template('manager/candidate_details.html', 
+                                 candidate=candidate, 
+                                 feedback_history=feedback_objects,
+                                 latest_feedback=latest_feedback)
+        else:
+            flash('Candidate not found', 'error')
+            return redirect(url_for('manager.dashboard'))
     
-    return redirect(url_for('manager.dashboard'))
+    except Exception as e:
+        print(f"Error in candidate details: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        flash(f'Error loading candidate details: {str(e)}', 'error')
+        return redirect(url_for('manager.dashboard'))
 
 @manager_bp.route('/add_feedback', methods=['POST'])
 @manager_required
