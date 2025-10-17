@@ -39,7 +39,7 @@ def main():
     print("=" * 50)
     
     # Start the application
-    port = int(os.environ.get('PORT', 5001))
+    port = int(os.environ.get('PORT', 8080))
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     print(f"🌐 Starting server on port {port}")
