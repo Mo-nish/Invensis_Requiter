@@ -302,6 +302,10 @@ class Candidate:
         self.onboarding_status = onboarding_status or 'Not Onboarded'
         self.onboarding_date = onboarding_date
         
+        # Reassignment fields
+        self.reassigned_by_manager = None
+        self.reassignment_note = None
+        
         # Request linking field
         self.linked_request_id = None
         
@@ -351,6 +355,8 @@ class Candidate:
             'rejection_notes': self.rejection_notes,
             'onboarding_status': self.onboarding_status,
             'onboarding_date': self.onboarding_date,
+            'reassigned_by_manager': self.reassigned_by_manager,
+            'reassignment_note': self.reassignment_note,
             'linked_request_id': self.linked_request_id,
             'created_at': self.created_at,
             'updated_at': self.updated_at
@@ -419,6 +425,10 @@ class Candidate:
         # Onboarding fields
         candidate.onboarding_status = data.get('onboarding_status', 'Not Onboarded')
         candidate.onboarding_date = data.get('onboarding_date')
+        
+        # Reassignment fields
+        candidate.reassigned_by_manager = data.get('reassigned_by_manager')
+        candidate.reassignment_note = data.get('reassignment_note')
         
         candidate.created_at = data.get('created_at', datetime.utcnow())
         candidate.updated_at = data.get('updated_at', datetime.utcnow())
