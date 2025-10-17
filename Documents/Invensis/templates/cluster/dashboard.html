@@ -342,7 +342,7 @@
                         <i class="fas fa-user-plus text-2xl text-white"></i>
                     </div>
                     <div>
-                        <p class="text-sm font-semibold text-gray-600 mb-2">Assigned</p>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Reassigned</p>
                         <p class="text-3xl font-bold text-gray-900" id="assigned-count">0</p>
                     </div>
                 </div>
@@ -1104,9 +1104,9 @@ function updateStatistics() {
     
     const pending = filteredCandidates.filter(c => c.status === 'Pending').length;
     
-    // Assigned candidates are those assigned to HR for onboarding (status 'Selected' but not yet onboarded)
+    // Reassigned candidates are those with reassigned_by_manager field
     const assigned = filteredCandidates.filter(c => 
-        c.status === 'Selected' && c.onboarding_status !== 'Onboarded'
+        c.reassigned_by_manager && c.reassigned_by_manager !== null
     ).length;
     
     const onboarded = filteredCandidates.filter(c => c.onboarding_status === 'Onboarded').length;

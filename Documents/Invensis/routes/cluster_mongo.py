@@ -108,7 +108,8 @@ def dashboard():
     total_candidates = len(all_candidates)
     selected_candidates = len([c for c in all_candidates if c.status == 'Selected'])
     not_selected_candidates = len([c for c in all_candidates if c.status == 'Not Selected'])
-    reassigned_candidates = len([c for c in all_candidates if c.status == 'Reassigned'])
+    # Reassigned candidates are those with reassigned_by_manager field, not a specific status
+    reassigned_candidates = len([c for c in all_candidates if c.reassigned_by_manager is not None])
 
     
     # Calculate average ratings
@@ -1298,7 +1299,8 @@ def get_manager_performance():
             
             # Calculate metrics
             total_reviewed = len([c for c in assigned_candidates if c.get('status') in ['Selected', 'Not Selected', 'Rejected', 'Declined', 'Failed', 'Not Approved']])
-            pending_review = len([c for c in assigned_candidates if c.get('status') == 'Assigned'])
+            # Count reassigned candidates (those with reassigned_by_manager field)
+            pending_review = len([c for c in assigned_candidates if c.get('reassigned_by_manager') is not None])
             selected = len([c for c in assigned_candidates if c.get('status') == 'Selected'])
             
             # More robust detection of "not selected" candidates
