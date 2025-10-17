@@ -46,7 +46,7 @@ login_manager.init_app(app)
 login_manager.login_view = 'login'  # type: ignore
 
 # Import MongoDB models
-from models_mongo import User, Role, Candidate, ActivityLog, Feedback, create_token, verify_token, UserEmail, PasswordResetToken
+from models_mongo import User, Role, Candidate, ActivityLog, Feedback, create_token, verify_token, UserEmail, PasswordResetToken, db
 
 @login_manager.user_loader
 def load_user(user_id):

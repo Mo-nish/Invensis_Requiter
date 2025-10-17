@@ -1,0 +1,31 @@
+Email config - USER: testhrdp23@gmail.com
+Email config - PASS: SET
+Email config - SENDER: testhrdp23@gmail.com
+✅ Chat collections initialized successfully
+🚀 Starting Invensis Hiring Portal...
+==================================================
+🔧 Initializing production database...
+🚀 Initializing production database...
+📧 Admin Email: admin@invensis.com
+🔐 Admin Password: InvensisAdmin2025!
+✅ Admin user already exists!
+   Email: admin@invensis.com
+   Name: Invensis Admin
+   Role: admin
+✅ Production database initialized successfully!
+✅ Application ready
+🌐 Starting server...
+📱 Visit: http://localhost:5001
+🔧 Admin Portal: http://localhost:5001/admin/login
+==================================================
+🌐 Starting server on port 3000
+🔧 Debug mode: False
+ * Serving Flask app 'app_mongo'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:3000
+ * Running on http://172.30.0.2:3000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [17/Oct/2025 02:42:23] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [17/Oct/2025 02:42:28] "GET /admin/login HTTP/1.1" 200 -
