@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify, current_app
 from flask_login import login_required, current_user
 from models_mongo import User, Candidate, Feedback, ActivityLog
 from email_service import send_feedback_notification_email
@@ -8,6 +8,8 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import letter
 import io
 from bson import ObjectId
+import traceback
+import sys
 
 manager_bp = Blueprint('manager', __name__)
 
@@ -65,10 +67,9 @@ def dashboard():
                              not_selected_candidates=not_selected_candidates,
                              reassigned_candidates=reassigned_candidates)
     except Exception as e:
-        print(f"Error in manager dashboard: {str(e)}")
-        import traceback
-        traceback.print_exc()
-        return f"Error: {str(e)}", 500
+        traceback.print_exc(file=sys.stderr)
+        current_app.logger.error("Error in /manager/dashboard: %s", e)
+        return render_template('error.html', message=str(e)), 500
 
 @manager_bp.route('/candidate/<candidate_id>')
 @manager_required
