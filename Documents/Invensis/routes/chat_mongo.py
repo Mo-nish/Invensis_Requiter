@@ -70,7 +70,7 @@ def get_conversations():
         
         # Get conversations where user is a participant
         conversations = list(conversations_collection.find({
-            'participants': current_user.id
+            'participants': ObjectId(current_user._id)
         }).sort('last_message_time', -1))
         
         # Get last message and unread count for each conversation
@@ -91,7 +91,7 @@ def get_conversations():
             # Get unread count
             unread_count = messages_collection.count_documents({
                 'conversation_id': str(conv['_id']),
-                'sender_id': {'$ne': current_user.id},
+                'sender_id': {'$ne': ObjectId(current_user._id)},
                 'status': {'$ne': 'read'}
             })
             conv['unread_count'] = unread_count
@@ -121,10 +121,10 @@ def get_messages(conversation_id):
         messages_collection.update_many(
             {
                 'conversation_id': conversation_id,
-                'sender_id': {'$ne': current_user.id},
+                'sender_id': {'$ne': ObjectId(current_user._id)},
                 'status': {'$ne': 'read'}
             },
-            {'$set': {'status': 'read', 'read_by': current_user.id, 'read_at': datetime.utcnow()}}
+            {'$set': {'status': 'read', 'read_by': ObjectId(current_user._id), 'read_at': datetime.utcnow()}}
         )
         
         return jsonify({
@@ -146,7 +146,7 @@ def get_users():
         # Get all users except current user and filter by allowed roles
         me_role = normalize_role(getattr(current_user, 'role', ''))
         raw_users = users_collection.find(
-            {'_id': {'$ne': current_user.id}},
+            {'_id': {'$ne': ObjectId(current_user._id)}},
             {'name': 1, 'email': 1, 'role': 1, 'profile_picture': 1, 'cluster': 1}
         )
         users = []
@@ -171,7 +171,7 @@ def create_conversation():
         db = current_app.mongo.db
         data = request.get_json()
         participants = data.get('participants', [])
-        participants.append(current_user.id)
+        participants.append(ObjectId(current_user._id))
         
         conversations_collection = db.conversations
         users_collection = db.users
@@ -180,7 +180,7 @@ def create_conversation():
         unique_participants = list({*participants})
         if len(unique_participants) == 2:
             me_role = normalize_role(getattr(current_user, 'role', ''))
-            other_id = unique_participants[0] if unique_participants[1] == current_user.id else unique_participants[1]
+            other_id = unique_participants[0] if unique_participants[1] == ObjectId(current_user._id) else unique_participants[1]
             other_user = users_collection.find_one({'_id': other_id}, {'role': 1})
             other_role = normalize_role(other_user.get('role') if other_user else '')
             if not is_chat_allowed(me_role, other_role):
@@ -201,7 +201,7 @@ def create_conversation():
         # Create new conversation
         conversation_data = {
             'participants': participants,
-            'created_by': current_user.id,
+            'created_by': ObjectId(current_user._id),
             'created_at': datetime.utcnow(),
             'last_message_time': datetime.utcnow()
         }
@@ -298,9 +298,9 @@ def chat_with_ai():
         # Process the message
         response = chatbot.process_message(
             message=message,
-            user_id=current_user.id,
+            user_id=ObjectId(current_user._id),
             user_role=current_user.role,
-            session_id=conversation_id or f"ai_chat_{current_user.id}"
+            session_id=conversation_id or f"ai_chat_{ObjectId(current_user._id)}"
         )
         
         # Save AI response to database if conversation_id provided
@@ -338,9 +338,9 @@ def get_echo_contacts():
         me_role = normalize_role(getattr(current_user, 'role', ''))
         my_cluster = getattr(current_user, 'cluster', None)
         
-        # Get all users except current user
+        # Get all users except current user - use _id for MongoDB queries
         all_users = list(users_collection.find(
-            {'_id': {'$ne': current_user.id}, 'is_active': True},
+            {'_id': {'$ne': ObjectId(current_user._id)}, 'is_active': True},
             {'name': 1, 'email': 1, 'role': 1, 'cluster': 1, 'profile_picture': 1}
         ))
         
@@ -389,7 +389,7 @@ def send_echo_message():
         # Verify user is participant
         conversation = conversations_collection.find_one({
             '_id': ObjectId(conversation_id),
-            'participants': current_user.id
+            'participants': ObjectId(current_user._id)
         })
         
         if not conversation:
@@ -398,13 +398,13 @@ def send_echo_message():
         # Create message
         message_data = {
             'conversation_id': conversation_id,
-            'sender_id': current_user.id,
+            'sender_id': current_user._id,
             'sender_name': getattr(current_user, 'name', 'Unknown'),
             'content': message_text,
             'message_type': message_type,
             'timestamp': datetime.utcnow(),
             'status': 'sent',
-            'read_by': [current_user.id]
+            'read_by': [current_user._id]
         }
         
         result = messages_collection.insert_one(message_data)
@@ -437,7 +437,7 @@ def get_echo_messages(conversation_id):
         # Verify user is participant
         conversation = conversations_collection.find_one({
             '_id': ObjectId(conversation_id),
-            'participants': current_user.id
+            'participants': ObjectId(current_user._id)
         })
         
         if not conversation:
@@ -461,10 +461,10 @@ def get_echo_messages(conversation_id):
             messages_collection.update_many(
                 {
                     'conversation_id': conversation_id,
-                    'sender_id': {'$ne': current_user.id},
-                    'read_by': {'$ne': current_user.id}
+                    'sender_id': {'$ne': current_user._id},
+                    'read_by': {'$ne': current_user._id}
                 },
-                {'$addToSet': {'read_by': current_user.id}}
+                {'$addToSet': {'read_by': current_user._id}}
             )
         
         # Format messages
@@ -472,13 +472,13 @@ def get_echo_messages(conversation_id):
         for msg in messages:
             formatted_messages.append({
                 'id': str(msg['_id']),
-                'sender_id': msg['sender_id'],
+                'sender_id': str(msg['sender_id']),
                 'sender_name': msg.get('sender_name', 'Unknown'),
                 'content': msg['content'],
                 'message_type': msg.get('message_type', 'text'),
                 'timestamp': msg['timestamp'].isoformat(),
-                'is_sent_by_me': msg['sender_id'] == current_user.id,
-                'is_read': current_user.id in msg.get('read_by', [])
+                'is_sent_by_me': str(msg['sender_id']) == str(current_user._id),
+                'is_read': str(current_user._id) in [str(reader) for reader in msg.get('read_by', [])]
             })
         
         return jsonify({
@@ -512,7 +512,7 @@ def start_echo_conversation():
         
         # Check if conversation already exists
         existing_conv = conversations_collection.find_one({
-            'participants': {'$all': [current_user.id, ObjectId(recipient_id)], '$size': 2}
+            'participants': {'$all': [ObjectId(current_user._id), ObjectId(recipient_id)], '$size': 2}
         })
         
         if existing_conv:
@@ -525,8 +525,8 @@ def start_echo_conversation():
         
         # Create new conversation
         conversation_data = {
-            'participants': [current_user.id, ObjectId(recipient_id)],
-            'created_by': current_user.id,
+            'participants': [ObjectId(current_user._id), ObjectId(recipient_id)],
+            'created_by': ObjectId(current_user._id),
             'created_at': datetime.utcnow(),
             'last_message_time': datetime.utcnow(),
             'conversation_type': 'direct'
@@ -550,7 +550,7 @@ def get_user_conversation_ids():
     db = current_app.mongo.db
     conversations_collection = db.conversations
     conversations = conversations_collection.find({
-        'participants': current_user.id
+        'participants': ObjectId(current_user._id)
     })
     return [str(conv['_id']) for conv in conversations]
 
