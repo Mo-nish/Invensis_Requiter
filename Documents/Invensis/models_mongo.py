@@ -26,6 +26,8 @@ feedback_collection = db.feedback
 user_emails_collection = db.user_emails
 password_reset_tokens_collection = db.password_reset_tokens # Added for password reset tokens
 candidate_requests_collection = db.candidate_requests # Added for candidate requests
+conversations_collection = db.conversations # Added for chat conversations
+messages_collection = db.messages # Added for chat messages
 
 def get_database():
     """Get the database instance"""

@@ -6,13 +6,13 @@ from flask_login import current_user, login_required
 import json
 import uuid
 from datetime import datetime
-from models_chat import ChatConversation, ChatMessage, ChatUser, init_chat_collections
+from bson import ObjectId
+
+# Import MongoDB connection from models
+from models_mongo import get_database, users_collection, conversations_collection, messages_collection
 
 # Create blueprint
 chat_bp = Blueprint('chat', __name__)
-
-# Initialize chat collections
-init_chat_collections()
 
 @chat_bp.route('/chat')
 @login_required
@@ -24,7 +24,7 @@ def chat_interface():
 @login_required
 def modern_chat_interface():
     """Serve the Invensis Echo Chat interface"""
-    return render_template('chat/echo_chat.html', current_user=current_user, chat_title='Invensis Echo Chat')
+    return render_template('chat/modern_echo_chat.html', current_user=current_user, chat_title='Invensis Echo Chat')
 
 # ------------------
 # Role-based guardrails
@@ -335,10 +335,6 @@ def chat_with_ai():
 def get_echo_contacts():
     """Get role-based contacts for Invensis Echo Chat"""
     try:
-        from flask import current_app
-        db = current_app.mongo.db
-        users_collection = db.users
-        
         me_role = normalize_role(getattr(current_user, 'role', ''))
         my_cluster = getattr(current_user, 'cluster', None)
         
@@ -381,8 +377,6 @@ def get_echo_contacts():
 def send_echo_message():
     """Send a message in Echo Chat"""
     try:
-        from flask import current_app
-        db = current_app.mongo.db
         data = request.get_json()
         
         conversation_id = data.get('conversation_id')
@@ -393,9 +387,8 @@ def send_echo_message():
             return jsonify({'success': False, 'error': 'Conversation ID and message required'}), 400
         
         # Verify user is participant
-        conversations_collection = db.conversations
         conversation = conversations_collection.find_one({
-            '_id': conversation_id,
+            '_id': ObjectId(conversation_id),
             'participants': current_user.id
         })
         
@@ -403,7 +396,6 @@ def send_echo_message():
             return jsonify({'success': False, 'error': 'Conversation not found or access denied'}), 403
         
         # Create message
-        messages_collection = db.messages
         message_data = {
             'conversation_id': conversation_id,
             'sender_id': current_user.id,
@@ -442,13 +434,9 @@ def send_echo_message():
 def get_echo_messages(conversation_id):
     """Get messages for Echo Chat conversation with polling support"""
     try:
-        from flask import current_app
-        db = current_app.mongo.db
-        
         # Verify user is participant
-        conversations_collection = db.conversations
         conversation = conversations_collection.find_one({
-            '_id': conversation_id,
+            '_id': ObjectId(conversation_id),
             'participants': current_user.id
         })
         
@@ -456,7 +444,6 @@ def get_echo_messages(conversation_id):
             return jsonify({'success': False, 'error': 'Conversation not found or access denied'}), 403
         
         # Get messages
-        messages_collection = db.messages
         since = request.args.get('since')
         
         query = {'conversation_id': conversation_id}
@@ -507,8 +494,6 @@ def get_echo_messages(conversation_id):
 def start_echo_conversation():
     """Start a new conversation with another user"""
     try:
-        from flask import current_app
-        db = current_app.mongo.db
         data = request.get_json()
         
         recipient_id = data.get('recipient_id')
@@ -516,8 +501,7 @@ def start_echo_conversation():
             return jsonify({'success': False, 'error': 'Recipient ID required'}), 400
         
         # Verify recipient exists and chat is allowed
-        users_collection = db.users
-        recipient = users_collection.find_one({'_id': recipient_id})
+        recipient = users_collection.find_one({'_id': ObjectId(recipient_id)})
         if not recipient:
             return jsonify({'success': False, 'error': 'Recipient not found'}), 404
         
@@ -527,9 +511,8 @@ def start_echo_conversation():
             return jsonify({'success': False, 'error': 'Chat not allowed between these roles'}), 403
         
         # Check if conversation already exists
-        conversations_collection = db.conversations
         existing_conv = conversations_collection.find_one({
-            'participants': {'$all': [current_user.id, recipient_id], '$size': 2}
+            'participants': {'$all': [current_user.id, ObjectId(recipient_id)], '$size': 2}
         })
         
         if existing_conv:
@@ -542,7 +525,7 @@ def start_echo_conversation():
         
         # Create new conversation
         conversation_data = {
-            'participants': [current_user.id, recipient_id],
+            'participants': [current_user.id, ObjectId(recipient_id)],
             'created_by': current_user.id,
             'created_at': datetime.utcnow(),
             'last_message_time': datetime.utcnow(),
