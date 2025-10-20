@@ -1,0 +1,741 @@
+{% extends "base.html" %}
+
+{% block title %}{{ chat_title or 'Invensis Echo Chat' }} - Invensis Hiring Portal{% endblock %}
+
+{% block head %}
+<style>
+    .echo-chat-container {
+        display: flex;
+        height: calc(100vh - 120px);
+        background: #f8fafc;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .echo-sidebar {
+        width: 350px;
+        background: white;
+        border-right: 1px solid #e2e8f0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .echo-header {
+        padding: 20px;
+        border-bottom: 1px solid #e2e8f0;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .echo-header h2 {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+    }
+    
+    .echo-header p {
+        margin: 5px 0 0 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+    
+    .echo-search {
+        padding: 15px 20px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .echo-search input {
+        width: 100%;
+        padding: 10px 15px;
+        border: 1px solid #d1d5db;
+        border-radius: 25px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    
+    .echo-search input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .echo-contacts {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px 0;
+    }
+    
+    .echo-role-section {
+        margin-bottom: 20px;
+    }
+    
+    .echo-role-header {
+        padding: 10px 20px 5px;
+        font-weight: 600;
+        color: #4a5568;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        background: #f7fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    
+    .echo-contact-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    
+    .echo-contact-item:hover {
+        background: #f8fafc;
+    }
+    
+    .echo-contact-item.active {
+        background: #e6f3ff;
+        border-left: 3px solid #667eea;
+    }
+    
+    .echo-contact-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        margin-right: 12px;
+        font-size: 0.9rem;
+    }
+    
+    .echo-contact-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .echo-contact-name {
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 2px;
+        font-size: 0.9rem;
+    }
+    
+    .echo-contact-role {
+        font-size: 0.75rem;
+        color: #718096;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .echo-contact-cluster {
+        font-size: 0.75rem;
+        color: #a0aec0;
+        margin-top: 2px;
+    }
+    
+    .echo-main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: white;
+    }
+    
+    .echo-chat-header {
+        padding: 20px;
+        border-bottom: 1px solid #e2e8f0;
+        background: #fafbfc;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .echo-chat-info {
+        display: flex;
+        align-items: center;
+    }
+    
+    .echo-chat-avatar {
+        width: 45px;
+        height: 45px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 600;
+        margin-right: 15px;
+        font-size: 1rem;
+    }
+    
+    .echo-chat-details h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #2d3748;
+    }
+    
+    .echo-chat-details p {
+        margin: 2px 0 0 0;
+        font-size: 0.85rem;
+        color: #718096;
+    }
+    
+    .echo-chat-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .echo-chat-btn {
+        padding: 8px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        background: white;
+        color: #4a5568;
+        cursor: pointer;
+        font-size: 0.85rem;
+        transition: all 0.2s;
+    }
+    
+    .echo-chat-btn:hover {
+        background: #f7fafc;
+        border-color: #a0aec0;
+    }
+    
+    .echo-messages {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #f8fafc;
+    }
+    
+    .echo-message {
+        margin-bottom: 15px;
+        display: flex;
+        align-items: flex-end;
+    }
+    
+    .echo-message.sent {
+        justify-content: flex-end;
+    }
+    
+    .echo-message.received {
+        justify-content: flex-start;
+    }
+    
+    .echo-message-content {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 18px;
+        position: relative;
+        word-wrap: break-word;
+    }
+    
+    .echo-message.sent .echo-message-content {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border-bottom-right-radius: 4px;
+    }
+    
+    .echo-message.received .echo-message-content {
+        background: white;
+        color: #2d3748;
+        border: 1px solid #e2e8f0;
+        border-bottom-left-radius: 4px;
+    }
+    
+    .echo-message-time {
+        font-size: 0.75rem;
+        color: #a0aec0;
+        margin-top: 4px;
+        text-align: right;
+    }
+    
+    .echo-message.received .echo-message-time {
+        text-align: left;
+    }
+    
+    .echo-input-area {
+        padding: 20px;
+        border-top: 1px solid #e2e8f0;
+        background: white;
+    }
+    
+    .echo-input-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .echo-input {
+        flex: 1;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 25px;
+        outline: none;
+        font-size: 0.9rem;
+        resize: none;
+        max-height: 100px;
+        min-height: 40px;
+    }
+    
+    .echo-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    .echo-send-btn {
+        padding: 12px 20px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: transform 0.2s;
+    }
+    
+    .echo-send-btn:hover {
+        transform: translateY(-1px);
+    }
+    
+    .echo-send-btn:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .echo-welcome {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: #718096;
+        padding: 40px;
+    }
+    
+    .echo-welcome-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+    
+    .echo-welcome h3 {
+        margin: 0 0 10px 0;
+        font-size: 1.5rem;
+        color: #4a5568;
+    }
+    
+    .echo-welcome p {
+        margin: 0;
+        font-size: 1rem;
+    }
+    
+    .echo-typing-indicator {
+        display: none;
+        padding: 10px 20px;
+        color: #718096;
+        font-style: italic;
+        font-size: 0.85rem;
+    }
+    
+    .echo-typing-indicator.show {
+        display: block;
+    }
+    
+    .echo-status-online {
+        width: 8px;
+        height: 8px;
+        background: #48bb78;
+        border-radius: 50%;
+        margin-left: 8px;
+    }
+    
+    .echo-status-offline {
+        width: 8px;
+        height: 8px;
+        background: #a0aec0;
+        border-radius: 50%;
+        margin-left: 8px;
+    }
+    
+    @media (max-width: 768px) {
+        .echo-chat-container {
+            height: calc(100vh - 80px);
+        }
+        
+        .echo-sidebar {
+            width: 100%;
+        }
+        
+        .echo-main {
+            display: none;
+        }
+        
+        .echo-main.active {
+            display: flex;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="echo-chat-container">
+    <!-- Sidebar -->
+    <div class="echo-sidebar">
+        <div class="echo-header">
+            <h2>{{ chat_title or 'Invensis Echo Chat' }}</h2>
+            <p>Connect with your team members</p>
+        </div>
+        
+        <div class="echo-search">
+            <input type="text" id="contactSearch" placeholder="Search contacts..." />
+        </div>
+        
+        <div class="echo-contacts" id="contactsList">
+            <!-- Contacts will be loaded here -->
+        </div>
+    </div>
+    
+    <!-- Main Chat Area -->
+    <div class="echo-main" id="mainChat">
+        <div class="echo-welcome">
+            <div class="echo-welcome-icon">💬</div>
+            <h3>Welcome to Invensis Echo Chat</h3>
+            <p>Select a contact to start chatting</p>
+        </div>
+    </div>
+</div>
+
+<script>
+class EchoChat {
+    constructor() {
+        this.currentConversationId = null;
+        this.currentRecipient = null;
+        this.pollingInterval = null;
+        this.lastMessageTime = null;
+        this.isTyping = false;
+        
+        this.init();
+    }
+    
+    async init() {
+        await this.loadContacts();
+        this.setupEventListeners();
+        this.startPolling();
+    }
+    
+    setupEventListeners() {
+        // Search functionality
+        document.getElementById('contactSearch').addEventListener('input', (e) => {
+            this.filterContacts(e.target.value);
+        });
+        
+        // Send message
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && e.target.id === 'messageInput') {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+    }
+    
+    async loadContacts() {
+        try {
+            const response = await fetch('/api/echo-chat/contacts');
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderContacts(data.contacts);
+            } else {
+                console.error('Failed to load contacts:', data.error);
+            }
+        } catch (error) {
+            console.error('Error loading contacts:', error);
+        }
+    }
+    
+    renderContacts(contacts) {
+        const container = document.getElementById('contactsList');
+        container.innerHTML = '';
+        
+        Object.keys(contacts).forEach(role => {
+            if (contacts[role].length === 0) return;
+            
+            const roleSection = document.createElement('div');
+            roleSection.className = 'echo-role-section';
+            
+            const roleHeader = document.createElement('div');
+            roleHeader.className = 'echo-role-header';
+            roleHeader.textContent = `${role.charAt(0).toUpperCase() + role.slice(1)}s (${contacts[role].length})`;
+            roleSection.appendChild(roleHeader);
+            
+            contacts[role].forEach(contact => {
+                const contactItem = document.createElement('div');
+                contactItem.className = 'echo-contact-item';
+                contactItem.dataset.contactId = contact._id;
+                contactItem.dataset.contactName = contact.display_name;
+                
+                contactItem.innerHTML = `
+                    <div class="echo-contact-avatar">${contact.display_name.charAt(0).toUpperCase()}</div>
+                    <div class="echo-contact-info">
+                        <div class="echo-contact-name">${contact.display_name}</div>
+                        <div class="echo-contact-role">${contact.role_display}</div>
+                        <div class="echo-contact-cluster">${contact.cluster_info}</div>
+                    </div>
+                    <div class="echo-status-offline"></div>
+                `;
+                
+                contactItem.addEventListener('click', () => this.selectContact(contact));
+                roleSection.appendChild(contactItem);
+            });
+            
+            container.appendChild(roleSection);
+        });
+    }
+    
+    filterContacts(searchTerm) {
+        const contactItems = document.querySelectorAll('.echo-contact-item');
+        const searchLower = searchTerm.toLowerCase();
+        
+        contactItems.forEach(item => {
+            const name = item.dataset.contactName.toLowerCase();
+            const role = item.querySelector('.echo-contact-role').textContent.toLowerCase();
+            const cluster = item.querySelector('.echo-contact-cluster').textContent.toLowerCase();
+            
+            const matches = name.includes(searchLower) || 
+                          role.includes(searchLower) || 
+                          cluster.includes(searchLower);
+            
+            item.style.display = matches ? 'flex' : 'none';
+        });
+    }
+    
+    async selectContact(contact) {
+        // Update active contact
+        document.querySelectorAll('.echo-contact-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        event.currentTarget.classList.add('active');
+        
+        this.currentRecipient = contact;
+        
+        // Start conversation
+        await this.startConversation(contact._id);
+        
+        // Show chat interface
+        this.showChatInterface(contact);
+    }
+    
+    async startConversation(recipientId) {
+        try {
+            const response = await fetch('/api/echo-chat/start-conversation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ recipient_id: recipientId })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                this.currentConversationId = data.conversation_id;
+                await this.loadMessages();
+            } else {
+                console.error('Failed to start conversation:', data.error);
+                alert('Failed to start conversation: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error starting conversation:', error);
+        }
+    }
+    
+    showChatInterface(contact) {
+        const mainChat = document.getElementById('mainChat');
+        mainChat.innerHTML = `
+            <div class="echo-chat-header">
+                <div class="echo-chat-info">
+                    <div class="echo-chat-avatar">${contact.display_name.charAt(0).toUpperCase()}</div>
+                    <div class="echo-chat-details">
+                        <h3>${contact.display_name}</h3>
+                        <p>${contact.role_display} • ${contact.cluster_info}</p>
+                    </div>
+                </div>
+                <div class="echo-chat-actions">
+                    <button class="echo-chat-btn" onclick="echoChat.callContact()">📞 Call</button>
+                    <button class="echo-chat-btn" onclick="echoChat.videoCall()">📹 Video</button>
+                </div>
+            </div>
+            
+            <div class="echo-messages" id="messagesContainer">
+                <!-- Messages will be loaded here -->
+            </div>
+            
+            <div class="echo-typing-indicator" id="typingIndicator">
+                ${contact.display_name} is typing...
+            </div>
+            
+            <div class="echo-input-area">
+                <div class="echo-input-container">
+                    <textarea 
+                        id="messageInput" 
+                        class="echo-input" 
+                        placeholder="Type your message..."
+                        rows="1"
+                    ></textarea>
+                    <button id="sendButton" class="echo-send-btn" onclick="echoChat.sendMessage()">
+                        Send
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        // Auto-resize textarea
+        const textarea = document.getElementById('messageInput');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+    }
+    
+    async loadMessages() {
+        if (!this.currentConversationId) return;
+        
+        try {
+            const url = this.lastMessageTime ? 
+                `/api/echo-chat/messages/${this.currentConversationId}?since=${this.lastMessageTime}` :
+                `/api/echo-chat/messages/${this.currentConversationId}`;
+                
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            if (data.success) {
+                this.renderMessages(data.messages);
+                if (data.messages.length > 0) {
+                    this.lastMessageTime = data.messages[data.messages.length - 1].timestamp;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading messages:', error);
+        }
+    }
+    
+    renderMessages(messages) {
+        const container = document.getElementById('messagesContainer');
+        
+        messages.forEach(message => {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `echo-message ${message.is_sent_by_me ? 'sent' : 'received'}`;
+            
+            const time = new Date(message.timestamp).toLocaleTimeString([], { 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+            
+            messageDiv.innerHTML = `
+                <div class="echo-message-content">
+                    ${message.content}
+                    <div class="echo-message-time">${time}</div>
+                </div>
+            `;
+            
+            container.appendChild(messageDiv);
+        });
+        
+        // Scroll to bottom
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    async sendMessage() {
+        const input = document.getElementById('messageInput');
+        const message = input.value.trim();
+        
+        if (!message || !this.currentConversationId) return;
+        
+        // Disable send button
+        const sendBtn = document.getElementById('sendButton');
+        sendBtn.disabled = true;
+        sendBtn.textContent = 'Sending...';
+        
+        try {
+            const response = await fetch('/api/echo-chat/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    conversation_id: this.currentConversationId,
+                    message: message,
+                    message_type: 'text'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                input.value = '';
+                input.style.height = 'auto';
+                await this.loadMessages();
+            } else {
+                alert('Failed to send message: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error sending message:', error);
+            alert('Error sending message');
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Send';
+        }
+    }
+    
+    startPolling() {
+        // Poll for new messages every 2 seconds
+        this.pollingInterval = setInterval(() => {
+            if (this.currentConversationId) {
+                this.loadMessages();
+            }
+        }, 2000);
+    }
+    
+    stopPolling() {
+        if (this.pollingInterval) {
+            clearInterval(this.pollingInterval);
+            this.pollingInterval = null;
+        }
+    }
+    
+    callContact() {
+        if (this.currentRecipient) {
+            alert(`Calling ${this.currentRecipient.display_name}...`);
+            // Implement calling functionality here
+        }
+    }
+    
+    videoCall() {
+        if (this.currentRecipient) {
+            alert(`Starting video call with ${this.currentRecipient.display_name}...`);
+            // Implement video calling functionality here
+        }
+    }
+}
+
+// Initialize Echo Chat when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    window.echoChat = new EchoChat();
+});
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (window.echoChat) {
+        window.echoChat.stopPolling();
+    }
+});
+</script>
+{% endblock %}

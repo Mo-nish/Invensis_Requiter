@@ -923,6 +923,14 @@
                 </div>
                 
                 <div class="flex items-center space-x-4">
+                    <!-- Invensis Echo Chat Link for eligible roles -->
+                    {% if current_user and current_user.role in ['recruiter', 'manager', 'cluster', 'hr_role'] %}
+                    <a href="/modern-chat" 
+                       class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg btn-animate">
+                        <i class="fas fa-comments mr-2"></i>Invensis Echo Chat
+                    </a>
+                    {% endif %}
+                    
                     <span class="text-gray-700">
                         <i class="fas fa-user mr-2"></i>
                         {{ current_user.name if current_user else 'Guest' }} {% if current_user %}({{ current_user.role.title() }}){% endif %}

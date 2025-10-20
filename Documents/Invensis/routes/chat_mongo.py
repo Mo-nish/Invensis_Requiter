@@ -23,8 +23,39 @@ def chat_interface():
 @chat_bp.route('/modern-chat')
 @login_required
 def modern_chat_interface():
-    """Serve the modern chat interface"""
-    return render_template('chat/modern_chat.html', current_user=current_user)
+    """Serve the Invensis Echo Chat interface"""
+    return render_template('chat/echo_chat.html', current_user=current_user, chat_title='Invensis Echo Chat')
+
+# ------------------
+# Role-based guardrails
+# ------------------
+
+def normalize_role(role: str) -> str:
+    """Normalize role strings used across the app (e.g., 'hr' vs 'hr_role')."""
+    if not role:
+        return ''
+    role = role.lower()
+    if role in ['hr', 'hr_role']:
+        return 'hr_role'
+    return role
+
+# Mapping of which roles are allowed to start chats with which other roles
+ALLOWED_CHAT_MAP = {
+    'recruiter': {'recruiter', 'manager', 'cluster', 'hr_role'},
+    'manager': {'manager', 'recruiter', 'cluster', 'hr_role'},
+    'cluster': {'manager', 'recruiter', 'hr_role'},
+    'hr_role': {'manager', 'recruiter', 'cluster', 'hr_role'},
+    # Admins can be added explicitly if needed
+}
+
+def is_chat_allowed(initiator_role: str, recipient_role: str) -> bool:
+    initiator = normalize_role(initiator_role)
+    recipient = normalize_role(recipient_role)
+    return recipient in ALLOWED_CHAT_MAP.get(initiator, set())
+
+def _get_user_by_id(db, user_id):
+    users_collection = db.users
+    return users_collection.find_one({'_id': user_id})
 
 # Modern Chat API Endpoints
 @chat_bp.route('/api/modern-chat/conversations')
@@ -112,11 +143,17 @@ def get_users():
         db = current_app.mongo.db
         users_collection = db.users
         
-        # Get all users except current user
-        users = list(users_collection.find(
+        # Get all users except current user and filter by allowed roles
+        me_role = normalize_role(getattr(current_user, 'role', ''))
+        raw_users = users_collection.find(
             {'_id': {'$ne': current_user.id}},
-            {'name': 1, 'email': 1, 'role': 1, 'profile_picture': 1}
-        ))
+            {'name': 1, 'email': 1, 'role': 1, 'profile_picture': 1, 'cluster': 1}
+        )
+        users = []
+        for u in raw_users:
+            other_role = normalize_role(u.get('role'))
+            if is_chat_allowed(me_role, other_role):
+                users.append(u)
         
         return jsonify({
             'success': True,
@@ -137,6 +174,17 @@ def create_conversation():
         participants.append(current_user.id)
         
         conversations_collection = db.conversations
+        users_collection = db.users
+
+        # Validate direct 1:1 conversations for role permissions when exactly 2 participants
+        unique_participants = list({*participants})
+        if len(unique_participants) == 2:
+            me_role = normalize_role(getattr(current_user, 'role', ''))
+            other_id = unique_participants[0] if unique_participants[1] == current_user.id else unique_participants[1]
+            other_user = users_collection.find_one({'_id': other_id}, {'role': 1})
+            other_role = normalize_role(other_user.get('role') if other_user else '')
+            if not is_chat_allowed(me_role, other_role):
+                return jsonify({'success': False, 'error': 'Chat not allowed between these roles'}), 403
         
         # Check if conversation already exists
         existing_conv = conversations_collection.find_one({
@@ -274,6 +322,241 @@ def chat_with_ai():
             'success': True,
             'response': response,
             'sender': 'ai_assistant'
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ------------------
+# Additional Echo Chat Routes
+# ------------------
+
+@chat_bp.route('/api/echo-chat/contacts')
+@login_required
+def get_echo_contacts():
+    """Get role-based contacts for Invensis Echo Chat"""
+    try:
+        from flask import current_app
+        db = current_app.mongo.db
+        users_collection = db.users
+        
+        me_role = normalize_role(getattr(current_user, 'role', ''))
+        my_cluster = getattr(current_user, 'cluster', None)
+        
+        # Get all users except current user
+        all_users = list(users_collection.find(
+            {'_id': {'$ne': current_user.id}, 'is_active': True},
+            {'name': 1, 'email': 1, 'role': 1, 'cluster': 1, 'profile_picture': 1}
+        ))
+        
+        # Group by role and filter by allowed chat pairs
+        contacts_by_role = {}
+        for user in all_users:
+            other_role = normalize_role(user.get('role'))
+            if is_chat_allowed(me_role, other_role):
+                role_key = other_role.replace('_role', '')
+                if role_key not in contacts_by_role:
+                    contacts_by_role[role_key] = []
+                
+                # Add cluster info for filtering
+                user['display_name'] = user.get('name', 'Unknown')
+                user['role_display'] = other_role.replace('_role', '').title()
+                user['cluster_info'] = user.get('cluster', 'General')
+                contacts_by_role[role_key].append(user)
+        
+        # Sort each role group by name
+        for role in contacts_by_role:
+            contacts_by_role[role].sort(key=lambda x: x.get('name', ''))
+        
+        return jsonify({
+            'success': True,
+            'contacts': contacts_by_role,
+            'my_role': me_role,
+            'my_cluster': my_cluster
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/echo-chat/send', methods=['POST'])
+@login_required
+def send_echo_message():
+    """Send a message in Echo Chat"""
+    try:
+        from flask import current_app
+        db = current_app.mongo.db
+        data = request.get_json()
+        
+        conversation_id = data.get('conversation_id')
+        message_text = data.get('message', '').strip()
+        message_type = data.get('message_type', 'text')
+        
+        if not conversation_id or not message_text:
+            return jsonify({'success': False, 'error': 'Conversation ID and message required'}), 400
+        
+        # Verify user is participant
+        conversations_collection = db.conversations
+        conversation = conversations_collection.find_one({
+            '_id': conversation_id,
+            'participants': current_user.id
+        })
+        
+        if not conversation:
+            return jsonify({'success': False, 'error': 'Conversation not found or access denied'}), 403
+        
+        # Create message
+        messages_collection = db.messages
+        message_data = {
+            'conversation_id': conversation_id,
+            'sender_id': current_user.id,
+            'sender_name': getattr(current_user, 'name', 'Unknown'),
+            'content': message_text,
+            'message_type': message_type,
+            'timestamp': datetime.utcnow(),
+            'status': 'sent',
+            'read_by': [current_user.id]
+        }
+        
+        result = messages_collection.insert_one(message_data)
+        message_id = str(result.inserted_id)
+        
+        # Update conversation last message
+        conversations_collection.update_one(
+            {'_id': conversation_id},
+            {
+                '$set': {
+                    'last_message': message_text,
+                    'last_message_time': datetime.utcnow()
+                }
+            }
+        )
+        
+        return jsonify({
+            'success': True,
+            'message_id': message_id,
+            'timestamp': message_data['timestamp'].isoformat()
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/echo-chat/messages/<conversation_id>')
+@login_required
+def get_echo_messages(conversation_id):
+    """Get messages for Echo Chat conversation with polling support"""
+    try:
+        from flask import current_app
+        db = current_app.mongo.db
+        
+        # Verify user is participant
+        conversations_collection = db.conversations
+        conversation = conversations_collection.find_one({
+            '_id': conversation_id,
+            'participants': current_user.id
+        })
+        
+        if not conversation:
+            return jsonify({'success': False, 'error': 'Conversation not found or access denied'}), 403
+        
+        # Get messages
+        messages_collection = db.messages
+        since = request.args.get('since')
+        
+        query = {'conversation_id': conversation_id}
+        if since:
+            try:
+                since_dt = datetime.fromisoformat(since.replace('Z', '+00:00'))
+                query['timestamp'] = {'$gt': since_dt}
+            except:
+                pass  # Invalid since parameter, ignore
+        
+        messages = list(messages_collection.find(query).sort('timestamp', 1))
+        
+        # Mark messages as read
+        if not since:  # Only mark as read on full load, not polling
+            messages_collection.update_many(
+                {
+                    'conversation_id': conversation_id,
+                    'sender_id': {'$ne': current_user.id},
+                    'read_by': {'$ne': current_user.id}
+                },
+                {'$addToSet': {'read_by': current_user.id}}
+            )
+        
+        # Format messages
+        formatted_messages = []
+        for msg in messages:
+            formatted_messages.append({
+                'id': str(msg['_id']),
+                'sender_id': msg['sender_id'],
+                'sender_name': msg.get('sender_name', 'Unknown'),
+                'content': msg['content'],
+                'message_type': msg.get('message_type', 'text'),
+                'timestamp': msg['timestamp'].isoformat(),
+                'is_sent_by_me': msg['sender_id'] == current_user.id,
+                'is_read': current_user.id in msg.get('read_by', [])
+            })
+        
+        return jsonify({
+            'success': True,
+            'messages': formatted_messages,
+            'conversation_id': conversation_id
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@chat_bp.route('/api/echo-chat/start-conversation', methods=['POST'])
+@login_required
+def start_echo_conversation():
+    """Start a new conversation with another user"""
+    try:
+        from flask import current_app
+        db = current_app.mongo.db
+        data = request.get_json()
+        
+        recipient_id = data.get('recipient_id')
+        if not recipient_id:
+            return jsonify({'success': False, 'error': 'Recipient ID required'}), 400
+        
+        # Verify recipient exists and chat is allowed
+        users_collection = db.users
+        recipient = users_collection.find_one({'_id': recipient_id})
+        if not recipient:
+            return jsonify({'success': False, 'error': 'Recipient not found'}), 404
+        
+        me_role = normalize_role(getattr(current_user, 'role', ''))
+        other_role = normalize_role(recipient.get('role'))
+        if not is_chat_allowed(me_role, other_role):
+            return jsonify({'success': False, 'error': 'Chat not allowed between these roles'}), 403
+        
+        # Check if conversation already exists
+        conversations_collection = db.conversations
+        existing_conv = conversations_collection.find_one({
+            'participants': {'$all': [current_user.id, recipient_id], '$size': 2}
+        })
+        
+        if existing_conv:
+            return jsonify({
+                'success': True,
+                'conversation_id': str(existing_conv['_id']),
+                'existing': True,
+                'recipient_name': recipient.get('name', 'Unknown')
+            })
+        
+        # Create new conversation
+        conversation_data = {
+            'participants': [current_user.id, recipient_id],
+            'created_by': current_user.id,
+            'created_at': datetime.utcnow(),
+            'last_message_time': datetime.utcnow(),
+            'conversation_type': 'direct'
+        }
+        
+        result = conversations_collection.insert_one(conversation_data)
+        conversation_id = str(result.inserted_id)
+        
+        return jsonify({
+            'success': True,
+            'conversation_id': conversation_id,
+            'existing': False,
+            'recipient_name': recipient.get('name', 'Unknown')
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
