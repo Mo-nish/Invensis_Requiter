@@ -2,6 +2,11 @@
 
 {% block title %}{{ chat_title or 'Invensis Echo Chat' }} - Invensis Hiring Portal{% endblock %}
 
+<!-- Cache busting for JavaScript -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
 {% block head %}
 <style>
     :root {
@@ -681,19 +686,27 @@ class ModernEchoChat {
     
     async loadContacts() {
         try {
+            console.log('Loading contacts...');
             const response = await fetch('/api/echo-chat/contacts');
+            console.log('Response status:', response.status);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
             const data = await response.json();
+            console.log('Contacts data:', data);
             
             if (data.success) {
                 this.contacts = data.contacts;
                 this.renderContacts(data.contacts);
             } else {
                 console.error('Failed to load contacts:', data.error);
-                this.showError('Failed to load contacts');
+                this.showError('Failed to load contacts: ' + data.error);
             }
         } catch (error) {
             console.error('Error loading contacts:', error);
-            this.showError('Error loading contacts');
+            this.showError('Error loading contacts: ' + error.message);
         }
     }
     
