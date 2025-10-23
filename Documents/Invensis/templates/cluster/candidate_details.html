@@ -174,15 +174,15 @@
                              <div>
                                  <label class="block text-sm font-medium text-gray-700">Manager Round Rating</label>
                                  <div class="mt-2 p-3 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
-                                     {% if candidate.manager_feedback.overall_rating %}
+                                     {% if candidate.manager_overall_rating %}
                                      <div class="mb-3">
                                          <div class="flex items-center justify-between">
                                              <span class="text-sm font-medium text-gray-700">Overall Rating</span>
                                              <div class="flex items-center">
                                                  <span class="text-yellow-500 mr-2">
-                                                     {% for i in range(candidate.manager_feedback.overall_rating|round|int) %}⭐{% endfor %}
+                                                     {% for i in range(candidate.manager_overall_rating|round|int) %}⭐{% endfor %}
                                                  </span>
-                                                 <span class="text-lg font-bold text-green-600">{{ "%.1f"|format(candidate.manager_feedback.overall_rating) }}/5</span>
+                                                 <span class="text-lg font-bold text-green-600">{{ "%.1f"|format(candidate.manager_overall_rating) }}/5</span>
                                              </div>
                                          </div>
                                      </div>

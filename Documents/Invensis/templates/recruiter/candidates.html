@@ -279,23 +279,23 @@
                             <!-- Manager Rating Column -->
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm text-gray-900">
-                                    {% if candidate.manager_feedback and candidate.manager_feedback.overall_rating %}
+                                    {% if candidate.manager_overall_rating %}
                                         <div class="flex items-center space-x-2">
                                             <div class="flex items-center">
                                                 <span class="text-yellow-500 mr-1">
-                                                    {% for i in range(candidate.manager_feedback.overall_rating|round|int) %}⭐{% endfor %}
+                                                    {% for i in range(candidate.manager_overall_rating|round|int) %}⭐{% endfor %}
                                                 </span>
-                                                <span class="text-xs text-gray-500">({{ "%.1f"|format(candidate.manager_feedback.overall_rating) }}/5)</span>
+                                                <span class="text-xs text-gray-500">({{ "%.1f"|format(candidate.manager_overall_rating) }}/5)</span>
                                             </div>
-                                            {% if candidate.manager_feedback.feedback %}
+                                            {% if candidate.manager_feedback %}
                                                 <div class="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
                                                     <i class="fas fa-comment mr-1"></i>Has Feedback
                                                 </div>
                                             {% endif %}
                                         </div>
-                                        {% if candidate.manager_feedback.communication_skills or candidate.manager_feedback.technical_skills or candidate.manager_feedback.problem_solving or candidate.manager_feedback.cultural_fit %}
+                                        {% if candidate.manager_communication_skills or candidate.manager_technical_skills or candidate.manager_problem_solving or candidate.manager_cultural_fit %}
                                         <div class="text-xs text-gray-500 mt-1">
-                                            C:{{ candidate.manager_feedback.communication_skills|default(0) }} | T:{{ candidate.manager_feedback.technical_skills|default(0) }} | P:{{ candidate.manager_feedback.problem_solving|default(0) }} | F:{{ candidate.manager_feedback.cultural_fit|default(0) }}
+                                            C:{{ candidate.manager_communication_skills|default(0) }} | T:{{ candidate.manager_technical_skills|default(0) }} | P:{{ candidate.manager_problem_solving|default(0) }} | F:{{ candidate.manager_cultural_fit|default(0) }}
                                         </div>
                                         {% endif %}
                                     {% else %}
