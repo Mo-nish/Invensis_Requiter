@@ -1774,6 +1774,8 @@ async function loadClusterTabData(tabName) {
                 return;
             }
             
+            console.log('Chart.js is available, proceeding with chart rendering...');
+            
             // Render charts based on tab
             renderClusterCharts(tabName, data);
             
@@ -1870,89 +1872,109 @@ function renderClusterCharts(tabName, data) {
 }
 
 function renderClusterOverviewCharts(data) {
-    console.log('Rendering Cluster overview charts...');
+    console.log('Rendering Cluster overview charts with data:', data);
     
     // Status Distribution Chart
     const statusCtx = document.getElementById('clusterStatusChart');
+    console.log('Status chart canvas found:', statusCtx);
+    
     if (statusCtx && data.status_counts) {
         const statusLabels = Object.keys(data.status_counts);
         const statusData = Object.values(data.status_counts);
+        console.log('Status chart data:', { labels: statusLabels, data: statusData });
         
-        new Chart(statusCtx, {
-            type: 'doughnut',
-            data: {
-                labels: statusLabels,
-                datasets: [{
-                    data: statusData,
-                    backgroundColor: [
-                        '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'
-                    ],
-                    borderWidth: 2,
-                    borderColor: '#ffffff'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            padding: 20,
-                            usePointStyle: true
+        try {
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: [
+                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Multi-Cluster Status Distribution',
+                            font: { size: 16, weight: 'bold' }
                         }
-                    },
-                    title: {
-                        display: true,
-                        text: 'Multi-Cluster Status Distribution',
-                        font: { size: 16, weight: 'bold' }
                     }
                 }
-            }
-        });
+            });
+            console.log('Status chart rendered successfully');
+        } catch (error) {
+            console.error('Error rendering status chart:', error);
+        }
+    } else {
+        console.warn('Status chart canvas not found or no data available');
     }
     
     // Cluster Performance Chart
     const clusterCtx = document.getElementById('clusterPerformanceChart');
+    console.log('Cluster performance chart canvas found:', clusterCtx);
+    
     if (clusterCtx && data.cluster_data) {
         const clusterLabels = Object.keys(data.cluster_data);
         const clusterData = Object.values(data.cluster_data);
+        console.log('Cluster performance chart data:', { labels: clusterLabels, data: clusterData });
         
-        new Chart(clusterCtx, {
-            type: 'bar',
-            data: {
-                labels: clusterLabels,
-                datasets: [{
-                    label: 'Candidates',
-                    data: clusterData,
-                    backgroundColor: '#3B82F6',
-                    borderColor: '#1D4ED8',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        display: false
-                    },
-                    title: {
-                        display: true,
-                        text: 'Cluster Performance Comparison',
-                        font: { size: 16, weight: 'bold' }
-                    }
+        try {
+            new Chart(clusterCtx, {
+                type: 'bar',
+                data: {
+                    labels: clusterLabels,
+                    datasets: [{
+                        label: 'Candidates',
+                        data: clusterData,
+                        backgroundColor: '#3B82F6',
+                        borderColor: '#1D4ED8',
+                        borderWidth: 1
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 1
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Cluster Performance Comparison',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+            console.log('Cluster performance chart rendered successfully');
+        } catch (error) {
+            console.error('Error rendering cluster performance chart:', error);
+        }
+    } else {
+        console.warn('Cluster performance chart canvas not found or no data available');
     }
 }
 
@@ -2101,22 +2123,112 @@ function createClusterFallbackCharts() {
 }
 
 function renderClusterFallbackCharts(tabName, data) {
-    console.log(`Rendering Cluster fallback charts for ${tabName}`);
+    console.log(`Rendering Cluster fallback charts for ${tabName} with data:`, data);
     
     // Replace chart containers with text summaries
     const containers = document.querySelectorAll(`#cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab .chart-container`);
     containers.forEach(container => {
-        if (data.status_counts) {
+        console.log(`Processing fallback for container:`, container);
+        
+        if (tabName === 'overview' && data.status_counts) {
             container.innerHTML = `
-                <div class="p-6 text-center">
-                    <h3 class="text-lg font-semibold mb-4">Data Summary</h3>
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Status Distribution</h3>
                     <div class="grid grid-cols-2 gap-4">
                         ${Object.entries(data.status_counts).map(([status, count]) => 
-                            `<div class="bg-gray-100 p-3 rounded">
-                                <div class="font-semibold">${status}</div>
-                                <div class="text-2xl font-bold text-blue-600">${count}</div>
+                            `<div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                                <div class="font-semibold text-gray-700">${status}</div>
+                                <div class="text-3xl font-bold text-blue-600">${count}</div>
                             </div>`
                         ).join('')}
+                    </div>
+                    ${data.cluster_data ? `
+                        <div class="mt-6">
+                            <h4 class="text-lg font-semibold mb-3 text-center">Cluster Distribution</h4>
+                            <div class="space-y-2">
+                                ${Object.entries(data.cluster_data).map(([cluster, count]) => 
+                                    `<div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                        <span class="font-medium">${cluster}</span>
+                                        <span class="text-xl font-bold text-green-600">${count}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else if (tabName === 'trends' && data.trend_data) {
+            container.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Trend Analysis</h3>
+                    <div class="space-y-3">
+                        ${data.trend_data.map(trend => 
+                            `<div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                <span class="font-medium">${trend.date}</span>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-600">Applications: ${trend.applications}</div>
+                                    <div class="text-sm text-gray-600">Selections: ${trend.selections}</div>
+                                    <div class="text-sm font-bold text-green-600">Success: ${trend.success_rate}%</div>
+                                </div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (tabName === 'performance' && data.cluster_performance) {
+            container.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Cluster Performance</h3>
+                    <div class="space-y-3">
+                        ${Object.entries(data.cluster_performance).map(([cluster, perf]) => 
+                            `<div class="p-4 bg-gray-50 rounded-lg">
+                                <div class="font-semibold text-lg mb-2">${cluster}</div>
+                                <div class="grid grid-cols-3 gap-4 text-center">
+                                    <div>
+                                        <div class="text-2xl font-bold text-blue-600">${perf.candidates}</div>
+                                        <div class="text-sm text-gray-600">Total</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold text-green-600">${perf.selected}</div>
+                                        <div class="text-sm text-gray-600">Selected</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold text-yellow-600">${perf.pending}</div>
+                                        <div class="text-sm text-gray-600">Pending</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (tabName === 'reports' && (data.hr_by_cluster || data.manager_by_cluster)) {
+            container.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Personnel Distribution</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${data.hr_by_cluster ? `
+                            <div class="p-4 bg-purple-50 rounded-lg">
+                                <h4 class="font-semibold mb-3 text-purple-800">HR Personnel</h4>
+                                ${Object.entries(data.hr_by_cluster).map(([cluster, count]) => 
+                                    `<div class="flex justify-between items-center py-1">
+                                        <span>${cluster}</span>
+                                        <span class="font-bold text-purple-600">${count}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                        ${data.manager_by_cluster ? `
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-semibold mb-3 text-blue-800">Managers</h4>
+                                ${Object.entries(data.manager_by_cluster).map(([cluster, count]) => 
+                                    `<div class="flex justify-between items-center py-1">
+                                        <span>${cluster}</span>
+                                        <span class="font-bold text-blue-600">${count}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
                     </div>
                 </div>
             `;
@@ -2124,7 +2236,10 @@ function renderClusterFallbackCharts(tabName, data) {
             container.innerHTML = `
                 <div class="p-6 text-center">
                     <h3 class="text-lg font-semibold mb-4">No Data Available</h3>
-                    <p class="text-gray-600">Unable to load chart data</p>
+                    <p class="text-gray-600">Unable to load chart data for ${tabName}</p>
+                    <div class="mt-4 p-4 bg-gray-100 rounded">
+                        <p class="text-sm text-gray-500">Data received: ${JSON.stringify(data).substring(0, 100)}...</p>
+                    </div>
                 </div>
             `;
         }
@@ -2147,7 +2262,21 @@ function showClusterChartLoading(tabName) {
 }
 
 function hideClusterChartLoading(tabName) {
-    // Loading is automatically hidden when charts are rendered
+    console.log(`Hiding loading for ${tabName} tab...`);
+    const containers = document.querySelectorAll(`#cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab .chart-container`);
+    containers.forEach(container => {
+        // Clear loading spinner
+        const loadingElements = container.querySelectorAll('.fa-spinner, .text-center');
+        loadingElements.forEach(el => el.remove());
+        
+        // Ensure canvas is visible
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+            canvas.style.display = 'block';
+        }
+        
+        console.log(`Cleared loading for ${tabName} container:`, container);
+    });
 }
 
 function showClusterNotification(message, type) {
