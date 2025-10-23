@@ -3790,7 +3790,7 @@ function renderTrendCharts(data) {
     });
     
     // Success Rate Chart - Use real data from API
-    const monthlySuccess = data.monthly_success || {};
+    const monthlySuccess = analyticsData.monthly_success || {};
     const successLabels = Object.keys(monthlySuccess);
     const successData = Object.values(monthlySuccess);
     
@@ -3829,7 +3829,7 @@ function renderPerformanceCharts(data) {
     });
     
     // Response Time Chart
-    const responseTimes = data.response_times || [2.5, 1.8, 3.2, 2.1, 1.5];
+    const responseTimes = analyticsData.response_times || [2.5, 1.8, 3.2, 2.1, 1.5];
     renderLineChart('responseChart', {
         labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'],
         datasets: [{
@@ -3842,8 +3842,11 @@ function renderPerformanceCharts(data) {
 }
 
 function renderReportCharts(data) {
+    // Extract data from the correct structure
+    const analyticsData = data.data || data;
+    
     // Department wise distribution - Use real data only
-    const departments = data.departments || {};
+    const departments = analyticsData.departments || {};
     const deptLabels = Object.keys(departments);
     const deptData = Object.values(departments);
     
@@ -3854,7 +3857,7 @@ function renderReportCharts(data) {
     });
     
     // Experience Level Distribution - Use real data only
-    const experienceLevels = data.experience_levels || [];
+    const experienceLevels = analyticsData.experience_levels || [];
     renderBarChart('experienceChart', {
         labels: ['0-1 years', '1-3 years', '3-5 years', '5+ years'],
         datasets: [{

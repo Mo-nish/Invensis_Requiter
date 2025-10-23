@@ -1090,11 +1090,99 @@ def get_analytics_data():
         
         print(f"DEBUG: Analytics calculated - Total: {total_candidates}, Selected: {selected_count}, Success Rate: {success_rate}%")
         
+        # Calculate weekly trends (last 4 weeks)
+        weekly_trends = defaultdict(lambda: {'applications': 0, 'selections': 0})
+        for candidate in candidates:
+            created_at = candidate.get('created_at', '')
+            if created_at:
+                try:
+                    if isinstance(created_at, str):
+                        clean_date = created_at.replace('Z', '+00:00')
+                        dt = datetime.fromisoformat(clean_date)
+                    elif hasattr(created_at, 'strftime'):
+                        dt = created_at
+                    else:
+                        continue
+                    
+                    # Get week start (Monday)
+                    week_start = dt - timedelta(days=dt.weekday())
+                    week_key = week_start.strftime('%Y-%m-%d')
+                    weekly_trends[week_key]['applications'] += 1
+                    
+                    if candidate.get('status') == 'Selected':
+                        weekly_trends[week_key]['selections'] += 1
+                except Exception as e:
+                    print(f"Weekly trend date parsing error: {e}")
+                    continue
+        
+        # Calculate monthly success rates
+        monthly_success = defaultdict(float)
+        for candidate in candidates:
+            created_at = candidate.get('created_at', '')
+            if created_at and candidate.get('status') == 'Selected':
+                try:
+                    if isinstance(created_at, str):
+                        clean_date = created_at.replace('Z', '+00:00')
+                        dt = datetime.fromisoformat(clean_date)
+                    elif hasattr(created_at, 'strftime'):
+                        dt = created_at
+                    else:
+                        continue
+                    month_key = dt.strftime('%Y-%m')
+                    monthly_success[month_key] += 1
+                except Exception as e:
+                    print(f"Monthly success date parsing error: {e}")
+                    continue
+        
+        # Calculate success rates as percentages
+        for month in monthly_success:
+            total_in_month = monthly_stats.get(month, 1)
+            monthly_success[month] = round((monthly_success[month] / total_in_month) * 100, 1)
+        
+        # HR Performance data
+        hr_performance = []
+        hr_users = list(users_collection.find({'role': 'hr'}))
+        for hr in hr_users:
+            hr_candidates = [c for c in candidates if c.get('assigned_by') == hr.get('email')]
+            hr_performance.append({
+                'name': hr.get('name', 'Unknown HR'),
+                'candidates_added': len(hr_candidates),
+                'successful_placements': len([c for c in hr_candidates if c.get('status') == 'Selected'])
+            })
+        
+        # Department distribution
+        departments = defaultdict(int)
+        for candidate in candidates:
+            dept = candidate.get('department', 'General')
+            departments[dept] += 1
+        
+        # Experience level distribution
+        experience_levels = [0, 0, 0, 0]  # 0-1, 1-3, 3-5, 5+ years
+        for candidate in candidates:
+            exp_years = candidate.get('experience_years', 0)
+            if exp_years <= 1:
+                experience_levels[0] += 1
+            elif exp_years <= 3:
+                experience_levels[1] += 1
+            elif exp_years <= 5:
+                experience_levels[2] += 1
+            else:
+                experience_levels[3] += 1
+        
+        # Response time data (mock data for now)
+        response_times = [2.5, 1.8, 3.2, 2.1, 1.5]
+        
         analytics_data = {
             'total_candidates': total_candidates,
             'status_counts': dict(status_counts),
             'position_counts': dict(position_counts),
             'monthly_stats': dict(monthly_stats),
+            'weekly_trends': dict(weekly_trends),
+            'monthly_success': dict(monthly_success),
+            'hr_performance': hr_performance,
+            'departments': dict(departments),
+            'experience_levels': experience_levels,
+            'response_times': response_times,
             'success_rate': success_rate,
             'pending_count': status_counts.get('Pending', 0),
             'assigned_count': status_counts.get('Assigned', 0),
