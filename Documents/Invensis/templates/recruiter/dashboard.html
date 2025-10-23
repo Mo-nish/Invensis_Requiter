@@ -131,7 +131,11 @@
                         </td>
                         <td class="py-3 px-4">
                             {% if request.get('deadline_status') %}
-                                {% if request.deadline_status == 'overdue' %}
+                                {% if request.status == 'Completed' %}
+                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                                        <i class="fas fa-check-circle mr-1"></i>Completed
+                                    </span>
+                                {% elif request.deadline_status == 'overdue' %}
                                     <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
                                         <i class="fas fa-exclamation-triangle mr-1"></i>Overdue
                                     </span>

@@ -807,6 +807,12 @@ class CandidateRequest:
             self.assigned_count = assigned_count
         if onboarded_count is not None:
             self.onboarded_count = onboarded_count
+        
+        # Check if all requested candidates are onboarded
+        if self.onboarded_count >= self.quantity_needed:
+            self.status = 'Completed'
+            print(f"SUCCESS: Request {self._id} marked as Completed - {self.onboarded_count}/{self.quantity_needed} candidates onboarded")
+        
         self.updated_at = datetime.now().isoformat()
         return self.save()
 

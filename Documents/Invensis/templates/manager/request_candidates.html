@@ -151,7 +151,8 @@
                             {{ request.urgency_level }}
                         </span>
                         <span class="px-3 py-1 rounded-full text-sm font-medium 
-                            {% if request.status == 'Active' %}status-active
+                            {% if request.status == 'Completed' %}status-completed
+                            {% elif request.status == 'Active' %}status-active
                             {% else %}status-completed{% endif %}">
                             {{ request.status }}
                         </span>
