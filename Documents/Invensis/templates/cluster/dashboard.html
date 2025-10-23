@@ -1774,6 +1774,9 @@ async function loadClusterTabData(tabName) {
                 return;
             }
             
+            // Render charts based on tab
+            renderClusterCharts(tabName, data);
+            
             hideClusterChartLoading(tabName);
             showClusterNotification(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} data loaded successfully`, 'success');
         }, 1000);
@@ -1839,6 +1842,258 @@ function updateClusterDashboardStats(data) {
     }
 }
 
+// Chart rendering functions for Cluster
+function renderClusterCharts(tabName, data) {
+    console.log(`Rendering Cluster charts for ${tabName} with data:`, data);
+    
+    try {
+        switch(tabName) {
+            case 'overview':
+                renderClusterOverviewCharts(data);
+                break;
+            case 'trends':
+                renderClusterTrendCharts(data);
+                break;
+            case 'performance':
+                renderClusterPerformanceCharts(data);
+                break;
+            case 'reports':
+                renderClusterReportCharts(data);
+                break;
+            default:
+                console.warn(`Unknown tab: ${tabName}`);
+        }
+    } catch (error) {
+        console.error(`Error rendering Cluster charts for ${tabName}:`, error);
+        renderClusterFallbackCharts(tabName, data);
+    }
+}
+
+function renderClusterOverviewCharts(data) {
+    console.log('Rendering Cluster overview charts...');
+    
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('clusterStatusChart');
+    if (statusCtx && data.status_counts) {
+        const statusLabels = Object.keys(data.status_counts);
+        const statusData = Object.values(data.status_counts);
+        
+        new Chart(statusCtx, {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    data: statusData,
+                    backgroundColor: [
+                        '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            usePointStyle: true
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: 'Multi-Cluster Status Distribution',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Cluster Performance Chart
+    const clusterCtx = document.getElementById('clusterPerformanceChart');
+    if (clusterCtx && data.cluster_data) {
+        const clusterLabels = Object.keys(data.cluster_data);
+        const clusterData = Object.values(data.cluster_data);
+        
+        new Chart(clusterCtx, {
+            type: 'bar',
+            data: {
+                labels: clusterLabels,
+                datasets: [{
+                    label: 'Candidates',
+                    data: clusterData,
+                    backgroundColor: '#3B82F6',
+                    borderColor: '#1D4ED8',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    title: {
+                        display: true,
+                        text: 'Cluster Performance Comparison',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderClusterTrendCharts(data) {
+    console.log('Rendering Cluster trend charts...');
+    
+    const trendCtx = document.getElementById('clusterTrendChart');
+    if (trendCtx && data.trend_data) {
+        const dates = data.trend_data.map(d => d.date);
+        const applications = data.trend_data.map(d => d.applications);
+        const selections = data.trend_data.map(d => d.selections);
+        
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Applications',
+                    data: applications,
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Selections',
+                    data: selections,
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Multi-Cluster Trend Analysis',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderClusterPerformanceCharts(data) {
+    console.log('Rendering Cluster performance charts...');
+    
+    const performanceCtx = document.getElementById('clusterPerformanceMetricsChart');
+    if (performanceCtx && data.cluster_performance) {
+        const clusters = Object.keys(data.cluster_performance);
+        const candidates = clusters.map(c => data.cluster_performance[c].candidates);
+        const selected = clusters.map(c => data.cluster_performance[c].selected);
+        const pending = clusters.map(c => data.cluster_performance[c].pending);
+        
+        new Chart(performanceCtx, {
+            type: 'bar',
+            data: {
+                labels: clusters,
+                datasets: [{
+                    label: 'Total Candidates',
+                    data: candidates,
+                    backgroundColor: '#3B82F6'
+                }, {
+                    label: 'Selected',
+                    data: selected,
+                    backgroundColor: '#10B981'
+                }, {
+                    label: 'Pending',
+                    data: pending,
+                    backgroundColor: '#F59E0B'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Cluster Performance Metrics',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderClusterReportCharts(data) {
+    console.log('Rendering Cluster report charts...');
+    
+    const reportCtx = document.getElementById('clusterReportChart');
+    if (reportCtx && data.hr_by_cluster && data.manager_by_cluster) {
+        const clusters = [...new Set([...Object.keys(data.hr_by_cluster), ...Object.keys(data.manager_by_cluster)])];
+        const hrData = clusters.map(c => data.hr_by_cluster[c] || 0);
+        const managerData = clusters.map(c => data.manager_by_cluster[c] || 0);
+        
+        new Chart(reportCtx, {
+            type: 'bar',
+            data: {
+                labels: clusters,
+                datasets: [{
+                    label: 'HR Personnel',
+                    data: hrData,
+                    backgroundColor: '#8B5CF6'
+                }, {
+                    label: 'Managers',
+                    data: managerData,
+                    backgroundColor: '#06B6D4'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Personnel Distribution by Cluster',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
 // Fallback chart rendering for Cluster
 function createClusterFallbackCharts() {
     console.log('Creating Cluster fallback charts...');
@@ -1847,6 +2102,33 @@ function createClusterFallbackCharts() {
 
 function renderClusterFallbackCharts(tabName, data) {
     console.log(`Rendering Cluster fallback charts for ${tabName}`);
+    
+    // Replace chart containers with text summaries
+    const containers = document.querySelectorAll(`#cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab .chart-container`);
+    containers.forEach(container => {
+        if (data.status_counts) {
+            container.innerHTML = `
+                <div class="p-6 text-center">
+                    <h3 class="text-lg font-semibold mb-4">Data Summary</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        ${Object.entries(data.status_counts).map(([status, count]) => 
+                            `<div class="bg-gray-100 p-3 rounded">
+                                <div class="font-semibold">${status}</div>
+                                <div class="text-2xl font-bold text-blue-600">${count}</div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="p-6 text-center">
+                    <h3 class="text-lg font-semibold mb-4">No Data Available</h3>
+                    <p class="text-gray-600">Unable to load chart data</p>
+                </div>
+            `;
+        }
+    });
 }
 
 // Utility functions for Cluster
@@ -2141,27 +2423,7 @@ function refreshStatistics() {
                             Multi-Cluster Status Distribution
                         </h3>
                         <div class="chart-container" style="height: 300px;">
-                            <div class="text-center p-8">
-                                <h4 class="text-lg font-semibold mb-4">Cluster Performance Summary</h4>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="bg-green-100 p-4 rounded">
-                                        <div class="text-2xl font-bold text-green-800">5</div>
-                                        <div class="text-green-600">Selected</div>
-                                    </div>
-                                    <div class="bg-red-100 p-4 rounded">
-                                        <div class="text-2xl font-bold text-red-800">2</div>
-                                        <div class="text-red-600">Not Selected</div>
-                                    </div>
-                                    <div class="bg-blue-100 p-4 rounded">
-                                        <div class="text-2xl font-bold text-blue-800">3</div>
-                                        <div class="text-blue-600">Assigned</div>
-                                    </div>
-                                    <div class="bg-yellow-100 p-4 rounded">
-                                        <div class="text-2xl font-bold text-yellow-800">4</div>
-                                        <div class="text-yellow-600">Pending</div>
-                                    </div>
-                                </div>
-                            </div>
+                            <canvas id="clusterStatusChart"></canvas>
                         </div>
                     </div>
                     
@@ -2172,23 +2434,7 @@ function refreshStatistics() {
                             Cluster Performance Comparison
                         </h3>
                         <div class="chart-container" style="height: 300px;">
-                            <div class="text-center p-8">
-                                <h4 class="text-lg font-semibold mb-4">Cluster Activity</h4>
-                                <div class="space-y-2">
-                                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                        <span>HR Cluster</span>
-                                        <span class="font-bold">8 candidates</span>
-                                    </div>
-                                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                        <span>Manager Cluster</span>
-                                        <span class="font-bold">6 candidates</span>
-                                    </div>
-                                    <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                        <span>Admin Cluster</span>
-                                        <span class="font-bold">3 candidates</span>
-                                    </div>
-                                </div>
-                            </div>
+                            <canvas id="clusterPerformanceChart"></canvas>
                         </div>
                     </div>
                 </div>
@@ -2239,25 +2485,40 @@ function refreshStatistics() {
 
             <!-- Trends Tab -->
             <div id="clusterTrendsTab" class="tab-content hidden">
-                <div class="text-center p-8">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Multi-Cluster Trend Analysis</h3>
-                    <p class="text-gray-600">Comprehensive trend analysis across all clusters showing performance over time</p>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-chart-line text-blue-500 mr-2"></i>
+                        Multi-Cluster Trend Analysis
+                    </h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="clusterTrendChart"></canvas>
+                    </div>
                 </div>
             </div>
 
             <!-- Performance Tab -->
             <div id="clusterPerformanceTab" class="tab-content hidden">
-                <div class="text-center p-8">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Cluster Performance Metrics</h3>
-                    <p class="text-gray-600">Detailed performance comparison and efficiency metrics across clusters</p>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-users text-green-500 mr-2"></i>
+                        Cluster Performance Metrics
+                    </h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="clusterPerformanceMetricsChart"></canvas>
+                    </div>
                 </div>
             </div>
 
             <!-- Reports Tab -->
             <div id="clusterReportsTab" class="tab-content hidden">
-                <div class="text-center p-8">
-                    <h3 class="text-2xl font-bold text-gray-900 mb-4">Comprehensive Reports</h3>
-                    <p class="text-gray-600">Detailed reporting and analytics for strategic decision making</p>
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-file-chart-line text-purple-500 mr-2"></i>
+                        Personnel Distribution by Cluster
+                    </h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="clusterReportChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
