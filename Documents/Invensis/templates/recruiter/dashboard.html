@@ -3722,8 +3722,11 @@ function hideChartLoading(tabName) {
 function renderOverviewCharts(data) {
     console.log('Rendering overview charts with data:', data);
     
+    // Extract data from the correct structure
+    const analyticsData = data.data || data;
+    
     // Status Distribution Pie Chart - Use real data only
-    const statusCounts = data.status_counts || {};
+    const statusCounts = analyticsData.status_counts || {};
     const statusLabels = Object.keys(statusCounts);
     const statusData = Object.values(statusCounts);
     const statusColors = ['#10B981', '#EF4444', '#F59E0B', '#3B82F6', '#8B5CF6', '#F97316'];
@@ -3735,7 +3738,7 @@ function renderOverviewCharts(data) {
     });
     
     // Monthly Candidates Bar Chart - Use real data only
-    const monthlyData = data.monthly_data || {};
+    const monthlyData = analyticsData.monthly_stats || analyticsData.monthly_data || {};
     const monthLabels = Object.keys(monthlyData);
     const monthValues = Object.values(monthlyData);
     
@@ -3749,10 +3752,10 @@ function renderOverviewCharts(data) {
     });
     
     // Update metric cards with real data
-    const totalCandidates = data.total_candidates || 0;
+    const totalCandidates = analyticsData.total_candidates || 0;
     const selectedCount = statusCounts['Selected'] || 0;
     const pendingCount = statusCounts['Pending'] || 0;
-    const successRate = totalCandidates > 0 ? Math.round((selectedCount / totalCandidates) * 100) : 0;
+    const successRate = analyticsData.success_rate || (totalCandidates > 0 ? Math.round((selectedCount / totalCandidates) * 100) : 0);
     
     // Update metric displays
     document.getElementById('totalCandidatesMetric').textContent = totalCandidates;
@@ -3762,8 +3765,11 @@ function renderOverviewCharts(data) {
 }
 
 function renderTrendCharts(data) {
+    // Extract data from the correct structure
+    const analyticsData = data.data || data;
+    
     // Trend Line Chart - Use real data from API
-    const weeklyData = data.weekly_trends || {};
+    const weeklyData = analyticsData.weekly_trends || {};
     const weekLabels = Object.keys(weeklyData).length > 0 ? Object.keys(weeklyData) : [];
     const applicationsData = Object.keys(weeklyData).length > 0 ? Object.values(weeklyData).map(w => w.applications || 0) : [];
     const selectionsData = Object.keys(weeklyData).length > 0 ? Object.values(weeklyData).map(w => w.selections || 0) : [];
@@ -3800,8 +3806,11 @@ function renderTrendCharts(data) {
 }
 
 function renderPerformanceCharts(data) {
+    // Extract data from the correct structure
+    const analyticsData = data.data || data;
+    
     // HR Performance Comparison - Use real data only
-    const hrPerformance = data.hr_performance || [];
+    const hrPerformance = analyticsData.hr_performance || [];
     const hrNames = hrPerformance.map(hr => hr.name || 'Unknown');
     const candidatesAdded = hrPerformance.map(hr => hr.candidates_added || 0);
     const successfulPlacements = hrPerformance.map(hr => hr.successful_placements || 0);

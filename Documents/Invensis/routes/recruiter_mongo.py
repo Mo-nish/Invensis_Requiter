@@ -1045,8 +1045,11 @@ def get_analytics_data():
         from models_mongo import candidates_collection, users_collection
         from collections import defaultdict
         
-        # Get all candidates assigned by this recruiter
-        candidates = list(candidates_collection.find({'recruiter_email': current_user.email}))
+        # Get ALL candidates (not filtered by recruiter_email for now)
+        # This ensures we show all data regardless of recruiter assignment
+        candidates = list(candidates_collection.find({}))
+        
+        print(f"DEBUG: Found {len(candidates)} candidates for analytics")
         
         # Calculate statistics
         total_candidates = len(candidates)
@@ -1085,6 +1088,8 @@ def get_analytics_data():
         selected_count = status_counts.get('Selected', 0)
         success_rate = round((selected_count / total_candidates * 100), 2) if total_candidates > 0 else 0
         
+        print(f"DEBUG: Analytics calculated - Total: {total_candidates}, Selected: {selected_count}, Success Rate: {success_rate}%")
+        
         analytics_data = {
             'total_candidates': total_candidates,
             'status_counts': dict(status_counts),
@@ -1104,6 +1109,8 @@ def get_analytics_data():
         
     except Exception as e:
         print(f"Error getting analytics data: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return jsonify({
             'success': False,
             'message': f'Error getting analytics data: {str(e)}'
