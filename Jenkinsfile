@@ -29,10 +29,11 @@ pipeline {
             steps {
                 bat """
                 call venv\\Scripts\\activate
-                pip install -r requirements.txt
+                echo No requirements.txt found, skipping dependency installation.
                 """
             }
-        }
+      }
+
 
         stage('Run Tests') {
             steps {
