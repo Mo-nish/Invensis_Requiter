@@ -2,45 +2,34 @@ pipeline {
     agent any
 
     stages {
+
         stage('Checkout') {
             steps {
-                echo "Checking out source code..."
+                echo "🔹 Checking out source code..."
                 checkout scm
             }
         }
 
         stage('Setup Python Environment') {
             steps {
-                bat """
+                echo "🔹 Setting up Python virtual environment..."
+                bat '''
                 python -m venv venv
-                """
+                call venv\\Scripts\\activate
+                pip install --upgrade pip
+                pip install -r requirements.txt
+                pytest
+                '''
             }
         }
-
-        stage('Activate Virtual Environment') {
-            steps {
-                bat """
-                call venv\\Scripts\\activate
-                """
-            }
-        }
-
-        stage('Install Dependencies') {
-            steps {
-                bat """
-                call venv\\Scripts\\activate
-                echo No requirements.txt found, skipping dependency installation.
-                """
-            }
-      }
-
 
         stage('Run Tests') {
             steps {
-                bat """
+                echo "🔹 Running pytest..."
+                bat '''
                 call venv\\Scripts\\activate
                 pytest
-                """
+                '''
             }
         }
     }
