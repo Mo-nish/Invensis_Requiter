@@ -1,45 +1,53 @@
 pipeline {
     agent any
 
+    environment {
+        PYTHON = "python"
+    }
+
     stages {
 
         stage('Checkout') {
             steps {
-                echo "🔹 Checking out source code..."
+                echo "📦 Checking out source code..."
                 checkout scm
             }
         }
 
         stage('Setup Python Environment') {
             steps {
-                echo "🔹 Setting up Python virtual environment..."
-                bat '''
-                python -m venv venv
+                bat """
+                ${env.PYTHON} -m venv venv
                 call venv\\Scripts\\activate
                 pip install --upgrade pip
                 pip install -r requirements.txt
-                pytest
-                '''
+                """
             }
         }
 
-        stage('Run Tests') {
+        stage('Run Flask and Tests') {
             steps {
-                echo "🔹 Running pytest..."
-                bat '''
+                bat """
                 call venv\\Scripts\\activate
-                pytest
-                '''
+                echo Starting Flask app...
+                start /B ${env.PYTHON} run.py
+                timeout /t 5 >nul
+                echo Running pytest...
+                pytest --maxfail=1 --disable-warnings -q
+                """
             }
         }
     }
 
     post {
         success {
-            echo "✅ Build and tests completed successfully!"
+            echo "✅ All tests passed successfully!"
         }
         failure {
-            echo "❌ Build failed! Check logs for errors."
+            echo "❌ Build failed! Check logs for test errors."
+        }
+        always {
+            echo "🧹 Cleaning up workspace..."
         }
     }
 }
