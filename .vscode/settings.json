@@ -1,0 +1,51 @@
+{
+    "python.defaultInterpreterPath": "./venv/bin/python3",
+    "python.terminal.activateEnvironment": true,
+    "python.analysis.extraPaths": [
+        "./venv/lib/python3.13/site-packages"
+    ],
+    "python.analysis.autoImportCompletions": true,
+    "python.analysis.typeCheckingMode": "off",
+    "python.analysis.autoSearchPaths": true,
+    "python.analysis.diagnosticMode": "workspace",
+    "python.analysis.reportMissingImports": "none",
+    "python.analysis.reportMissingTypeStubs": false,
+    "python.analysis.reportGeneralTypeIssues": "none",
+    "python.analysis.reportOptionalMemberAccess": "none",
+    "python.analysis.reportOptionalSubscript": "none",
+    "python.analysis.reportOptionalIterable": "none",
+    "python.analysis.reportOptionalContextManager": "none",
+    "python.analysis.reportOptionalOperand": "none",
+    "python.linting.enabled": false,
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": false,
+    "python.linting.mypyEnabled": false,
+    "files.associations": {
+        "*.py": "python"
+    },
+    "python.analysis.include": [
+        "**/*.py"
+    ],
+    "python.analysis.exclude": [
+        "**/venv/**",
+        "**/__pycache__/**",
+        "**/.git/**",
+        "**/instance/**"
+    ],
+    "cursorpyright.analysis.autoImportCompletions": true,
+    "cursorpyright.analysis.autoSearchPaths": true,
+    "cursorpyright.analysis.diagnosticMode": "workspace",
+    "cursorpyright.analysis.exclude": [
+        "**/venv/**",
+        "**/__pycache__/**",
+        "**/.git/**",
+        "**/instance/**"
+    ],
+    "cursorpyright.analysis.extraPaths": [
+        "./venv/lib/python3.13/site-packages"
+    ],
+    "cursorpyright.analysis.include": [
+        "**/*.py"
+    ],
+    "cursorpyright.analysis.typeCheckingMode": "off"
+}

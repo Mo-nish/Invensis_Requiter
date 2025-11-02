@@ -1,0 +1,199 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - Cluster Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .report-card {
+        transition: all 0.3s ease;
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    .report-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+    
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">Reports & Analytics</h1>
+                <p class="text-gray-600">Comprehensive reports and insights</p>
+            </div>
+            <a href="{{ url_for('cluster.dashboard') }}" 
+               class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg btn-animate">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Status Summary Report -->
+    <div class="bg-white rounded-xl shadow-lg p-6 report-card">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Status Summary Report</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {% for status, count in status_summary.items() %}
+            <div class="bg-gray-50 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">{{ status }}</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ count }}</p>
+                    </div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center
+                        {% if status == 'Shortlisted' %}bg-green-100 text-green-600
+                        {% elif status == 'Hired' %}bg-purple-100 text-purple-600
+                        {% elif status == 'Pending' %}bg-yellow-100 text-yellow-600
+                        {% elif status == 'Rejected' %}bg-red-100 text-red-600
+                        {% else %}bg-blue-100 text-blue-600{% endif %}">
+                        <i class="fas fa-user text-sm"></i>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Recent Activity Report -->
+    <div class="bg-white rounded-xl shadow-lg p-6 report-card">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Recent Activity</h2>
+        <div class="space-y-4">
+            {% for activity in recent_activities %}
+            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div class="flex items-center space-x-4">
+                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user text-blue-600"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium text-gray-900">{{ activity.user_email or 'System' }}</p>
+                        <p class="text-sm text-gray-500">{{ activity.action }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-gray-500">
+                        {% if activity.timestamp %}
+                            {% if activity.timestamp is string %}
+                                {{ activity.timestamp }}
+                            {% else %}
+                                {{ activity.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </p>
+                    {% if activity.details %}
+                    <p class="text-xs text-gray-400 mt-1">{{ activity.details }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Export Options -->
+    <div class="bg-white rounded-xl shadow-lg p-6 report-card">
+        <h2 class="text-xl font-semibold text-gray-900 mb-4">Export Reports</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-medium text-gray-900">Status Summary</h3>
+                        <p class="text-sm text-gray-500">Export candidate status distribution</p>
+                    </div>
+                    <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                </div>
+            </div>
+            
+            <div class="border border-gray-200 rounded-lg p-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-medium text-gray-900">Activity Logs</h3>
+                        <p class="text-sm text-gray-500">Export system activity logs</p>
+                    </div>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg">
+                        <i class="fas fa-download mr-2"></i>Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Statistics -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <!-- Total Candidates -->
+        <div class="bg-white rounded-xl shadow-lg p-6 report-card">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Total Candidates</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ total_candidates }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="bg-white rounded-xl shadow-lg p-6 report-card">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-clock text-white"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Recent Activities</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ recent_activities|length }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Types -->
+        <div class="bg-white rounded-xl shadow-lg p-6 report-card">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-chart-pie text-white"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-600">Status Types</p>
+                    <p class="text-2xl font-bold text-gray-900">{{ status_summary|length }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add export functionality
+    const exportButtons = document.querySelectorAll('button:has(.fa-download)');
+    exportButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Show loading state
+            const originalText = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Exporting...';
+            this.disabled = true;
+            
+            // Simulate export (replace with actual export logic)
+            setTimeout(() => {
+                this.innerHTML = originalText;
+                this.disabled = false;
+                alert('Export functionality will be implemented here');
+            }, 2000);
+        });
+    });
+});
+</script>
+{% endblock %}

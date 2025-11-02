@@ -1,0 +1,71 @@
+[1mdiff --git a/Jenkinsfile b/Jenkinsfile[m
+[1mindex ab34b9e..3f415dc 100644[m
+[1m--- a/Jenkinsfile[m
+[1m+++ b/Jenkinsfile[m
+[36m@@ -1,45 +1,53 @@[m
+ pipeline {[m
+     agent any[m
+ [m
+[32m+[m[32m    environment {[m
+[32m+[m[32m        PYTHON = "python"[m
+[32m+[m[32m    }[m
+[32m+[m
+     stages {[m
+ [m
+         stage('Checkout') {[m
+             steps {[m
+[31m-                echo "🔹 Checking out source code..."[m
+[32m+[m[32m                echo "📦 Checking out source code..."[m
+                 checkout scm[m
+             }[m
+         }[m
+ [m
+         stage('Setup Python Environment') {[m
+             steps {[m
+[31m-                echo "🔹 Setting up Python virtual environment..."[m
+[31m-                bat '''[m
+[31m-                python -m venv venv[m
+[32m+[m[32m                bat """[m
+[32m+[m[32m                ${env.PYTHON} -m venv venv[m
+                 call venv\\Scripts\\activate[m
+                 pip install --upgrade pip[m
+                 pip install -r requirements.txt[m
+[31m-                pytest[m
+[31m-                '''[m
+[32m+[m[32m                """[m
+             }[m
+         }[m
+ [m
+[31m-        stage('Run Tests') {[m
+[32m+[m[32m        stage('Run Flask and Tests') {[m
+             steps {[m
+[31m-                echo "🔹 Running pytest..."[m
+[31m-                bat '''[m
+[32m+[m[32m                bat """[m
+                 call venv\\Scripts\\activate[m
+[31m-                pytest[m
+[31m-                '''[m
+[32m+[m[32m                echo Starting Flask app...[m
+[32m+[m[32m                start /B ${env.PYTHON} run.py[m
+[32m+[m[32m                timeout /t 5 >nul[m
+[32m+[m[32m                echo Running pytest...[m
+[32m+[m[32m                pytest --maxfail=1 --disable-warnings -q[m
+[32m+[m[32m                """[m
+             }[m
+         }[m
+     }[m
+ [m
+     post {[m
+         success {[m
+[31m-            echo "✅ Build and tests completed successfully!"[m
+[32m+[m[32m            echo "✅ All tests passed successfully!"[m
+         }[m
+         failure {[m
+[31m-            echo "❌ Build failed! Check logs for errors."[m
+[32m+[m[32m            echo "❌ Build failed! Check logs for test errors."[m
+[32m+[m[32m        }[m
+[32m+[m[32m        always {[m
+[32m+[m[32m            echo "🧹 Cleaning up workspace..."[m
+         }[m
+     }[m
+ }[m

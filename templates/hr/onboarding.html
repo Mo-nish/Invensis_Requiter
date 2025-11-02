@@ -1,0 +1,489 @@
+{% extends "base.html" %}
+
+{% block title %}HR Onboarding - Invensis Hiring Portal{% endblock %}
+
+{% block head %}
+<style>
+.onboarding-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0px 4px 6px rgba(0,0,0,0.1);
+    border: 1px solid #F3F4F6;
+    transition: all 0.3s ease;
+    margin-bottom: 16px;
+}
+
+.onboarding-card:hover {
+    box-shadow: 0px 8px 25px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+}
+
+.status-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-selected {
+    background: #EFF6FF;
+    color: #2563EB;
+    border: 1px solid #DBEAFE;
+}
+
+.status-onboarded {
+    background: #DCFCE7;
+    color: #16A34A;
+    border: 1px solid #BBF7D0;
+}
+
+.status-not-onboarded {
+    background: #FEE2E2;
+    color: #DC2626;
+    border: 1px solid #FECACA;
+}
+
+.onboarding-stats {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.date-picker {
+    padding: 8px 12px;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 14px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('hr.dashboard') }}" class="bg-gray-100 hover:bg-gray-200 text-gray-700 p-2 rounded-lg transition-all duration-300 flex items-center justify-center">
+                    <i class="fas fa-arrow-left text-lg"></i>
+                </a>
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">HR Onboarding Dashboard</h1>
+                    <p class="text-gray-600">Manage candidate onboarding process and track completion status</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button onclick="refreshOnboardingData()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+                <button onclick="exportOnboardingReport()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate">
+                    <i class="fas fa-file-export mr-2"></i>Export Report
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Statistics -->
+    <div class="onboarding-stats fade-in">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="text-center">
+                <div class="text-3xl font-bold mb-2" id="totalSelected">0</div>
+                <div class="text-sm opacity-90">Selected for Onboarding</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold mb-2" id="totalOnboarded">0</div>
+                <div class="text-sm opacity-90">Successfully Onboarded</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold mb-2" id="totalPending">0</div>
+                <div class="text-sm opacity-90">Pending Onboarding</div>
+            </div>
+            <div class="text-center">
+                <div class="text-3xl font-bold mb-2" id="completionRate">0%</div>
+                <div class="text-sm opacity-90">Completion Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter and Search -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center space-x-4 mb-4">
+            <div class="flex-1">
+                <input type="text" id="searchInput" placeholder="Search candidates..." 
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                       onkeyup="filterCandidates()">
+            </div>
+            <select id="statusFilter" onchange="filterCandidates()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">All Status</option>
+                <option value="Selected">Selected</option>
+                <option value="Onboarded">Onboarded</option>
+                <option value="Not Onboarded">Not Onboarded</option>
+            </select>
+            <select id="managerFilter" onchange="filterCandidates()"
+                    class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <option value="">All Managers</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Candidates List -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between mb-6">
+            <h2 class="text-xl font-semibold text-gray-900">Candidates for Onboarding</h2>
+            <div class="text-sm text-gray-500">
+                <span id="candidateCount">0</span> candidates total
+            </div>
+        </div>
+        
+        <div id="candidatesContainer" class="space-y-4">
+            <!-- Candidates will be loaded here -->
+            <div class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                <p class="mt-2 text-gray-600">Loading candidates...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Onboarding Modal -->
+<div id="onboardingModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold text-gray-900">Update Onboarding Status</h3>
+            <button onclick="hideOnboardingModal()" class="text-gray-400 hover:text-gray-600">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="onboardingForm">
+            <input type="hidden" id="candidateId" name="candidate_id">
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Candidate</label>
+                    <div id="candidateName" class="text-lg font-semibold text-gray-900"></div>
+                </div>
+                
+                <div>
+                    <label for="onboardingStatus" class="block text-sm font-medium text-gray-700 mb-2">Onboarding Status</label>
+                    <select id="onboardingStatus" name="status" required
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                            onchange="toggleDateField()">
+                        <option value="">Select Status</option>
+                        <option value="Onboarded">Onboarded</option>
+                        <option value="Not Onboarded">Not Onboarded</option>
+                    </select>
+                </div>
+                
+                <div id="dateFieldContainer" style="display: none;">
+                    <label for="onboardingDate" class="block text-sm font-medium text-gray-700 mb-2">Onboarding Date</label>
+                    <input type="date" id="onboardingDate" name="onboarding_date"
+                           class="w-full date-picker">
+                </div>
+                
+                <div>
+                    <label for="onboardingNotes" class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                    <textarea id="onboardingNotes" name="notes" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              placeholder="Add any notes about the onboarding process..."></textarea>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="submit" 
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg btn-animate">
+                        <i class="fas fa-save mr-2"></i>Update Status
+                    </button>
+                    <button type="button" onclick="hideOnboardingModal()"
+                            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg btn-animate">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+let allCandidates = [];
+let filteredCandidates = [];
+
+// Initialize page
+document.addEventListener('DOMContentLoaded', function() {
+    loadOnboardingCandidates();
+    loadManagerOptions();
+});
+
+// Load candidates for onboarding
+async function loadOnboardingCandidates() {
+    try {
+        const response = await fetch('/hr/onboarding/candidates');
+        const data = await response.json();
+        
+        if (data.success) {
+            allCandidates = data.candidates;
+            filteredCandidates = [...allCandidates];
+            renderCandidates();
+            updateStatistics();
+        } else {
+            showNotification('Failed to load candidates', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading candidates:', error);
+        showNotification('Error loading candidates', 'error');
+    }
+}
+
+// Load manager options for filter
+async function loadManagerOptions() {
+    try {
+        const response = await fetch('/hr/managers');
+        const data = await response.json();
+        
+        if (data.success) {
+            const managerSelect = document.getElementById('managerFilter');
+            data.managers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager.email;
+                option.textContent = manager.name;
+                managerSelect.appendChild(option);
+            });
+        }
+    } catch (error) {
+        console.error('Error loading managers:', error);
+    }
+}
+
+// Render candidates
+function renderCandidates() {
+    const container = document.getElementById('candidatesContainer');
+    
+    if (filteredCandidates.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-user-plus text-4xl text-gray-300"></i>
+                <p class="mt-4 text-gray-500">No candidates found for onboarding</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = filteredCandidates.map(candidate => {
+        const statusClass = getStatusClass(candidate.onboarding_status || 'Selected');
+        const onboardingDate = candidate.onboarding_date ? 
+            new Date(candidate.onboarding_date).toLocaleDateString() : '';
+        
+        // Handle different name field structures
+        let displayName = 'N/A';
+        let initials = 'N/A';
+        
+        if (candidate.name) {
+            displayName = candidate.name;
+            initials = candidate.name.split(' ').map(n => n.charAt(0)).join('').substring(0, 2);
+        } else if (candidate.first_name && candidate.last_name) {
+            displayName = `${candidate.first_name} ${candidate.last_name}`;
+            initials = `${candidate.first_name.charAt(0)}${candidate.last_name.charAt(0)}`;
+        } else if (candidate.first_name) {
+            displayName = candidate.first_name;
+            initials = candidate.first_name.charAt(0);
+        }
+        
+        // Handle position field
+        const position = candidate.position_applied || candidate.position || candidate.role || 'Position not specified';
+        
+        // Handle manager field
+        const manager = candidate.manager_name || candidate.manager || 'Manager not assigned';
+            
+        return `
+            <div class="onboarding-card">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                            ${initials}
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">
+                                ${displayName}
+                            </h3>
+                            <p class="text-sm text-gray-600">${position}</p>
+                            <p class="text-xs text-gray-500">
+                                <i class="fas fa-user-tie mr-1"></i>Manager: ${manager}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <span class="status-badge ${statusClass}">
+                            ${candidate.onboarding_status || 'Selected'}
+                        </span>
+                        ${onboardingDate ? `<p class="text-xs text-gray-500 mt-1">
+                            <i class="fas fa-calendar mr-1"></i>${onboardingDate}
+                        </p>` : ''}
+                        <div class="mt-2">
+                            <button onclick="showOnboardingModal('${candidate._id}', '${displayName}')" 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm">
+                                <i class="fas fa-edit mr-1"></i>Update Status
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    document.getElementById('candidateCount').textContent = filteredCandidates.length;
+}
+
+// Get status class for styling
+function getStatusClass(status) {
+    switch(status) {
+        case 'Onboarded': return 'status-onboarded';
+        case 'Not Onboarded': return 'status-not-onboarded';
+        default: return 'status-selected';
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalSelected = allCandidates.length;
+    const totalOnboarded = allCandidates.filter(c => c.onboarding_status === 'Onboarded').length;
+    const totalPending = allCandidates.filter(c => !c.onboarding_status || c.onboarding_status === 'Selected').length;
+    const completionRate = totalSelected > 0 ? Math.round((totalOnboarded / totalSelected) * 100) : 0;
+    
+    document.getElementById('totalSelected').textContent = totalSelected;
+    document.getElementById('totalOnboarded').textContent = totalOnboarded;
+    document.getElementById('totalPending').textContent = totalPending;
+    document.getElementById('completionRate').textContent = completionRate + '%';
+}
+
+// Filter candidates
+function filterCandidates() {
+    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const managerFilter = document.getElementById('managerFilter').value;
+    
+    filteredCandidates = allCandidates.filter(candidate => {
+        // Handle different name field structures for search
+        let candidateName = '';
+        if (candidate.name) {
+            candidateName = candidate.name;
+        } else if (candidate.first_name && candidate.last_name) {
+            candidateName = `${candidate.first_name} ${candidate.last_name}`;
+        } else if (candidate.first_name) {
+            candidateName = candidate.first_name;
+        }
+        
+        // Handle position field for search
+        const position = candidate.position_applied || candidate.position || candidate.role || '';
+        
+        const matchesSearch = 
+            candidateName.toLowerCase().includes(searchTerm) ||
+            position.toLowerCase().includes(searchTerm);
+            
+        const matchesStatus = !statusFilter || 
+            (candidate.onboarding_status || 'Selected') === statusFilter;
+            
+        const matchesManager = !managerFilter || 
+            candidate.manager_email === managerFilter;
+            
+        return matchesSearch && matchesStatus && matchesManager;
+    });
+    
+    renderCandidates();
+}
+
+// Show onboarding modal
+function showOnboardingModal(candidateId, candidateName) {
+    document.getElementById('candidateId').value = candidateId;
+    document.getElementById('candidateName').textContent = candidateName;
+    document.getElementById('onboardingModal').classList.remove('hidden');
+    document.getElementById('onboardingModal').classList.add('flex');
+}
+
+// Hide onboarding modal
+function hideOnboardingModal() {
+    document.getElementById('onboardingModal').classList.add('hidden');
+    document.getElementById('onboardingModal').classList.remove('flex');
+    document.getElementById('onboardingForm').reset();
+    document.getElementById('dateFieldContainer').style.display = 'none';
+}
+
+// Toggle date field based on status
+function toggleDateField() {
+    const status = document.getElementById('onboardingStatus').value;
+    const dateContainer = document.getElementById('dateFieldContainer');
+    
+    if (status === 'Onboarded') {
+        dateContainer.style.display = 'block';
+        document.getElementById('onboardingDate').required = true;
+        // Set default to today
+        document.getElementById('onboardingDate').value = new Date().toISOString().split('T')[0];
+    } else {
+        dateContainer.style.display = 'none';
+        document.getElementById('onboardingDate').required = false;
+        document.getElementById('onboardingDate').value = '';
+    }
+}
+
+// Handle form submission
+document.getElementById('onboardingForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
+    
+    try {
+        const response = await fetch('/hr/onboarding/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showNotification('Onboarding status updated successfully', 'success');
+            hideOnboardingModal();
+            loadOnboardingCandidates();
+        } else {
+            showNotification(result.message || 'Failed to update status', 'error');
+        }
+    } catch (error) {
+        console.error('Error updating onboarding status:', error);
+        showNotification('Error updating status', 'error');
+    }
+});
+
+// Refresh data
+function refreshOnboardingData() {
+    loadOnboardingCandidates();
+    showNotification('Data refreshed successfully', 'success');
+}
+
+// Export report
+function exportOnboardingReport() {
+    // Implementation for exporting onboarding report
+    showNotification('Export functionality coming soon', 'info');
+}
+
+// Show notification
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg shadow-lg z-50 ${
+        type === 'success' ? 'bg-green-500 text-white' : 
+        type === 'error' ? 'bg-red-500 text-white' : 'bg-blue-500 text-white'
+    }`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+</script>
+{% endblock %}

@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: invensis-hiring-portal
+    env: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: python run.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MONGODB_URI
+        fromDatabase:
+          name: invensis-mongodb
+          property: connectionString
+      - key: DEFAULT_ADMIN_EMAIL
+        value: admin@invensis.com
+      - key: DEFAULT_ADMIN_PASSWORD
+        value: InvensisAdmin2025!
+      - key: EMAIL_USER
+        value: your-email@gmail.com
+      - key: EMAIL_PASS
+        value: your-app-password
+      - key: BASE_URL
+        fromService:
+          type: web
+          name: invensis-hiring-portal
+          property: host
+
+databases:
+  - name: invensis-mongodb
+    plan: starter

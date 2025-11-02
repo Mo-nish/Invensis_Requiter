@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Invensis Hiring Portal{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center relative">
+    <!-- Back to Home Page Link -->
+    <div class="absolute top-6 left-6 z-20">
+        <a href="{{ url_for('index') }}" 
+           class="inline-flex items-center px-4 py-2 bg-white/20 backdrop-blur-sm text-white rounded-lg hover:bg-white/30 transition-all duration-300 border border-white/30 hover:border-white/50 shadow-lg">
+            <i class="fas fa-home mr-2"></i>
+            Back to Home
+        </a>
+    </div>
+    
+    <!-- Animated Background Elements -->
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-20 left-20 w-32 h-32 bg-purple-400/10 rounded-full animate-float-slow"></div>
+        <div class="absolute top-40 right-40 w-24 h-24 bg-blue-400/10 rounded-full animate-float-medium"></div>
+        <div class="absolute bottom-40 left-1/4 w-40 h-40 bg-indigo-400/10 rounded-full animate-float-fast"></div>
+        <div class="absolute bottom-20 right-1/4 w-28 h-28 bg-purple-400/10 rounded-full animate-float-slow"></div>
+    </div>
+
+    <div class="max-w-md w-full mx-4 relative z-10">
+        <!-- Login Card -->
+        <div class="card-3d p-8 text-center">
+            <div class="mb-8">
+                <div class="w-20 h-20 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                    <i class="fas fa-user-lock text-3xl text-white"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-2 text-3d">Welcome Back</h2>
+                <p class="text-purple-200">Sign in to your account</p>
+            </div>
+
+            <form method="POST" class="space-y-6">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-purple-200 mb-2 text-left">Email Address</label>
+                    <input type="email" id="email" name="email" required 
+                           class="input-3d w-full" placeholder="Enter your email">
+                </div>
+                
+                <div>
+                    <label for="password" class="block text-sm font-medium text-purple-200 mb-2 text-left">Password</label>
+                    <input type="password" id="password" name="password" required 
+                           class="input-3d w-full" placeholder="Enter your password">
+                </div>
+                
+                <button type="submit" class="btn-3d btn-hr w-full py-3 text-lg">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Sign In
+                </button>
+            </form>
+            
+            <div class="mt-6 text-center">
+                <p class="text-purple-200">Don't have an account? 
+                    <a href="{{ url_for('register') }}" class="text-blue-300 hover:text-blue-200 font-medium">Register here</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

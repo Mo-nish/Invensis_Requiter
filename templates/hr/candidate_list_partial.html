@@ -1,0 +1,63 @@
+{% if all_candidates %}
+<div id="candidateList" class="space-y-4">
+    {% for candidate in all_candidates %}
+    <div class="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 candidate-item" data-status="{{ candidate.status }}">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center">
+            <div class="flex items-center space-x-4 mb-4 sm:mb-0">
+                <div class="w-16 h-16 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center shadow-lg">
+                    {% if candidate.image_path %}
+                    <img src="{{ url_for('static', filename=candidate.image_path)) }}" 
+                         alt="{{ candidate.first_name }} {{ candidate.last_name }}" 
+                         class="w-16 h-16 rounded-full object-cover">
+                    {% else %}
+                    <i class="fas fa-user text-2xl text-white"></i>
+                    {% endif %}
+                </div>
+                <div>
+                    <h4 class="text-xl font-semibold text-white mb-1">{{ candidate.first_name }} {{ candidate.last_name }}</h4>
+                    <p class="text-purple-200 mb-1">{{ candidate.email }}</p>
+                    <p class="text-purple-200 mb-1">{{ candidate.phone }}</p>
+                    <div class="flex items-center space-x-2">
+                        <span class="status-3d status-{{ candidate.status.lower().replace(' ', '-') }}-3d">
+                            {{ candidate.status }}
+                        </span>
+                        {% if candidate.assigned_manager_id %}
+                        <span class="text-xs text-green-300 bg-green-400/20 px-2 py-1 rounded-full">
+                            Assigned
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-wrap gap-2">
+                <button onclick="viewCandidate('{{ candidate._id }}')" 
+                        class="btn-3d btn-hr px-4 py-2 text-sm">
+                    <i class="fas fa-eye mr-1"></i>View
+                </button>
+                
+                {% if current_user.role == 'hr' and candidate.status not in ['Assigned', 'Shortlisted', 'Hired'] %}
+                <button onclick="deleteCandidate('{{ candidate._id }}')" 
+                        class="btn-3d btn-admin px-4 py-2 text-sm">
+                    <i class="fas fa-trash mr-1"></i>Delete
+                </button>
+                {% endif %}
+                
+                {% if candidate.status == 'Pending' %}
+                <button onclick="assignCandidate('{{ candidate._id }}')" 
+                        class="btn-3d btn-manager px-4 py-2 text-sm">
+                    <i class="fas fa-user-plus mr-1"></i>Assign
+                </button>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-12">
+    <i class="fas fa-users text-4xl text-purple-300 mb-4"></i>
+    <h3 class="text-lg font-medium text-white mb-2">No Candidates Found</h3>
+    <p class="text-purple-200">Start by adding new candidates in the "Add New Candidate" section.</p>
+</div>
+{% endif %} 

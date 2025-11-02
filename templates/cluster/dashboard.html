@@ -1,0 +1,2696 @@
+{% extends "base.html" %}
+
+{% block title %}Cluster Dashboard - Invensis Hiring Portal{% endblock %}
+
+{% block head %}
+<style>
+    /* 3D Button Styles */
+    .btn-3d {
+        position: relative;
+        transform: translateY(0);
+        transition: all 0.2s ease;
+        border: none;
+        outline: none;
+        cursor: pointer;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-3d:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-3d:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+    }
+    
+    .btn-cluster {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+        border-radius: 8px;
+    }
+    
+    .btn-hr {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        color: white;
+        border-radius: 8px;
+    }
+    
+    .btn-manager {
+        background: linear-gradient(135deg, #10b981, #059669);
+        color: white;
+        border-radius: 8px;
+    }
+    
+    .btn-admin {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        border-radius: 8px;
+    }
+    
+    /* Fade-in animation */
+    .fade-in {
+        animation: fadeIn 0.6s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Status badges */
+    .status-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    
+    .status-selected { background-color: #dcfce7; color: #166534; }
+    .status-not-selected { background-color: #fee2e2; color: #991b1b; }
+    .status-pending { background-color: #fee2e2; color: #991b1b; }
+    .status-assigned { background-color: #e0e7ff; color: #3730a3; }
+    .status-reassigned { background-color: #fef3c7; color: #92400e; }
+    
+    /* 3D Dashboard Cards */
+    .dashboard-card-3d {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 20px;
+        box-shadow: 
+            0 20px 40px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        padding: 24px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-card-3d::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+    }
+
+    .dashboard-card-3d:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 
+            0 30px 60px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    }
+
+    .stat-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+    }
+
+    .dashboard-card-3d:hover .stat-icon {
+        transform: scale(1.1) rotate(5deg);
+    }
+
+    /* Filter styles */
+    .filter-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+    
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        align-items: end;
+    }
+    
+    .filter-group label {
+        display: block;
+        font-weight: 600;
+        color: #374151;
+        margin-bottom: 0.5rem;
+    }
+    
+    .filter-group select,
+    .filter-group input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 0.875rem;
+        transition: border-color 0.2s ease;
+    }
+    
+    .filter-group select:focus,
+    .filter-group input:focus {
+        outline: none;
+        border-color: #8b5cf6;
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    }
+    
+    /* Table styles */
+    .candidate-table {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    
+    .candidate-table th {
+        background: #f9fafb;
+        padding: 1rem;
+        text-align: left;
+        font-weight: 600;
+        color: #374151;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    
+    .candidate-table td {
+        padding: 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        vertical-align: middle;
+    }
+    
+    .candidate-table tr:hover {
+        background-color: #f9fafb;
+    }
+    
+
+    
+    /* Modal styles */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .modal.show {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .modal-content {
+        background: white;
+        border-radius: 12px;
+        padding: 2rem;
+        max-width: 500px;
+        width: 90%;
+        transform: scale(0.9);
+        transition: transform 0.3s ease;
+    }
+    
+    .modal.show .modal-content {
+        transform: scale(1);
+    }
+    
+    /* Notification styles */
+    .notification {
+        position: fixed;
+        top: 1rem;
+        right: 1rem;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        color: white;
+        font-weight: 600;
+        z-index: 1000;
+        transform: translateX(100%);
+        transition: transform 0.3s ease;
+    }
+    
+    .notification.show {
+        transform: translateX(0);
+    }
+    
+    .notification.success { background-color: #10b981; }
+    .notification.error { background-color: #ef4444; }
+    .notification.info { background-color: #3b82f6; }
+    .notification.warning { background-color: #f59e0b; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900 mb-2">Cluster Dashboard</h1>
+                <p class="text-gray-600">Monitor and manage candidate pipeline across all clusters</p>
+            </div>
+            <div class="flex flex-wrap gap-4">
+                <button onclick="refreshData()" class="btn-3d btn-cluster px-6 py-3 text-lg font-semibold">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+                <button onclick="exportData()" class="btn-3d btn-admin px-6 py-3 text-lg font-semibold">
+                    <i class="fas fa-download mr-2"></i>Export Data
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Section -->
+    <div class="mb-8">
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-semibold text-gray-900">Performance Overview</h2>
+            <div class="flex space-x-2">
+                <button onclick="refreshStatistics()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Stats
+                </button>
+            </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-users text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Total Candidates</p>
+                        <p class="text-3xl font-bold text-gray-900" id="total-candidates">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-green-500 to-green-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-user-check text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Selected</p>
+                        <p class="text-3xl font-bold text-gray-900" id="selected-count">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-red-500 to-red-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-user-times text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Not Selected</p>
+                        <p class="text-3xl font-bold text-gray-900" id="not-selected-count">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-clock text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Pending Review</p>
+                        <p class="text-3xl font-bold text-gray-900" id="pending-count">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-user-plus text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Reassigned</p>
+                        <p class="text-3xl font-bold text-gray-900" id="assigned-count">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+                <div class="flex items-center">
+                    <div class="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-700 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                        <i class="fas fa-user-graduate text-2xl text-white"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold text-gray-600 mb-2">Onboarded</p>
+                        <p class="text-3xl font-bold text-gray-900" id="onboarded-count">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recruiter Personnel Overview -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 fade-in">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-user-tie text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Recruiter Personnel Performance</h3>
+                    <p class="text-gray-600">Monitor Recruiter team productivity and candidate assignment metrics</p>
+                </div>
+            </div>
+            <button onclick="refreshRecruiterData()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+        </div>
+        
+        <div id="recruiterPersonnelContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Recruiter cards will be populated here -->
+            <div class="text-center py-8 col-span-full">
+                <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                <p class="mt-2 text-gray-600">Loading Recruiter personnel data...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manager Personnel Overview -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 fade-in">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-teal-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-users-cog text-2xl text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Manager Performance Overview</h3>
+                    <p class="text-gray-600">Track manager evaluation efficiency and candidate outcomes</p>
+                </div>
+            </div>
+            <button onclick="refreshManagerData()" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+        </div>
+
+        <div id="managerPersonnelContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Manager cards will be populated here -->
+            <div class="text-center py-8 col-span-full">
+                <i class="fas fa-spinner fa-spin text-2xl text-green-500"></i>
+                <p class="mt-2 text-gray-600">Loading manager performance data...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Trends & Analytics -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 fade-in">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-chart-line text-2xl text-white"></i>
+                    </div>
+                    <div>
+                    <h3 class="text-2xl font-bold text-gray-900">Performance Trends</h3>
+                    <p class="text-gray-600">Weekly performance trends and productivity metrics</p>
+                    </div>
+                </div>
+            <div class="flex space-x-4">
+                <button onclick="openDataVisualization()" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-chart-bar mr-2"></i>Detailed Analytics
+                </button>
+                </div>
+            </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Weekly Performance Cards -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600 font-medium">This Week</p>
+                        <p class="text-2xl font-bold text-blue-800" id="weeklyAssigned">0</p>
+                        <p class="text-xs text-blue-500">Candidates Assigned</p>
+                    </div>
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-plus text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-green-600" id="weeklyAssignedTrend">↗ +12%</span>
+        </div>
+    </div>
+
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-yellow-600 font-medium">Assigned</p>
+                        <p class="text-2xl font-bold text-yellow-800" id="weeklyPending">0</p>
+                        <p class="text-xs text-yellow-500">This Week</p>
+                    </div>
+                    <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-plus text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-2 flex items-center">
+                    <span class="text-xs text-red-600" id="weeklyPendingTrend">↘ -8%</span>
+                    <span class="text-xs text-gray-500 ml-1">vs last week</span>
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-600 font-medium">Selected</p>
+                        <p class="text-2xl font-bold text-green-800" id="weeklySelected">0</p>
+                        <p class="text-xs text-green-500">Success Rate</p>
+                    </div>
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check-circle text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-green-600" id="weeklySelectedTrend">↗ +25%</span>
+    </div>
+</div>
+            
+            <div class="bg-gradient-to-r from-red-50 to-pink-50 p-4 rounded-xl border border-red-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-red-600 font-medium">Not Selected</p>
+                        <p class="text-2xl font-bold text-red-800" id="weeklyRejected">0</p>
+                        <p class="text-xs text-red-500">Rejection Rate</p>
+                    </div>
+                    <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-times-circle text-white"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span class="text-xs text-green-600" id="weeklyRejectedTrend">↘ -15%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search and Filter Controls -->
+    <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-filter text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Filters & Search</h3>
+            </div>
+            
+            <div class="flex flex-wrap items-center space-x-4 gap-2">
+                <!-- Search Input -->
+                <div class="relative">
+                    <input type="text" id="search-input" 
+                           class="w-64 px-4 py-2 pl-10 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                           placeholder="Search candidates..." onkeyup="applyFilters()">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                </div>
+                
+                <!-- Status Filter -->
+                <select id="status-filter" onchange="applyFilters()"
+                        class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Statuses</option>
+                    <option value="Selected">Selected</option>
+                    <option value="Not Selected">Not Selected</option>
+                    <option value="Pending">Not Selected</option>
+                    <option value="Assigned">Assigned</option>
+                    <option value="Reassigned">Reassigned</option>
+                </select>
+                
+                <!-- Onboarding Status Filter -->
+                <select id="onboarding-status-filter" onchange="applyFilters()"
+                        class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Onboarding Status</option>
+                    <option value="Onboarded">Onboarded</option>
+                    <option value="Selected">Selected (Not Onboarded)</option>
+                    <option value="In Progress">In Progress</option>
+                </select>
+                
+                <!-- Recruiter Filter -->
+                <select id="hr-filter" onchange="applyFilters()"
+                        class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Recruiters</option>
+                </select>
+                
+                <!-- Manager Filter -->
+                <select id="manager-filter" onchange="applyFilters()"
+                        class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Managers</option>
+                </select>
+                
+                <!-- Cluster Filter -->
+                <select id="cluster-filter" onchange="applyFilters()"
+                        class="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="">All Clusters</option>
+                </select>
+                
+                <!-- Reset Button -->
+                <button onclick="resetFilters()" 
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-undo mr-2"></i>Reset
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate List -->
+    <div class="bg-white rounded-xl shadow-lg p-6">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-blue-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-users text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Candidate List</h3>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button onclick="updateCandidateList()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh List
+                </button>
+            </div>
+        </div>
+
+        <div id="candidatesContainer" class="space-y-2">
+            <!-- Candidates will be displayed here -->
+            <div class="text-center py-8">
+                <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                <p class="mt-2 text-gray-600">Loading candidates...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onboarding Details Overview -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 fade-in">
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                    <i class="fas fa-user-graduate text-2xl text-white"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-gray-900">Onboarding Details Overview</h3>
+            </div>
+            <button onclick="refreshOnboardingData()" class="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Onboarding Statistics Cards -->
+            <div class="bg-gradient-to-r from-green-50 to-emerald-50 p-4 rounded-xl border border-green-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-green-600 font-medium">Total Selected</p>
+                        <p class="text-2xl font-bold text-green-800" id="total-selected-onboarding">0</p>
+                        <p class="text-xs text-green-500">Ready for Onboarding</p>
+                    </div>
+                    <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-check text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-blue-600 font-medium">In Progress</p>
+                        <p class="text-2xl font-bold text-blue-800" id="in-progress-onboarding">0</p>
+                        <p class="text-xs text-blue-500">Currently Onboarding</p>
+                    </div>
+                    <div class="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-purple-600 font-medium">Successfully Onboarded</p>
+                        <p class="text-2xl font-bold text-purple-800" id="successfully-onboarded">0</p>
+                        <p class="text-xs text-purple-500">Completed</p>
+                    </div>
+                    <div class="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-graduate text-white"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-xl border border-yellow-200">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-yellow-600 font-medium">Onboarding Rate</p>
+                        <p class="text-2xl font-bold text-yellow-800" id="onboarding-rate">0%</p>
+                        <p class="text-xs text-yellow-500">Success Rate</p>
+                    </div>
+                    <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-percentage text-white"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Onboarding Timeline -->
+        <div class="bg-gray-50 rounded-xl p-6">
+            <h4 class="text-lg font-semibold text-gray-900 mb-4">Onboarding Timeline</h4>
+            <div id="onboardingTimeline" class="space-y-3">
+                <!-- Onboarding timeline items will be populated here -->
+                <div class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin text-xl text-gray-400"></i>
+                    <p class="mt-2 text-gray-500">Loading onboarding timeline...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!-- Notification -->
+<div id="notification" class="notification"></div>
+
+<script>
+// Global variables
+let allCandidates = [];
+let filteredCandidates = [];
+
+// Create missing elements if they don't exist
+function createMissingElements() {
+    const elementsToCreate = [
+        { id: 'total-candidates', defaultValue: '0' },
+        { id: 'selected-count', defaultValue: '0' },
+        { id: 'assigned-count', defaultValue: '0' },
+        { id: 'pending-count', defaultValue: '0' },
+        { id: 'onboarded-count', defaultValue: '0' }
+    ];
+    
+    elementsToCreate.forEach(({ id, defaultValue }) => {
+        if (!document.getElementById(id)) {
+            console.log(`Creating missing element: ${id}`);
+            const element = document.createElement('span');
+            element.id = id;
+            element.textContent = defaultValue;
+            element.style.display = 'none'; // Hide it since it's not in the right place
+            document.body.appendChild(element);
+        }
+    });
+}
+
+// Check if all required elements exist
+function checkRequiredElements() {
+    const requiredElements = [
+        'total-candidates',
+        'selected-count', 
+        'assigned-count',
+        'pending-count',
+        'onboarded-count',
+        'total-selected-onboarding',
+        'in-progress-onboarding',
+        'successfully-onboarded',
+        'onboarding-rate',
+        'onboardingTimeline'
+    ];
+    
+    const missingElements = [];
+    
+    requiredElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (!element) {
+            missingElements.push(id);
+            console.error(`Required element with id '${id}' not found`);
+        }
+    });
+    
+    if (missingElements.length > 0) {
+        console.error('Missing required elements:', missingElements);
+        // Try to create missing elements
+        createMissingElements();
+        return false;
+    }
+    
+    return true;
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, checking required elements...');
+    
+    // Wait a bit for all elements to be rendered
+    setTimeout(() => {
+        if (checkRequiredElements()) {
+            console.log('All required elements found, initializing dashboard...');
+            loadCandidates();
+            loadFilterData();
+            loadRecruiterPersonnelData();
+            loadManagerPersonnelData();
+            loadWeeklyTrends();
+            loadOnboardingDetails();
+            startAutoRefresh();
+        } else {
+            console.error('Some required elements are missing, retrying in 1 second...');
+            setTimeout(() => {
+                if (checkRequiredElements()) {
+                    console.log('Retry successful, initializing dashboard...');
+                    loadCandidates();
+                    loadFilterData();
+                    loadRecruiterPersonnelData();
+                    loadManagerPersonnelData();
+                    loadWeeklyTrends();
+                    loadOnboardingDetails();
+                    startAutoRefresh();
+                } else {
+                    console.error('Failed to find required elements after retry');
+                    showNotification('Dashboard initialization failed - missing elements', 'error');
+                }
+            }, 1000);
+        }
+    }, 100);
+});
+
+// Load candidates data
+async function loadCandidates() {
+    try {
+        console.log('Loading candidates...');
+        const response = await fetch('/cluster/get_candidates');
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Candidates data received:', data);
+            
+            allCandidates = data.candidates || [];
+            filteredCandidates = [...allCandidates]; // Initialize filtered candidates
+            
+            console.log('All candidates:', allCandidates);
+            console.log('Filtered candidates:', filteredCandidates);
+            
+            // Calculate statistics from the actual candidate data
+            const totalCandidates = allCandidates.length;
+            const selectedCandidates = allCandidates.filter(c => c.status === 'Selected').length;
+            
+            // More robust detection of "not selected" candidates
+            const notSelectedCandidates = allCandidates.filter(c => 
+                c.status === 'Not Selected' || 
+                c.status === 'Rejected' || 
+                c.status === 'Declined' ||
+                c.status === 'Failed' ||
+                c.status === 'Not Approved'
+            ).length;
+            
+            // Pending candidates should only be those with status 'Pending'
+            const pendingCandidates = allCandidates.filter(c => c.status === 'Pending').length;
+            
+            // Assigned candidates are those assigned to HR for onboarding (status 'Selected' but not yet onboarded)
+            const assignedCandidates = allCandidates.filter(c => 
+                c.status === 'Selected' && c.onboarding_status !== 'Onboarded'
+            ).length;
+            
+            const onboardedCandidates = allCandidates.filter(c => c.onboarding_status === 'Onboarded').length;
+            
+            // Don't combine pending and not selected - they should be separate
+            // const totalNotSelected = notSelectedCandidates + pendingCandidates;
+            
+            console.log('Calculated statistics:', {
+                totalCandidates,
+                selectedCandidates,
+                notSelectedCandidates,
+                pendingCandidates,
+                assignedCandidates,
+                onboardedCandidates
+            });
+            
+            // Debug: Show all candidate statuses with more detail
+            console.log('All candidate statuses:', allCandidates.map(c => ({
+                name: c.name,
+                status: c.status,
+                onboarding_status: c.onboarding_status,
+                _id: c._id
+            })));
+            
+            // Debug: Show candidates that should be counted as "not selected"
+            const notSelectedCandidatesList = allCandidates.filter(c => 
+                c.status === 'Not Selected' || 
+                c.status === 'Rejected' || 
+                c.status === 'Declined' ||
+                c.status === 'Failed' ||
+                c.status === 'Not Approved'
+            );
+            console.log('Candidates counted as "not selected":', notSelectedCandidatesList.map(c => ({
+                name: c.name,
+                status: c.status
+            })));
+            
+            // Debug: Show pending candidates
+            const pendingCandidatesList = allCandidates.filter(c => c.status === 'Pending');
+            console.log('Candidates counted as "pending":', pendingCandidatesList.map(c => ({
+                name: c.name,
+                status: c.status
+            })));
+            
+            // Safely update statistics with element existence checks
+            const totalCandidatesEl = document.getElementById('total-candidates');
+            const selectedCandidatesEl = document.getElementById('selected-count');
+            const notSelectedCandidatesEl = document.getElementById('not-selected-count');
+            const pendingCandidatesEl = document.getElementById('pending-count');
+            const assignedCountEl = document.getElementById('assigned-count');
+            const onboardedCountEl = document.getElementById('onboarded-count');
+            
+            if (totalCandidatesEl) totalCandidatesEl.textContent = totalCandidates;
+            if (selectedCandidatesEl) selectedCandidatesEl.textContent = selectedCandidates;
+            if (notSelectedCandidatesEl) notSelectedCandidatesEl.textContent = notSelectedCandidates;
+            if (pendingCandidatesEl) pendingCandidatesEl.textContent = pendingCandidates;
+            if (assignedCountEl) assignedCountEl.textContent = assignedCandidates;
+            if (onboardedCountEl) onboardedCountEl.textContent = onboardedCandidates;
+            
+            // Render candidates
+            renderCandidates();
+            
+            // Update statistics to ensure they're in sync
+            updateStatistics();
+            
+            // Load onboarding details after candidates are loaded
+            loadOnboardingDetails();
+            
+        } else {
+            console.error('Failed to load candidates:', response.status);
+            showNotification('Failed to load candidates', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading candidates:', error);
+        showNotification('Error loading candidates: ' + error.message, 'error');
+    }
+}
+
+// Load filter data (HRs, Managers, Clusters)
+async function loadFilterData() {
+    try {
+        const response = await fetch('/cluster/get_filter_data');
+        const data = await response.json();
+        
+        if (data.success) {
+            populateFilter('hr-filter', data.hr_names);
+            populateFilter('manager-filter', data.manager_names);
+            populateFilter('cluster-filter', data.cluster_names);
+        }
+    } catch (error) {
+        console.error('Error loading filter data:', error);
+    }
+}
+
+// Populate filter dropdown
+function populateFilter(filterId, options) {
+    const filter = document.getElementById(filterId);
+    if (!filter) return;
+    
+    // Keep the first option (All)
+    const firstOption = filter.firstElementChild;
+    filter.innerHTML = '';
+    filter.appendChild(firstOption);
+    
+    options.forEach(option => {
+        const optionElement = document.createElement('option');
+        optionElement.value = option;
+        optionElement.textContent = option;
+        filter.appendChild(optionElement);
+    });
+}
+
+// Apply filters
+function applyFilters() {
+    const statusFilter = document.getElementById('status-filter').value;
+    const onboardingStatusFilter = document.getElementById('onboarding-status-filter').value;
+    const hrFilter = document.getElementById('hr-filter').value;
+    const managerFilter = document.getElementById('manager-filter').value;
+    const clusterFilter = document.getElementById('cluster-filter').value;
+    const searchQuery = document.getElementById('search-input').value.toLowerCase();
+    
+    filteredCandidates = allCandidates.filter(candidate => {
+        let matchesStatus = true;
+        if (statusFilter) {
+            if (statusFilter === 'Not Selected') {
+                // Show both "Not Selected" and "Pending" statuses
+                matchesStatus = candidate.status === 'Not Selected' || candidate.status === 'Pending';
+            } else {
+                matchesStatus = candidate.status === statusFilter;
+            }
+        }
+        
+        const matchesOnboardingStatus = !onboardingStatusFilter || candidate.onboarding_status === onboardingStatusFilter;
+        const matchesHR = !hrFilter || candidate.recruiter_name === hrFilter;
+        const matchesManager = !managerFilter || candidate.manager_name === managerFilter;
+        const matchesCluster = !clusterFilter || candidate.cluster_name === clusterFilter;
+        const matchesSearch = !searchQuery || 
+            candidate.name.toLowerCase().includes(searchQuery) ||
+            candidate.email.toLowerCase().includes(searchQuery) ||
+            candidate.phone.toLowerCase().includes(searchQuery);
+        
+        return matchesStatus && matchesOnboardingStatus && matchesHR && matchesManager && matchesCluster && matchesSearch;
+    });
+    
+    renderCandidates();
+    updateStatistics();
+}
+
+// Reset filters
+function resetFilters() {
+    document.getElementById('status-filter').value = '';
+    document.getElementById('onboarding-status-filter').value = '';
+    document.getElementById('hr-filter').value = '';
+    document.getElementById('manager-filter').value = '';
+    document.getElementById('cluster-filter').value = '';
+    document.getElementById('search-input').value = '';
+    
+    filteredCandidates = [...allCandidates];
+    renderCandidates();
+    updateStatistics();
+}
+
+// Render candidates in card format matching Recruiter dashboard
+function renderCandidates() {
+    console.log('renderCandidates called');
+    const container = document.getElementById('candidatesContainer');
+    if (!container) {
+        console.error('candidatesContainer not found');
+        return;
+    }
+
+    console.log('Filtered candidates length:', filteredCandidates.length);
+    console.log('Filtered candidates:', filteredCandidates);
+
+    if (filteredCandidates.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8">
+                <i class="fas fa-users text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-600">No candidates found</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = '';
+    
+    filteredCandidates.forEach((candidate, index) => {
+        console.log(`Rendering candidate ${index}:`, candidate);
+        const card = document.createElement('div');
+        card.className = 'bg-white rounded-lg p-4 border border-gray-200 hover:shadow-md transition-all duration-200 candidate-item';
+        
+        // Get status badge
+        const statusBadge = candidate.onboarding_status === 'Onboarded' ? 
+            getOnboardingStatusBadge(candidate.onboarding_status) : 
+            getStatusBadge(candidate.status === 'Pending' ? 'Not Selected' : candidate.status);
+        
+        console.log('Status badge for candidate:', statusBadge);
+        
+        card.innerHTML = `
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-r from-purple-400 to-blue-400 rounded-full flex items-center justify-center shadow-sm">
+                        <img src="${candidate.image_path ? '/static/' + candidate.image_path : '/static/images/default-avatar.svg'}" 
+                             alt="${candidate.name || 'Candidate'}" 
+                             class="w-12 h-12 rounded-full object-cover"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                        <i class="fas fa-user text-lg text-white" style="display: none;"></i>
+                    </div>
+                    <div class="flex-1">
+                        <h4 class="text-lg font-semibold text-gray-900">${candidate.name || 'Name not available'}</h4>
+                        <div class="flex items-center space-x-4 text-sm text-gray-600">
+                            <span><i class="fas fa-envelope text-xs mr-1"></i>${candidate.email || 'Email not available'}</span>
+                            <span><i class="fas fa-phone text-xs mr-1"></i>${candidate.phone || 'Phone not available'}</span>
+                            ${candidate.date_of_birth && candidate.date_of_birth !== 'N/A' ? `<span><i class="fas fa-calendar text-xs mr-1"></i>${candidate.date_of_birth}</span>` : ''}
+                        </div>
+                        ${(candidate.recruiter_name && candidate.recruiter_name !== 'N/A') || (candidate.manager_name && candidate.manager_name !== 'N/A') ? `<div class="flex items-center space-x-3 mt-1 text-xs">
+                            ${candidate.recruiter_name && candidate.recruiter_name !== 'N/A' ? `<span class="text-blue-600">Recruiter: ${candidate.recruiter_name}</span>` : ''}
+                            ${candidate.manager_name && candidate.manager_name !== 'N/A' ? `<span class="text-green-600">Manager: ${candidate.manager_name}</span>` : ''}
+                        </div>` : ''}
+                        
+                        <!-- Onboarding Details -->
+                        ${candidate.onboarding_status ? `
+                        <div class="mt-2 p-2 bg-gray-50 rounded-md">
+                            <div class="text-xs">
+                                <span class="font-medium text-gray-700">Onboarding Status: </span>
+                                <span class="text-gray-600">${candidate.onboarding_status}</span>
+                            </div>
+                            ${candidate.onboarding_date ? `<div class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-calendar mr-1"></i>Date: ${new Date(candidate.onboarding_date).toLocaleDateString()}
+                            </div>` : ''}
+                            ${candidate.onboarding_notes ? `<div class="text-xs text-gray-600 mt-1">
+                                <i class="fas fa-sticky-note mr-1"></i>${candidate.onboarding_notes}
+                            </div>` : ''}
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="flex flex-col items-end space-y-2">
+                        ${statusBadge}
+                        <span class="text-xs text-gray-500">${new Date(candidate.created_at || Date.now()).toLocaleDateString()}</span>
+                    </div>
+                    <button onclick="viewCandidate('${candidate._id}')" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors" 
+                            title="View Details">
+                        <i class="fas fa-eye mr-1"></i>View
+                    </button>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+    
+    console.log('Candidates rendered successfully');
+}
+
+// View candidate details
+function viewCandidate(candidateId) {
+    window.open(`/cluster/candidate/${candidateId}`, '_blank');
+}
+
+
+
+// Update candidate list 
+function updateCandidateList() {
+    // Show loading indicator
+    const candidateListContainer = document.querySelector('#candidatesContainer');
+    if (candidateListContainer) {
+        candidateListContainer.innerHTML = '<div class="text-center py-8"><i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i><p class="mt-2 text-gray-600">Updating candidate list...</p></div>';
+    }
+    
+    // Reload candidates data
+    loadCandidates();
+}
+
+// Update statistics
+function updateStatistics() {
+    const total = filteredCandidates.length;
+    const selected = filteredCandidates.filter(c => c.status === 'Selected').length;
+    
+    // More robust detection of "not selected" candidates
+    const notSelected = filteredCandidates.filter(c => 
+        c.status === 'Not Selected' || 
+        c.status === 'Rejected' || 
+        c.status === 'Declined' ||
+        c.status === 'Failed' ||
+        c.status === 'Not Approved'
+    ).length;
+    
+    const pending = filteredCandidates.filter(c => c.status === 'Pending').length;
+    
+    // Reassigned candidates are those with reassigned_by_manager field
+    const assigned = filteredCandidates.filter(c => 
+        c.reassigned_by_manager && c.reassigned_by_manager !== null
+    ).length;
+    
+    const onboarded = filteredCandidates.filter(c => c.onboarding_status === 'Onboarded').length;
+    
+    // Don't combine pending and not selected - they should be separate
+    // const totalNotSelected = notSelected + pending;
+    
+    console.log('Statistics calculation:', {
+        total,
+        selected,
+        notSelected,
+        pending,
+        assigned,
+        onboarded,
+        candidates: filteredCandidates.map(c => ({ 
+            name: c.name, 
+            status: c.status, 
+            onboarding_status: c.onboarding_status 
+        }))
+    });
+    
+    document.getElementById('total-candidates').textContent = total;
+    document.getElementById('selected-count').textContent = selected;
+    document.getElementById('not-selected-count').textContent = notSelected;
+    document.getElementById('pending-count').textContent = pending;
+    document.getElementById('assigned-count').textContent = assigned;
+    document.getElementById('onboarded-count').textContent = onboarded;
+}
+
+// Filter by status (clickable from statistics cards)
+function filterByStatus(status) {
+    document.getElementById('status-filter').value = status;
+    applyFilters();
+}
+
+// Get status badge with proper colors matching manager portal
+function getStatusBadge(status) {
+    let badgeClass = '';
+    let textClass = '';
+    
+    switch (status) {
+        case 'Selected':
+            badgeClass = 'bg-green-100';
+            textClass = 'text-green-800';
+            break;
+        case 'Not Selected':
+        case 'Pending':
+            badgeClass = 'bg-red-100';
+            textClass = 'text-red-800';
+            break;
+        case 'Assigned':
+        case 'Reassigned':
+            badgeClass = 'bg-blue-100';
+            textClass = 'text-blue-800';
+            break;
+        default:
+            badgeClass = 'bg-gray-100';
+            textClass = 'text-gray-800';
+    }
+    
+    return `<span class="px-2 py-1 inline-flex text-xs leading-4 font-medium rounded-full ${badgeClass} ${textClass}">
+                ${status}
+            </span>`;
+}
+
+// Get onboarding status badge
+function getOnboardingStatusBadge(status) {
+    let badgeClass = '';
+    let textClass = '';
+    
+    switch (status) {
+        case 'Onboarded':
+            badgeClass = 'bg-green-100';
+            textClass = 'text-green-800';
+            break;
+        case 'In Progress':
+            badgeClass = 'bg-yellow-100';
+            textClass = 'text-yellow-800';
+            break;
+        case 'Not Started':
+        case 'Selected':
+            badgeClass = 'bg-blue-100';
+            textClass = 'text-blue-800';
+            break;
+        default:
+            badgeClass = 'bg-gray-100';
+            textClass = 'text-gray-800';
+    }
+    
+    return `<span class="px-2 py-1 inline-flex text-xs leading-4 font-medium rounded-full ${badgeClass} ${textClass}">
+                ${status}
+            </span>`;
+}
+
+// Get onboarding status color for candidate cards
+function getOnboardingStatusColor(status) {
+    switch (status) {
+        case 'Onboarded':
+            return 'bg-green-100 text-green-800';
+        case 'In Progress':
+            return 'bg-yellow-100 text-yellow-800';
+        case 'Not Started':
+        case 'Selected':
+            return 'bg-blue-100 text-blue-800';
+        default:
+            return 'bg-gray-100 text-gray-800';
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+// View candidate details
+function viewCandidate(candidateId) {
+    window.open(`/cluster/candidate/${candidateId}`, '_blank');
+}
+
+
+
+// Refresh data
+function refreshData() {
+    loadCandidates();
+    loadFilterData();
+    showNotification('Data refreshed successfully', 'success');
+}
+
+// Export data
+function exportData() {
+    const params = new URLSearchParams();
+    
+    // Add current filters to export
+    const statusFilter = document.getElementById('status-filter').value;
+    const hrFilter = document.getElementById('hr-filter').value;
+    const managerFilter = document.getElementById('manager-filter').value;
+    const clusterFilter = document.getElementById('cluster-filter').value;
+    
+    if (statusFilter) params.append('status', statusFilter);
+    if (hrFilter) params.append('hr', hrFilter);
+    if (managerFilter) params.append('manager', managerFilter);
+    if (clusterFilter) params.append('cluster', clusterFilter);
+    
+    window.open(`/cluster/export_data?${params.toString()}`, '_blank');
+}
+
+// Show notification
+function showNotification(message, type = 'info') {
+    const notification = document.getElementById('notification');
+    if (!notification) return;
+    
+    notification.textContent = message;
+    notification.className = `notification ${type}`;
+    notification.classList.add('show');
+    
+    setTimeout(() => {
+        notification.classList.remove('show');
+    }, 3000);
+}
+
+// Auto-refresh functionality
+let refreshInterval;
+
+function startAutoRefresh() {
+    // Refresh every 5 minutes
+    refreshInterval = setInterval(() => {
+        loadFilterData();
+    }, 5 * 60 * 1000);
+}
+
+// Cleanup on page unload
+window.addEventListener('beforeunload', () => {
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+});
+
+// ===== CLUSTER DATA ANALYTICS SYSTEM =====
+
+// Load Recruiter Personnel Data
+async function loadRecruiterPersonnelData() {
+    try {
+        const response = await fetch('/cluster/recruiter_performance');
+        const data = await response.json();
+        
+        const container = document.getElementById('recruiterPersonnelContainer');
+        
+        if (data.success && data.recruiter_personnel.length > 0) {
+            container.innerHTML = '';
+            data.recruiter_personnel.forEach(recruiter => {
+                const recruiterCard = createRecruiterCard(recruiter);
+                container.appendChild(recruiterCard);
+            });
+        } else {
+            container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500"><i class="fas fa-info-circle mr-2"></i>No Recruiter personnel data available</div>';
+        }
+    } catch (error) {
+        console.error('Error loading Recruiter personnel data:', error);
+        document.getElementById('recruiterPersonnelContainer').innerHTML = '<div class="col-span-full text-center py-8 text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading Recruiter data</div>';
+    }
+}
+
+// Load HR Personnel Data
+async function loadHRPersonnelData() {
+    try {
+        const response = await fetch('/cluster/hr_performance');
+        const data = await response.json();
+        
+        const container = document.getElementById('hrPersonnelContainer');
+        
+        if (data.success && data.hr_personnel.length > 0) {
+            container.innerHTML = '';
+            data.hr_personnel.forEach(hr => {
+                const hrCard = createHRCard(hr);
+                container.appendChild(hrCard);
+            });
+        } else {
+            container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500"><i class="fas fa-info-circle mr-2"></i>No HR personnel data available</div>';
+        }
+    } catch (error) {
+        console.error('Error loading HR personnel data:', error);
+        document.getElementById('hrPersonnelContainer').innerHTML = '<div class="col-span-full text-center py-8 text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading HR data</div>';
+    }
+}
+
+// Load Manager Personnel Data
+async function loadManagerPersonnelData() {
+    try {
+        const response = await fetch('/cluster/manager_performance');
+        const data = await response.json();
+        
+        const container = document.getElementById('managerPersonnelContainer');
+        
+        if (data.success && data.manager_personnel.length > 0) {
+            container.innerHTML = '';
+            data.manager_personnel.forEach(manager => {
+                const managerCard = createManagerCard(manager);
+                container.appendChild(managerCard);
+            });
+        } else {
+            container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500"><i class="fas fa-info-circle mr-2"></i>No manager personnel data available</div>';
+        }
+    } catch (error) {
+        console.error('Error loading manager personnel data:', error);
+        document.getElementById('managerPersonnelContainer').innerHTML = '<div class="col-span-full text-center py-8 text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>Error loading manager data</div>';
+    }
+}
+
+// Load Weekly Trends Data
+async function loadWeeklyTrends() {
+    try {
+        const response = await fetch('/cluster/weekly_trends');
+        const data = await response.json();
+        
+        if (data.success) {
+            document.getElementById('weeklyAssigned').textContent = data.assigned || 0;
+            document.getElementById('weeklyPending').textContent = data.pending || 0;
+            document.getElementById('weeklySelected').textContent = data.selected || 0;
+            document.getElementById('weeklyRejected').textContent = data.rejected || 0;
+            
+            // Update trend indicators
+            document.getElementById('weeklyAssignedTrend').textContent = data.assigned_trend || '↗ +0%';
+            document.getElementById('weeklyPendingTrend').textContent = data.pending_trend || '→ 0%';
+            document.getElementById('weeklySelectedTrend').textContent = data.selected_trend || '↗ +0%';
+            document.getElementById('weeklyRejectedTrend').textContent = data.rejected_trend || '→ 0%';
+        }
+    } catch (error) {
+        console.error('Error loading weekly trends:', error);
+    }
+}
+
+// Create HR Card
+function createHRCard(hr) {
+    const card = document.createElement('div');
+    card.className = 'bg-gradient-to-br from-blue-50 to-indigo-100 rounded-xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300';
+    
+    const successRate = hr.total_assigned > 0 ? Math.round((hr.selected / hr.total_assigned) * 100) : 0;
+    
+    card.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-user-tie text-white"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900">${hr.name}</h4>
+                    <p class="text-sm text-gray-600">${hr.email}</p>
+                    <p class="text-xs text-blue-600 font-medium">${hr.cluster || 'General'} Cluster</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-2xl font-bold text-blue-700">${successRate}%</div>
+                <div class="text-xs text-gray-500">Success Rate</div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="text-center">
+                <div class="text-lg font-bold text-blue-600">${hr.total_assigned || 0}</div>
+                <div class="text-xs text-gray-500">Assigned</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-yellow-600">${hr.pending || 0}</div>
+                <div class="text-xs text-gray-500">Not Selected</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-green-600">${hr.selected || 0}</div>
+                <div class="text-xs text-gray-500">Selected</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-red-600">${hr.not_selected || 0}</div>
+                <div class="text-xs text-gray-500">Not Selected</div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-3">
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Last Activity:</span>
+                <span class="text-sm font-medium text-gray-800">${hr.last_activity || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between items-center mt-1">
+                <span class="text-sm text-gray-600">Avg. Response Time:</span>
+                <span class="text-sm font-medium text-gray-800">${hr.avg_response_time || 'N/A'}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+// Create Recruiter Card
+function createRecruiterCard(recruiter) {
+    const card = document.createElement('div');
+    card.className = 'bg-gradient-to-br from-purple-50 to-blue-100 rounded-xl p-6 border border-purple-200 shadow-sm hover:shadow-md transition-all duration-300';
+    
+    const successRate = recruiter.total_uploaded > 0 ? Math.round((recruiter.selected / recruiter.total_uploaded) * 100) : 0;
+    
+    card.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-600 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-users text-white"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900">${recruiter.name}</h4>
+                    <p class="text-sm text-gray-600">${recruiter.email}</p>
+                    <p class="text-xs text-purple-600 font-medium">${recruiter.cluster || 'General'} Cluster</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-2xl font-bold text-purple-700">${successRate}%</div>
+                <div class="text-xs text-gray-500">Success Rate</div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="text-center">
+                <div class="text-lg font-bold text-purple-600">${recruiter.total_uploaded || 0}</div>
+                <div class="text-xs text-gray-500">Uploaded</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-yellow-600">${recruiter.not_selected || 0}</div>
+                <div class="text-xs text-gray-500">Not Selected</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-blue-600">${recruiter.assigned || 0}</div>
+                <div class="text-xs text-gray-500">Assigned</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-green-600">${recruiter.selected || 0}</div>
+                <div class="text-xs text-gray-500">Selected</div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-3">
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Last Activity:</span>
+                <span class="text-sm font-medium text-gray-800">${recruiter.last_activity || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between items-center mt-1">
+                <span class="text-sm text-gray-600">Avg. Response Time:</span>
+                <span class="text-sm font-medium text-gray-800">${recruiter.avg_response_time || 'N/A'}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+// Create Manager Card
+function createManagerCard(manager) {
+    const card = document.createElement('div');
+    card.className = 'bg-gradient-to-br from-green-50 to-teal-100 rounded-xl p-6 border border-green-200 shadow-sm hover:shadow-md transition-all duration-300';
+    
+    const successRate = manager.total_reviewed > 0 ? Math.round((manager.selected / manager.total_reviewed) * 100) : 0;
+    
+    card.innerHTML = `
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center">
+                <div class="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mr-3">
+                    <i class="fas fa-users-cog text-white"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-gray-900">${manager.name}</h4>
+                    <p class="text-sm text-gray-600">${manager.email}</p>
+                    <p class="text-xs text-green-600 font-medium">${manager.cluster || 'General'} Cluster</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <div class="text-2xl font-bold text-green-700">${successRate}%</div>
+                <div class="text-xs text-gray-500">Selection Rate</div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 gap-4 mb-4">
+            <div class="text-center">
+                <div class="text-lg font-bold text-blue-600">${manager.total_reviewed || 0}</div>
+                <div class="text-xs text-gray-500">Reviewed</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-yellow-600">${manager.pending_review || 0}</div>
+                <div class="text-xs text-gray-500">Assigned</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-green-600">${manager.selected || 0}</div>
+                <div class="text-xs text-gray-500">Selected</div>
+            </div>
+            <div class="text-center">
+                <div class="text-lg font-bold text-red-600">${manager.not_selected || 0}</div>
+                <div class="text-xs text-gray-500">Not Selected</div>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-lg p-3">
+            <div class="flex justify-between items-center">
+                <span class="text-sm text-gray-600">Last Review:</span>
+                <span class="text-sm font-medium text-gray-800">${manager.last_review || 'N/A'}</span>
+            </div>
+            <div class="flex justify-between items-center mt-1">
+                <span class="text-sm text-gray-600">Avg. Review Time:</span>
+                <span class="text-sm font-medium text-gray-800">${manager.avg_review_time || 'N/A'}</span>
+            </div>
+        </div>
+    `;
+    
+    return card;
+}
+
+// Refresh functions
+function refreshRecruiterData() {
+    loadRecruiterPersonnelData();
+    showNotification('Recruiter data refreshed successfully', 'success');
+}
+
+function refreshHRData() {
+    loadHRPersonnelData();
+    showNotification('HR data refreshed successfully', 'success');
+}
+
+function refreshManagerData() {
+    loadManagerPersonnelData();
+    showNotification('Manager data refreshed successfully', 'success');
+}
+
+// Global flags for analytics
+let chartJsLoaded = false;
+let chartJsLoading = false;
+let forceSimplifiedMode = false;
+
+// Cluster Data Analytics Functions
+function openDataVisualization() {
+    const modal = document.getElementById('clusterDataVisualizationModal');
+    if (modal) {
+        console.log('Opening Cluster data visualization modal...');
+        modal.classList.remove('hidden');
+        modal.style.display = 'flex';
+        
+        // Ensure the overview tab is visible by default
+        switchClusterAnalyticsTab('overview');
+        
+        // Chart.js is already loaded via script tag, proceed directly
+        console.log('Chart.js available:', typeof Chart !== 'undefined');
+        
+        // Test Chart.js with a simple chart
+        if (typeof Chart !== 'undefined') {
+            console.log('Chart.js is working!');
+        } else {
+            console.error('Chart.js failed to load!');
+        }
+        
+        setTimeout(() => {
+            console.log('Starting Cluster analytics data load...');
+            loadClusterAnalyticsData();
+            showClusterNotification('Loading Cluster analytics data...', 'info');
+        }, 100);
+    } else {
+        console.error('Cluster data visualization modal not found!');
+    }
+}
+
+// Function to dynamically load Chart.js
+function loadChartJsLibrary() {
+    return new Promise((resolve, reject) => {
+        // If already loaded, resolve immediately
+        if (chartJsLoaded && typeof Chart !== 'undefined') {
+            resolve();
+            return;
+        }
+        
+        // If already loading, wait for it to complete
+        if (chartJsLoading) {
+            const checkLoading = setInterval(() => {
+                if (!chartJsLoading) {
+                    clearInterval(checkLoading);
+                    if (chartJsLoaded && typeof Chart !== 'undefined') {
+                        resolve();
+                    } else {
+                        reject(new Error('Chart.js loading failed'));
+                    }
+                }
+            }, 100);
+            return;
+        }
+        
+        chartJsLoading = true;
+        
+        // Check if Chart.js is already loaded
+        if (typeof Chart !== 'undefined') {
+            chartJsLoaded = true;
+            chartJsLoading = false;
+            resolve();
+            return;
+        }
+        
+        // Load Chart.js from CDN
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js';
+        script.onload = () => {
+            chartJsLoaded = true;
+            chartJsLoading = false;
+            resolve();
+        };
+        script.onerror = () => {
+            console.warn('Primary CDN failed, trying fallback...');
+            // Try fallback CDN
+            const fallbackScript = document.createElement('script');
+            fallbackScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js';
+            fallbackScript.onload = () => {
+                chartJsLoaded = true;
+                chartJsLoading = false;
+                resolve();
+            };
+            fallbackScript.onerror = () => {
+                chartJsLoading = false;
+                reject(new Error('Failed to load Chart.js from any CDN'));
+            };
+            document.head.appendChild(fallbackScript);
+        };
+        document.head.appendChild(script);
+    });
+}
+
+function closeClusterDataVisualization() {
+    const modal = document.getElementById('clusterDataVisualizationModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.display = 'none';
+    }
+}
+
+function switchClusterAnalyticsTab(tabName) {
+    // Hide all tab contents
+    const tabs = ['overview', 'trends', 'performance', 'reports'];
+    tabs.forEach(tab => {
+        const content = document.getElementById(`cluster${tab.charAt(0).toUpperCase() + tab.slice(1)}Tab`);
+        const button = document.getElementById(`cluster${tab.charAt(0).toUpperCase() + tab.slice(1)}Button`);
+        if (content) content.classList.add('hidden');
+        if (button) {
+            button.classList.remove('bg-indigo-600', 'text-white');
+            button.classList.add('bg-gray-200', 'text-gray-700');
+        }
+    });
+    
+    // Show selected tab
+    const selectedContent = document.getElementById(`cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab`);
+    const selectedButton = document.getElementById(`cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Button`);
+    
+    if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+    }
+    if (selectedButton) {
+        selectedButton.classList.remove('bg-gray-200', 'text-gray-700');
+        selectedButton.classList.add('bg-indigo-600', 'text-white');
+    }
+    
+    // Load data for the selected tab
+    loadClusterTabData(tabName);
+}
+
+function loadClusterAnalyticsData() {
+    // Load all tabs starting with overview
+    switchClusterAnalyticsTab('overview');
+}
+
+function loadClusterAnalyticsDataWithFallback() {
+    try {
+        showClusterNotification('Loading analytics in simplified mode...', 'info');
+        
+        // Show overview tab by default
+        switchClusterAnalyticsTab('overview');
+        
+        // Replace charts with text summaries
+        setTimeout(() => {
+            createClusterFallbackCharts();
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error loading Cluster fallback analytics:', error);
+        showClusterNotification('Error loading analytics', 'error');
+    }
+}
+
+async function loadClusterTabData(tabName) {
+    try {
+        showClusterChartLoading(tabName);
+        
+        const response = await fetch(`/cluster/analytics/${tabName}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        console.log(`Received Cluster data for ${tabName}:`, data);
+        
+        if (!data.success) {
+            throw new Error(data.message || 'Failed to load data');
+        }
+        
+        // Wait for the DOM to be ready
+        setTimeout(() => {
+            console.log(`Processing Cluster data for ${tabName} tab after DOM ready delay...`);
+            
+            // Update dashboard statistics
+            updateClusterDashboardStats(data);
+            
+            // Check if we should force simplified mode due to previous failures
+            if (forceSimplifiedMode) {
+                console.log('Forcing simplified mode for Cluster due to previous canvas issues');
+                renderClusterFallbackCharts(tabName, data);
+                hideClusterChartLoading(tabName);
+                showClusterNotification(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} loaded (simplified mode)`, 'info');
+                return;
+            }
+            
+            // Check if Chart.js is available
+            if (typeof Chart === 'undefined') {
+                console.warn('Chart.js library not available for Cluster, using fallback');
+                forceSimplifiedMode = true;
+                renderClusterFallbackCharts(tabName, data);
+                hideClusterChartLoading(tabName);
+                showClusterNotification(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} loaded (simplified mode)`, 'info');
+                return;
+            }
+            
+            console.log('Chart.js is available, proceeding with chart rendering...');
+            
+            // Render charts based on tab
+            try {
+                renderClusterCharts(tabName, data);
+                hideClusterChartLoading(tabName);
+                showClusterNotification(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} data loaded successfully`, 'success');
+            } catch (error) {
+                console.error('Error rendering charts:', error);
+                renderClusterFallbackCharts(tabName, data);
+                hideClusterChartLoading(tabName);
+                showClusterNotification(`${tabName.charAt(0).toUpperCase() + tabName.slice(1)} loaded (fallback mode)`, 'info');
+            }
+        }, 1000);
+    } catch (error) {
+        console.error(`Error loading Cluster ${tabName} data:`, error);
+        hideClusterChartLoading(tabName);
+        showClusterNotification(`Failed to load ${tabName} data`, 'error');
+    }
+}
+
+// Update dashboard statistics with error handling
+function updateClusterDashboardStats(data) {
+    try {
+        console.log('Updating cluster dashboard stats with data:', data);
+        
+        if (!data || !data.status_counts) {
+            console.warn('No status_counts data provided to updateClusterDashboardStats');
+            return;
+        }
+        
+        const total = Object.values(data.status_counts).reduce((a, b) => a + b, 0);
+        const selected = data.status_counts['Selected'] || 0;
+        const pending = data.status_counts['Pending'] || 0;
+        const notSelected = data.status_counts['Not Selected'] || 0;
+        
+        // Assigned candidates are those assigned to HR for onboarding (status 'Selected' but not yet onboarded)
+        const assigned = data.status_counts['Assigned'] || 0;
+        
+        const onboarded = data.status_counts['Onboarded'] || 0;
+        const successRate = total > 0 ? Math.round((selected / total) * 100) : 0;
+        
+        // Update elements with correct IDs that actually exist in HTML
+        const elementUpdates = [
+            { id: 'total-candidates', value: total, label: 'Total Candidates' },
+            { id: 'selected-count', value: selected, label: 'Selected' },
+            { id: 'assigned-count', value: assigned, label: 'Assigned' },
+            { id: 'pending-count', value: pending, label: 'Not Selected' },
+            { id: 'not-selected-count', value: notSelected, label: 'Not Selected' },
+            { id: 'onboarded-count', value: onboarded, label: 'Onboarded' }
+        ];
+        
+        elementUpdates.forEach(update => {
+            const element = document.getElementById(update.id);
+            if (element) {
+                element.textContent = update.value;
+                console.log(`Updated ${update.label}: ${update.value}`);
+            } else {
+                console.warn(`Element with ID '${update.id}' not found`);
+            }
+        });
+        
+        // Update success rate if element exists
+        const successRateElement = document.getElementById('success-rate');
+        if (successRateElement) {
+            successRateElement.textContent = `${successRate}%`;
+            console.log(`Updated Success Rate: ${successRate}%`);
+        }
+        
+        console.log('✅ Cluster dashboard stats updated successfully:', { total, selected, pending, notSelected, assigned, onboarded, successRate });
+        
+    } catch (error) {
+        console.error('❌ Error updating cluster dashboard stats:', error);
+    }
+}
+
+// Chart rendering functions for Cluster
+function renderClusterCharts(tabName, data) {
+    console.log(`Rendering Cluster charts for ${tabName} with data:`, data);
+    
+    try {
+        switch(tabName) {
+            case 'overview':
+                renderClusterOverviewCharts(data);
+                break;
+            case 'trends':
+                renderClusterTrendCharts(data);
+                break;
+            case 'performance':
+                renderClusterPerformanceCharts(data);
+                break;
+            case 'reports':
+                renderClusterReportCharts(data);
+                break;
+            default:
+                console.warn(`Unknown tab: ${tabName}`);
+        }
+    } catch (error) {
+        console.error(`Error rendering Cluster charts for ${tabName}:`, error);
+        renderClusterFallbackCharts(tabName, data);
+    }
+}
+
+function renderClusterOverviewCharts(data) {
+    console.log('Rendering Cluster overview charts with data:', data);
+    
+    // Test Chart.js availability
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not available!');
+        return;
+    }
+    
+    // Status Distribution Chart
+    const statusCtx = document.getElementById('clusterStatusChart');
+    console.log('Status chart canvas found:', statusCtx);
+    
+    if (statusCtx && data.status_counts) {
+        const statusLabels = Object.keys(data.status_counts);
+        const statusData = Object.values(data.status_counts);
+        console.log('Status chart data:', { labels: statusLabels, data: statusData });
+        
+        try {
+            // Clear any existing chart
+            if (statusCtx.chart) {
+                statusCtx.chart.destroy();
+            }
+            
+            const chart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusData,
+                        backgroundColor: [
+                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#06B6D4'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Multi-Cluster Status Distribution',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    }
+                }
+            });
+            
+            // Store chart reference
+            statusCtx.chart = chart;
+            console.log('Status chart rendered successfully');
+        } catch (error) {
+            console.error('Error rendering status chart:', error);
+            // Show fallback data
+            statusCtx.parentElement.innerHTML = `
+                <div class="p-6 text-center">
+                    <h3 class="text-lg font-semibold mb-4">Status Distribution</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        ${Object.entries(data.status_counts).map(([status, count]) => 
+                            `<div class="bg-gray-100 p-3 rounded">
+                                <div class="font-semibold">${status}</div>
+                                <div class="text-2xl font-bold text-blue-600">${count}</div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        }
+    } else {
+        console.warn('Status chart canvas not found or no data available');
+    }
+    
+    // Cluster Performance Chart
+    const clusterCtx = document.getElementById('clusterPerformanceChart');
+    console.log('Cluster performance chart canvas found:', clusterCtx);
+    
+    if (clusterCtx && data.cluster_data) {
+        const clusterLabels = Object.keys(data.cluster_data);
+        const clusterData = Object.values(data.cluster_data);
+        console.log('Cluster performance chart data:', { labels: clusterLabels, data: clusterData });
+        
+        try {
+            new Chart(clusterCtx, {
+                type: 'bar',
+                data: {
+                    labels: clusterLabels,
+                    datasets: [{
+                        label: 'Candidates',
+                        data: clusterData,
+                        backgroundColor: '#3B82F6',
+                        borderColor: '#1D4ED8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        title: {
+                            display: true,
+                            text: 'Cluster Performance Comparison',
+                            font: { size: 16, weight: 'bold' }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                stepSize: 1
+                            }
+                        }
+                    }
+                }
+            });
+            console.log('Cluster performance chart rendered successfully');
+        } catch (error) {
+            console.error('Error rendering cluster performance chart:', error);
+        }
+    } else {
+        console.warn('Cluster performance chart canvas not found or no data available');
+    }
+}
+
+function renderClusterTrendCharts(data) {
+    console.log('Rendering Cluster trend charts...');
+    
+    const trendCtx = document.getElementById('clusterTrendChart');
+    if (trendCtx && data.trend_data) {
+        const dates = data.trend_data.map(d => d.date);
+        const applications = data.trend_data.map(d => d.applications);
+        const selections = data.trend_data.map(d => d.selections);
+        
+        new Chart(trendCtx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: [{
+                    label: 'Applications',
+                    data: applications,
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.4
+                }, {
+                    label: 'Selections',
+                    data: selections,
+                    borderColor: '#10B981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Multi-Cluster Trend Analysis',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderClusterPerformanceCharts(data) {
+    console.log('Rendering Cluster performance charts...');
+    
+    const performanceCtx = document.getElementById('clusterPerformanceMetricsChart');
+    if (performanceCtx && data.cluster_performance) {
+        const clusters = Object.keys(data.cluster_performance);
+        const candidates = clusters.map(c => data.cluster_performance[c].candidates);
+        const selected = clusters.map(c => data.cluster_performance[c].selected);
+        const pending = clusters.map(c => data.cluster_performance[c].pending);
+        
+        new Chart(performanceCtx, {
+            type: 'bar',
+            data: {
+                labels: clusters,
+                datasets: [{
+                    label: 'Total Candidates',
+                    data: candidates,
+                    backgroundColor: '#3B82F6'
+                }, {
+                    label: 'Selected',
+                    data: selected,
+                    backgroundColor: '#10B981'
+                }, {
+                    label: 'Pending',
+                    data: pending,
+                    backgroundColor: '#F59E0B'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Cluster Performance Metrics',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+function renderClusterReportCharts(data) {
+    console.log('Rendering Cluster report charts...');
+    
+    const reportCtx = document.getElementById('clusterReportChart');
+    if (reportCtx && data.hr_by_cluster && data.manager_by_cluster) {
+        const clusters = [...new Set([...Object.keys(data.hr_by_cluster), ...Object.keys(data.manager_by_cluster)])];
+        const hrData = clusters.map(c => data.hr_by_cluster[c] || 0);
+        const managerData = clusters.map(c => data.manager_by_cluster[c] || 0);
+        
+        new Chart(reportCtx, {
+            type: 'bar',
+            data: {
+                labels: clusters,
+                datasets: [{
+                    label: 'HR Personnel',
+                    data: hrData,
+                    backgroundColor: '#8B5CF6'
+                }, {
+                    label: 'Managers',
+                    data: managerData,
+                    backgroundColor: '#06B6D4'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Personnel Distribution by Cluster',
+                        font: { size: 16, weight: 'bold' }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+}
+
+// Fallback chart rendering for Cluster
+function createClusterFallbackCharts() {
+    console.log('Creating Cluster fallback charts...');
+    showClusterNotification('Analytics loaded in simplified mode', 'info');
+}
+
+function renderClusterFallbackCharts(tabName, data) {
+    console.log(`Rendering Cluster fallback charts for ${tabName} with data:`, data);
+    
+    // Replace chart containers with text summaries
+    const containers = document.querySelectorAll(`#cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab .chart-container`);
+    containers.forEach(container => {
+        console.log(`Processing fallback for container:`, container);
+        
+        if (tabName === 'overview' && data.status_counts) {
+            container.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Status Distribution</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        ${Object.entries(data.status_counts).map(([status, count]) => 
+                            `<div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200">
+                                <div class="font-semibold text-gray-700">${status}</div>
+                                <div class="text-3xl font-bold text-blue-600">${count}</div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                    ${data.cluster_data ? `
+                        <div class="mt-6">
+                            <h4 class="text-lg font-semibold mb-3 text-center">Cluster Distribution</h4>
+                            <div class="space-y-2">
+                                ${Object.entries(data.cluster_data).map(([cluster, count]) => 
+                                    `<div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                        <span class="font-medium">${cluster}</span>
+                                        <span class="text-xl font-bold text-green-600">${count}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        } else if (tabName === 'trends' && data.trend_data) {
+            container.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Trend Analysis</h3>
+                    <div class="space-y-3">
+                        ${data.trend_data.map(trend => 
+                            `<div class="flex justify-between items-center p-3 bg-gray-50 rounded">
+                                <span class="font-medium">${trend.date}</span>
+                                <div class="text-right">
+                                    <div class="text-sm text-gray-600">Applications: ${trend.applications}</div>
+                                    <div class="text-sm text-gray-600">Selections: ${trend.selections}</div>
+                                    <div class="text-sm font-bold text-green-600">Success: ${trend.success_rate}%</div>
+                                </div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (tabName === 'performance' && data.cluster_performance) {
+            container.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Cluster Performance</h3>
+                    <div class="space-y-3">
+                        ${Object.entries(data.cluster_performance).map(([cluster, perf]) => 
+                            `<div class="p-4 bg-gray-50 rounded-lg">
+                                <div class="font-semibold text-lg mb-2">${cluster}</div>
+                                <div class="grid grid-cols-3 gap-4 text-center">
+                                    <div>
+                                        <div class="text-2xl font-bold text-blue-600">${perf.candidates}</div>
+                                        <div class="text-sm text-gray-600">Total</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold text-green-600">${perf.selected}</div>
+                                        <div class="text-sm text-gray-600">Selected</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-2xl font-bold text-yellow-600">${perf.pending}</div>
+                                        <div class="text-sm text-gray-600">Pending</div>
+                                    </div>
+                                </div>
+                            </div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `;
+        } else if (tabName === 'reports' && (data.hr_by_cluster || data.manager_by_cluster)) {
+            container.innerHTML = `
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4 text-center">Personnel Distribution</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        ${data.hr_by_cluster ? `
+                            <div class="p-4 bg-purple-50 rounded-lg">
+                                <h4 class="font-semibold mb-3 text-purple-800">HR Personnel</h4>
+                                ${Object.entries(data.hr_by_cluster).map(([cluster, count]) => 
+                                    `<div class="flex justify-between items-center py-1">
+                                        <span>${cluster}</span>
+                                        <span class="font-bold text-purple-600">${count}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                        ${data.manager_by_cluster ? `
+                            <div class="p-4 bg-blue-50 rounded-lg">
+                                <h4 class="font-semibold mb-3 text-blue-800">Managers</h4>
+                                ${Object.entries(data.manager_by_cluster).map(([cluster, count]) => 
+                                    `<div class="flex justify-between items-center py-1">
+                                        <span>${cluster}</span>
+                                        <span class="font-bold text-blue-600">${count}</span>
+                                    </div>`
+                                ).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="p-6 text-center">
+                    <h3 class="text-lg font-semibold mb-4">No Data Available</h3>
+                    <p class="text-gray-600">Unable to load chart data for ${tabName}</p>
+                    <div class="mt-4 p-4 bg-gray-100 rounded">
+                        <p class="text-sm text-gray-500">Data received: ${JSON.stringify(data).substring(0, 100)}...</p>
+                    </div>
+                </div>
+            `;
+        }
+    });
+}
+
+// Utility functions for Cluster
+function showClusterChartLoading(tabName) {
+    const containers = document.querySelectorAll(`#cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab .chart-container`);
+    containers.forEach(container => {
+        container.innerHTML = `
+            <div class="flex items-center justify-center h-full">
+                <div class="text-center">
+                    <i class="fas fa-spinner fa-spin text-3xl text-indigo-500 mb-4"></i>
+                    <p class="text-gray-600">Loading chart...</p>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function hideClusterChartLoading(tabName) {
+    console.log(`Hiding loading for ${tabName} tab...`);
+    const containers = document.querySelectorAll(`#cluster${tabName.charAt(0).toUpperCase() + tabName.slice(1)}Tab .chart-container`);
+    containers.forEach(container => {
+        // Clear loading spinner
+        const loadingElements = container.querySelectorAll('.fa-spinner, .text-center');
+        loadingElements.forEach(el => el.remove());
+        
+        // Ensure canvas is visible
+        const canvas = container.querySelector('canvas');
+        if (canvas) {
+            canvas.style.display = 'block';
+        }
+        
+        console.log(`Cleared loading for ${tabName} container:`, container);
+    });
+}
+
+function showClusterNotification(message, type) {
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ${
+        type === 'success' ? 'bg-green-500' : 
+        type === 'error' ? 'bg-red-500' : 
+        type === 'info' ? 'bg-indigo-500' : 'bg-gray-500'
+    } text-white`;
+    
+    notification.innerHTML = `
+        <div class="flex items-center">
+            <i class="fas ${
+                type === 'success' ? 'fa-check-circle' : 
+                type === 'error' ? 'fa-exclamation-circle' : 
+                type === 'info' ? 'fa-info-circle' : 'fa-bell'
+            } mr-2"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Load onboarding details
+async function loadOnboardingDetails() {
+    try {
+        // Wait for candidates to be loaded if they haven't been yet
+        if (!allCandidates || allCandidates.length === 0) {
+            console.log('Waiting for candidates to load...');
+            // Update the timeline to show waiting state
+            const timelineContainer = document.getElementById('onboardingTimeline');
+            if (timelineContainer) {
+                timelineContainer.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin text-xl text-gray-400"></i>
+                        <p class="mt-2 text-gray-500">Waiting for candidate data...</p>
+                    </div>
+                `;
+            }
+            return;
+        }
+
+        console.log('Loading onboarding details for', allCandidates.length, 'candidates');
+        
+        // Calculate onboarding statistics from existing candidate data
+        const totalSelected = allCandidates.filter(c => c.status === 'Selected').length;
+        const inProgress = allCandidates.filter(c => c.onboarding_status === 'In Progress').length;
+        const successfullyOnboarded = allCandidates.filter(c => c.onboarding_status === 'Onboarded').length;
+        const onboardingRate = totalSelected > 0 ? Math.round((successfullyOnboarded / totalSelected) * 100) : 0;
+
+        console.log('Onboarding stats:', { totalSelected, inProgress, successfullyOnboarded, onboardingRate });
+
+        // Update onboarding statistics cards
+        const totalSelectedEl = document.getElementById('total-selected-onboarding');
+        const inProgressEl = document.getElementById('in-progress-onboarding');
+        const successfullyOnboardedEl = document.getElementById('successfully-onboarded');
+        const onboardingRateEl = document.getElementById('onboarding-rate');
+        
+        if (totalSelectedEl) totalSelectedEl.textContent = totalSelected;
+        if (inProgressEl) inProgressEl.textContent = inProgress;
+        if (successfullyOnboardedEl) successfullyOnboardedEl.textContent = successfullyOnboarded;
+        if (onboardingRateEl) onboardingRateEl.textContent = onboardingRate + '%';
+
+        // Populate onboarding timeline
+        populateOnboardingTimeline();
+
+    } catch (error) {
+        console.error('Error loading onboarding details:', error);
+        // Show error in timeline
+        const timelineContainer = document.getElementById('onboardingTimeline');
+        if (timelineContainer) {
+            timelineContainer.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-exclamation-triangle text-xl text-red-400"></i>
+                    <p class="mt-2 text-red-500">Error loading onboarding details</p>
+                    <p class="text-xs text-red-400 mt-1">${error.message}</p>
+                </div>
+            `;
+        }
+    }
+}
+
+// Populate onboarding timeline
+function populateOnboardingTimeline() {
+    const timelineContainer = document.getElementById('onboardingTimeline');
+    if (!timelineContainer) {
+        console.error('Onboarding timeline container not found!');
+        return;
+    }
+
+    console.log('Populating onboarding timeline with candidates:', allCandidates);
+
+    // Get candidates with onboarding information
+    const onboardingCandidates = allCandidates.filter(c => 
+        c.status === 'Selected' || c.onboarding_status === 'Onboarded' || c.onboarding_status === 'In Progress'
+    );
+
+    console.log('Filtered onboarding candidates:', onboardingCandidates);
+
+    if (onboardingCandidates.length === 0) {
+        timelineContainer.innerHTML = `
+            <div class="text-center py-4">
+                <i class="fas fa-info-circle text-xl text-gray-400"></i>
+                <p class="mt-2 text-gray-500">No onboarding activities found</p>
+                <p class="text-xs text-gray-400 mt-1">Total candidates: ${allCandidates.length}</p>
+                <p class="text-xs text-gray-400">Selected candidates: ${allCandidates.filter(c => c.status === 'Selected').length}</p>
+                <p class="text-xs text-gray-400">Candidates with onboarding status: ${allCandidates.filter(c => c.onboarding_status).length}</p>
+                <p class="text-xs text-gray-400">Sample candidate data: ${allCandidates.length > 0 ? JSON.stringify(allCandidates[0], null, 2) : 'None'}</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Sort by onboarding date or creation date
+    onboardingCandidates.sort((a, b) => {
+        const dateA = a.onboarding_date || a.created_at || '';
+        const dateB = b.onboarding_date || b.created_at || '';
+        return new Date(dateB) - new Date(dateA);
+    });
+
+    timelineContainer.innerHTML = onboardingCandidates.map(candidate => {
+        const status = candidate.onboarding_status || 'Selected';
+        const date = candidate.onboarding_date || candidate.created_at || 'N/A';
+        const formattedDate = date !== 'N/A' ? new Date(date).toLocaleDateString() : 'N/A';
+        
+        let statusColor = '';
+        let statusIcon = '';
+        
+        switch (status) {
+            case 'Onboarded':
+                statusColor = 'text-green-600 bg-green-100';
+                statusIcon = 'fas fa-check-circle';
+                break;
+            case 'In Progress':
+                statusColor = 'text-blue-600 bg-blue-100';
+                statusIcon = 'fas fa-clock';
+                break;
+            default:
+                statusColor = 'text-yellow-600 bg-yellow-100';
+                statusIcon = 'fas fa-user-check';
+        }
+
+        return `
+            <div class="flex items-center space-x-4 p-3 bg-white rounded-lg border border-gray-200">
+                <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user text-gray-600"></i>
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between">
+                        <h5 class="font-medium text-gray-900">${candidate.name}</h5>
+                        <span class="px-2 py-1 text-xs font-medium rounded-full ${statusColor}">
+                            <i class="${statusIcon} mr-1"></i>${status}
+                        </span>
+                    </div>
+                    <div class="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                        <span><i class="fas fa-calendar mr-1"></i>${formattedDate}</span>
+                        ${candidate.recruiter_name ? `<span><i class="fas fa-user-tie mr-1"></i>Recruiter: ${candidate.recruiter_name}</span>` : ''}
+                        ${candidate.manager_name ? `<span><i class="fas fa-users-cog mr-1"></i>Manager: ${candidate.manager_name}</span>` : ''}
+                    </div>
+                    ${candidate.onboarding_notes ? `<p class="text-sm text-gray-600 mt-2"><i class="fas fa-sticky-note mr-1"></i>${candidate.onboarding_notes}</p>` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Refresh onboarding data
+function refreshOnboardingData() {
+    console.log('Manual refresh of onboarding data requested');
+    console.log('Current allCandidates:', allCandidates);
+    
+    if (!allCandidates || allCandidates.length === 0) {
+        console.log('No candidates available, reloading candidates first...');
+        loadCandidates();
+    } else {
+        console.log('Candidates available, refreshing onboarding details...');
+        loadOnboardingDetails();
+    }
+    
+    showNotification('Onboarding data refresh initiated', 'info');
+}
+
+
+
+// Refresh statistics manually
+function refreshStatistics() {
+    console.log('Manually refreshing statistics...');
+    if (allCandidates && allCandidates.length > 0) {
+        updateStatistics();
+    } else {
+        console.log('No candidates available for statistics update');
+    }
+}
+
+</script>
+
+<!-- Cluster Data Visualization Modal -->
+<div id="clusterDataVisualizationModal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl max-h-screen flex flex-col transform transition-all duration-300">
+        <!-- Modal Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-chart-line text-2xl"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-bold">Cluster Data Analytics</h2>
+                        <p class="text-indigo-100">Comprehensive multi-cluster insights & performance tracking</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <!-- Date Filter -->
+                    <div class="flex items-center space-x-2 bg-white bg-opacity-20 rounded-lg p-2">
+                        <i class="fas fa-calendar text-sm"></i>
+                        <input type="date" id="clusterStartDate" class="bg-transparent text-white placeholder-indigo-200 text-sm border-none outline-none">
+                        <span class="text-indigo-200">to</span>
+                        <input type="date" id="clusterEndDate" class="bg-transparent text-white placeholder-indigo-200 text-sm border-none outline-none">
+                    </div>
+                    
+                    <!-- Export Options -->
+                    <div class="flex space-x-2">
+                        <button class="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-lg transition-colors">
+                            <i class="fas fa-download text-sm"></i>
+                        </button>
+                        <button onclick="closeClusterDataVisualization()" class="bg-white bg-opacity-20 hover:bg-opacity-30 p-2 rounded-lg transition-colors">
+                            <i class="fas fa-times text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tab Navigation -->
+        <div class="bg-gray-50 border-b border-gray-200 px-6">
+            <nav class="flex space-x-1 py-4">
+                <button id="clusterOverviewButton" onclick="switchClusterAnalyticsTab('overview')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-chart-pie mr-2"></i>Overview
+                </button>
+                <button id="clusterTrendsButton" onclick="switchClusterAnalyticsTab('trends')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-chart-line mr-2"></i>Trends
+                </button>
+                <button id="clusterPerformanceButton" onclick="switchClusterAnalyticsTab('performance')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-users mr-2"></i>Performance
+                </button>
+                <button id="clusterReportsButton" onclick="switchClusterAnalyticsTab('reports')" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg font-medium transition-colors">
+                    <i class="fas fa-file-chart-line mr-2"></i>Reports
+                </button>
+            </nav>
+        </div>
+        
+        <!-- Modal Content (Tabs) -->
+        <div class="flex-1 overflow-y-auto p-6">
+            <!-- Overview Tab -->
+            <div id="clusterOverviewTab" class="tab-content">
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- Multi-Cluster Status Distribution -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-pie-chart text-indigo-500 mr-2"></i>
+                            Multi-Cluster Status Distribution
+                        </h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="clusterStatusChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Cluster Performance Comparison -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+                        <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-chart-bar text-green-500 mr-2"></i>
+                            Cluster Performance Comparison
+                        </h3>
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="clusterPerformanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Key Metrics -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-indigo-100">Total Clusters</p>
+                                <p class="text-3xl font-bold">4</p>
+                            </div>
+                            <i class="fas fa-layer-group text-2xl text-indigo-200"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-100">Active HRs</p>
+                                <p class="text-3xl font-bold">12</p>
+                            </div>
+                            <i class="fas fa-user-tie text-2xl text-blue-200"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-100">Active Managers</p>
+                                <p class="text-3xl font-bold">8</p>
+                            </div>
+                            <i class="fas fa-users text-2xl text-green-200"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-gradient-to-r from-purple-500 to-purple-600 rounded-xl p-6 text-white">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-100">Avg Response Time</p>
+                                <p class="text-3xl font-bold">2.4d</p>
+                            </div>
+                            <i class="fas fa-clock text-2xl text-purple-200"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trends Tab -->
+            <div id="clusterTrendsTab" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-chart-line text-blue-500 mr-2"></i>
+                        Multi-Cluster Trend Analysis
+                    </h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="clusterTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Performance Tab -->
+            <div id="clusterPerformanceTab" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-users text-green-500 mr-2"></i>
+                        Cluster Performance Metrics
+                    </h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="clusterPerformanceMetricsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="clusterReportsTab" class="tab-content hidden">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <h3 class="text-lg font-bold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-file-chart-line text-purple-500 mr-2"></i>
+                        Personnel Distribution by Cluster
+                    </h3>
+                    <div class="chart-container" style="height: 400px;">
+                        <canvas id="clusterReportChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+
+{% endblock %} 

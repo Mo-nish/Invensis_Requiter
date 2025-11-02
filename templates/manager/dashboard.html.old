@@ -1,0 +1,1832 @@
+{% extends "base.html" %} {% block title %}Manager Dashboard - Invensis Hiring
+Portal{% endblock %} {% block head %}
+<style>
+  /* Star Rating System - Matching HR Dashboard Style */
+  .star-rating {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .star-rating.compact {
+    gap: 1px;
+  }
+  .star {
+    font-size: 1.5rem;
+    color: #6b7280;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  .star-rating.compact .star {
+    font-size: 1.2rem;
+  }
+  .star:hover,
+  .star.active,
+  .star.filled {
+    color: #fbbf24;
+    transform: scale(1.1);
+  }
+  .star.active {
+    color: #fbbf24;
+  }
+  .star.filled {
+    color: #fbbf24;
+  }
+  .compact-rating-field {
+    padding: 8px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(209, 213, 219, 0.3);
+  }
+  /* 3D Button Styles */
+  .btn-3d {
+    position: relative;
+    transform: translateY(0);
+    transition: all 0.2s ease;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2);
+  }
+  .btn-3d:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+  }
+  .btn-3d:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+  }
+  .btn-manager {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: white;
+    border-radius: 8px;
+  }
+  .btn-cluster {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: white;
+    border-radius: 8px;
+  }
+  .btn-hr {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    color: white;
+    border-radius: 8px;
+  }
+</style>
+{% endblock %} {% block content %}
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="bg-white rounded-xl shadow-lg p-6 fade-in">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">Manager Dashboard</h1>
+        <p class="text-gray-600">Review candidates and provide feedback</p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <a
+          href="{{ url_for('manager.export_feedback') }}?format=csv"
+          class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate"
+        >
+          <i class="fas fa-download mr-2"></i>Export CSV
+        </a>
+        <a
+          href="{{ url_for('manager.export_feedback') }}?format=pdf"
+          class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg btn-animate"
+        >
+          <i class="fas fa-file-pdf mr-2"></i>Export PDF
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- Statistics Cards - 3D Design System -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- All Candidates -->
+    <div class="dashboard-card-3d">
+      <div class="flex items-center">
+        <div
+          class="w-12 h-12 bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-full flex items-center justify-center mr-4 shadow-lg"
+        >
+          <i class="fas fa-users text-xl text-white"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-purple-200 mb-1">All Candidates</p>
+          <p class="text-2xl font-bold text-white">
+            {{ assigned_candidates|length + selected_candidates|length +
+            not_selected_candidates|length + reassigned_candidates|length }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- Selected Candidates -->
+    <div class="dashboard-card-3d">
+      <div class="flex items-center">
+        <div
+          class="w-12 h-12 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mr-4 shadow-lg"
+        >
+          <i class="fas fa-user-check text-xl text-white"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-purple-200 mb-1">Selected</p>
+          <p class="text-2xl font-bold text-white">
+            {{ selected_candidates|length }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- Not Selected Candidates -->
+    <div class="dashboard-card-3d">
+      <div class="flex items-center">
+        <div
+          class="w-12 h-12 bg-gradient-to-r from-red-400 to-red-600 rounded-full flex items-center justify-center mr-4 shadow-lg"
+        >
+          <i class="fas fa-user-times text-xl text-white"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-purple-200 mb-1">Not Selected</p>
+          <p class="text-2xl font-bold text-white">
+            {{ not_selected_candidates|length }}
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- Reassigned Candidates -->
+    <div class="dashboard-card-3d">
+      <div class="flex items-center">
+        <div
+          class="w-12 h-12 bg-gradient-to-r from-orange-400 to-orange-600 rounded-full flex items-center justify-center mr-4 shadow-lg"
+        >
+          <i class="fas fa-exchange-alt text-xl text-white"></i>
+        </div>
+        <div>
+          <p class="text-sm font-medium text-purple-200 mb-1">Reassigned</p>
+          <p class="text-2xl font-bold text-white">
+            {{ reassigned_candidates|length }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Tabs -->
+  <div class="bg-white rounded-xl shadow-lg fade-in">
+    <div class="border-b border-gray-200">
+      <nav class="flex space-x-8 px-6" aria-label="Tabs">
+        <button
+          onclick="showTab('assigned-candidates-tab')"
+          class="tab-button bg-blue-600 text-white px-4 py-3 rounded-t-lg font-medium"
+        >
+          <i class="fas fa-user-clock mr-2"></i>Assigned Candidates
+        </button>
+        <button
+          onclick="showTab('selected-candidates-tab')"
+          class="tab-button bg-gray-200 text-gray-700 px-4 py-3 rounded-t-lg font-medium"
+        >
+          <i class="fas fa-user-check mr-2"></i>Selected Candidates
+        </button>
+        <button
+          onclick="showTab('not-selected-candidates-tab')"
+          class="tab-button bg-gray-200 text-gray-700 px-4 py-3 rounded-t-lg font-medium"
+        >
+          <i class="fas fa-user-times mr-2"></i>Not Selected
+        </button>
+        <button
+          onclick="showTab('reassigned-candidates-tab')"
+          class="tab-button bg-gray-200 text-gray-700 px-4 py-3 rounded-t-lg font-medium"
+        >
+          <i class="fas fa-exchange-alt mr-2"></i>Reassigned
+        </button>
+      </nav>
+    </div>
+    <!-- Assigned Candidates Tab -->
+    <div id="assigned-candidates-tab" class="tab-content active p-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">
+        Assigned Candidates
+      </h2>
+      {% if assigned_candidates %}
+      <div class="space-y-4">
+        {% for candidate in assigned_candidates %}
+        <div
+          class="candidate-card border rounded-lg shadow-md bg-white overflow-hidden transition-all duration-300 hover:shadow-lg"
+        >
+          <!-- Collapsed View -->
+          <div
+            class="candidate-header flex justify-between items-center p-4 cursor-pointer"
+            onclick="toggleCandidate('{{ candidate._id }}')"
+          >
+            <div class="flex items-center space-x-4">
+              {% if candidate.image_path %}
+              <img
+                src="{{ url_for('static', filename=candidate.image_path.replace('static/', '')) }}"
+                alt="{{ candidate.first_name }} {{ candidate.last_name }}"
+                class="w-12 h-12 rounded-full object-cover"
+              />
+              {% else %}
+              <div
+                class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center"
+              >
+                <i class="fas fa-user text-gray-400"></i>
+              </div>
+              {% endif %}
+              <div>
+                <h3 class="text-lg font-semibold text-gray-900">
+                  {{ candidate.first_name }} {{ candidate.last_name }}
+                </h3>
+                <p class="text-sm text-gray-600">{{ candidate.email }}</p>
+                <p class="text-sm text-gray-500">
+                  <i class="fas fa-calendar mr-1"></i>
+                  Interview: {{ candidate.scheduled_date.strftime('%Y-%m-%d
+                  %H:%M') if candidate.scheduled_date else 'Not scheduled' }}
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center space-x-3">
+              <span
+                class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium"
+              >
+                {{ candidate.status }}
+              </span>
+              <button
+                class="expand-btn text-gray-400 hover:text-gray-600 transition-transform duration-200"
+              >
+                <i class="fas fa-chevron-down"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Expanded View -->
+          <div
+            id="candidate-{{ candidate._id }}"
+            class="candidate-details hidden border-t border-gray-100 bg-gray-50"
+          >
+            <div class="p-4 space-y-4">
+              <!-- Candidate Details -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <p class="text-sm text-gray-600">
+                    <i class="fas fa-phone mr-2"></i>
+                    <span class="font-medium">Phone:</span> {{ candidate.phone
+                    }}
+                  </p>
+                  <p class="text-sm text-gray-600">
+                    <i class="fas fa-id-badge mr-2"></i>
+                    <span class="font-medium">Ref ID:</span> {{
+                    candidate.reference_id }}
+                  </p>
+                  <p class="text-sm text-gray-600">
+                    <i class="fas fa-calendar-alt mr-2"></i>
+                    <span class="font-medium">Created:</span> {{
+                    candidate.created_at.strftime('%Y-%m-%d') if
+                    candidate.created_at else 'N/A' }}
+                  </p>
+                </div>
+                <div class="space-y-2">
+                  <!-- Detailed HR Ratings -->
+                  {% if candidate.communication_skills or candidate.adaptability
+                  or candidate.teamwork_collaboration or candidate.job_fit or
+                  candidate.overall_rating %}
+                  <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                    <h4 class="text-sm font-semibold text-blue-800 mb-2">
+                      HR Detailed Ratings
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                      <div class="flex items-center">
+                        <i class="fas fa-comments mr-1 text-blue-500"></i>
+                        <span class="font-medium">Communication:</span>
+                        <span class="ml-1">
+                          {% if candidate.communication_skills %} {% for i in
+                          range(candidate.communication_skills) %}⭐{% endfor %}
+                          <span class="text-gray-600"
+                            >({{ candidate.communication_skills }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div class="flex items-center">
+                        <i class="fas fa-sync-alt mr-1 text-green-500"></i>
+                        <span class="font-medium">Adaptability:</span>
+                        <span class="ml-1">
+                          {% if candidate.adaptability %} {% for i in
+                          range(candidate.adaptability) %}⭐{% endfor %}
+                          <span class="text-gray-600"
+                            >({{ candidate.adaptability }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div class="flex items-center">
+                        <i class="fas fa-users mr-1 text-purple-500"></i>
+                        <span class="font-medium">Teamwork:</span>
+                        <span class="ml-1">
+                          {% if candidate.teamwork_collaboration %} {% for i in
+                          range(candidate.teamwork_collaboration) %}⭐{% endfor
+                          %}
+                          <span class="text-gray-600"
+                            >({{ candidate.teamwork_collaboration }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div class="flex items-center">
+                        <i class="fas fa-briefcase mr-1 text-orange-500"></i>
+                        <span class="font-medium">Job Fit:</span>
+                        <span class="ml-1">
+                          {% if candidate.job_fit %} {% for i in
+                          range(candidate.job_fit) %}⭐{% endfor %}
+                          <span class="text-gray-600"
+                            >({{ candidate.job_fit }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %} image.png
+                        </span>
+                      </div>
+                    </div>
+                    {% if candidate.overall_rating %}
+                    <div class="mt-2 pt-2 border-t border-blue-200">
+                      <div class="flex items-center">
+                        <i class="fas fa-robot mr-1 text-pink-500"></i>
+                        <span class="font-medium text-pink-700"
+                          >Overall Rating:</span
+                        >
+                        <span class="ml-2 text-lg font-bold text-pink-600"
+                          >{{ "%.1f"|format(candidate.overall_rating) }}/5</span
+                        >
+                      </div>
+                    </div>
+                    {% endif %} {% if candidate.other_notes %}
+                    <div class="mt-2 pt-2 border-t border-blue-200">
+                      <div class="flex items-start">
+                        <i
+                          class="fas fa-sticky-note mr-1 text-yellow-500 mt-0.5"
+                        ></i>
+                        <span class="font-medium text-yellow-700">Notes:</span>
+                        <span class="ml-2 text-gray-700"
+                          >{{ candidate.other_notes[:100] }}{% if
+                          candidate.other_notes|length > 100 %}...{% endif
+                          %}</span
+                        >
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% else %}
+                  <!-- No detailed ratings available -->
+                  <p class="text-sm text-gray-400">
+                    <i class="fas fa-info-circle mr-2 text-gray-400"></i>
+                    <span class="font-medium"
+                      >Detailed ratings not available</span
+                    >
+                  </p>
+                  {% endif %}
+                  <!-- Skills Display -->
+                  {% if candidate.skills %}
+                  <p class="text-sm text-gray-600">
+                    <i class="fas fa-tools mr-2 text-purple-500"></i>
+                    <span class="font-medium">Skills:</span>
+                    <span class="text-xs text-gray-500"
+                      >{{ candidate.skills|join(', ') }}</span
+                    >
+                  </p>
+                  {% endif %}
+                  <!-- Manager Ratings -->
+                  {% if candidate.manager_communication_skills or
+                  candidate.manager_technical_skills or
+                  candidate.manager_problem_solving or
+                  candidate.manager_cultural_fit or
+                  candidate.manager_overall_rating %}
+                  <div
+                    class="bg-green-50 p-3 rounded-lg border border-green-200"
+                  >
+                    <h4 class="text-sm font-semibold text-green-800 mb-2">
+                      Manager Round Ratings
+                    </h4>
+                    <div class="grid grid-cols-2 gap-2 text-xs">
+                      <div class="flex items-center">
+                        <i class="fas fa-comments mr-1 text-blue-500"></i>
+                        <span class="font-medium">Communication:</span>
+                        <span class="ml-1">
+                          {% if candidate.manager_communication_skills %} {% for
+                          i in range(candidate.manager_communication_skills)
+                          %}⭐{% endfor %}
+                          <span class="text-gray-600"
+                            >({{ candidate.manager_communication_skills
+                            }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div class="flex items-center">
+                        <i class="fas fa-cog mr-1 text-green-500"></i>
+                        <span class="font-medium">Technical:</span>
+                        <span class="ml-1">
+                          {% if candidate.manager_technical_skills %} {% for i
+                          in range(candidate.manager_technical_skills) %}⭐{%
+                          endfor %}
+                          <span class="text-gray-600"
+                            >({{ candidate.manager_technical_skills }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div class="flex items-center">
+                        <i class="fas fa-lightbulb mr-1 text-yellow-500"></i>
+                        <span class="font-medium">Problem Solving:</span>
+                        <span class="ml-1">
+                          {% if candidate.manager_problem_solving %} {% for i in
+                          range(candidate.manager_problem_solving) %}⭐{% endfor
+                          %}
+                          <span class="text-gray-600"
+                            >({{ candidate.manager_problem_solving }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                      <div class="flex items-center">
+                        <i class="fas fa-users mr-1 text-purple-500"></i>
+                        <span class="font-medium">Cultural Fit:</span>
+                        <span class="ml-1">
+                          {% if candidate.manager_cultural_fit %} {% for i in
+                          range(candidate.manager_cultural_fit) %}⭐{% endfor %}
+                          <span class="text-gray-600"
+                            >({{ candidate.manager_cultural_fit }}/5)</span
+                          >
+                          {% else %}
+                          <span class="text-gray-400">Not rated</span>
+                          {% endif %}
+                        </span>
+                      </div>
+                    </div>
+                    {% if candidate.manager_overall_rating %}
+                    <div class="mt-2 pt-2 border-t border-green-200">
+                      <div class="flex items-center">
+                        <i class="fas fa-brain mr-1 text-pink-500"></i>
+                        <span class="font-medium text-pink-700"
+                          >Overall Rating:</span
+                        >
+                        <span class="ml-2 text-lg font-bold text-pink-600"
+                          >{{ "%.1f"|format(candidate.manager_overall_rating)
+                          }}/5</span
+                        >
+                      </div>
+                    </div>
+                    {% endif %} {% if candidate.manager_feedback %}
+                    <div class="mt-2 pt-2 border-t border-green-200">
+                      <div class="flex items-start">
+                        <i class="fas fa-comment mr-1 text-blue-500 mt-0.5"></i>
+                        <span class="font-medium text-blue-700">Feedback:</span>
+                        <span class="ml-2 text-gray-700"
+                          >{{ candidate.manager_feedback[:100] }}{% if
+                          candidate.manager_feedback|length > 100 %}...{% endif
+                          %}</span
+                        >
+                      </div>
+                    </div>
+                    {% endif %}
+                  </div>
+                  {% endif %}
+                </div>
+              </div>
+              <!-- Action Buttons -->
+              <div class="flex flex-wrap gap-3 pt-3 border-t border-gray-200">
+                <a
+                  href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}"
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center"
+                >
+                  <i class="fas fa-eye mr-2"></i>View Details
+                </a>
+                <button
+                  data-candidate-id="{{ candidate._id }}"
+                  data-candidate-name="{{ candidate.first_name }} {{ candidate.last_name }}"
+                  onclick="showFeedbackModal(this.dataset.candidateId, this.dataset.candidateName)"
+                  class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center"
+                >
+                  <i class="fas fa-comment mr-2"></i>Add Feedback
+                </button>
+                {% if candidate.resume_path %}
+                <a
+                  href="{{ url_for('static', filename=candidate.resume_path.replace('static/', '')) }}"
+                  target="_blank"
+                  class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg btn-animate flex items-center"
+                >
+                  <i class="fas fa-download mr-2"></i>Download Resume
+                </a>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <i class="fas fa-user-clock text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          No Assigned Candidates
+        </h3>
+        <p class="text-gray-500">
+          You don't have any candidates assigned to you yet.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Selected Candidates Tab -->
+    <div
+      id="selected-candidates-tab"
+      class="tab-content p-6"
+      style="display: none"
+    >
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">
+        Selected Candidates
+      </h2>
+      {% if selected_candidates %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                <input
+                  type="checkbox"
+                  id="select-all"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Candidate
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Feedback
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Manager Rating
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for candidate in selected_candidates %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  class="select-item w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  data-id="{{ candidate._id }}"
+                  data-name="{{ candidate.first_name }} {{ candidate.last_name }}"
+                />
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  {% if candidate.image_path %}
+                  <img
+                    src="{{ url_for('static', filename=candidate.image_path.replace('static/', '')) }}"
+                    alt="{{ candidate.first_name }} {{ candidate.last_name }}"
+                    class="w-10 h-10 rounded-full object-cover mr-3"
+                  />
+                  {% else %}
+                  <div
+                    class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3"
+                  >
+                    <i class="fas fa-user text-gray-400"></i>
+                  </div>
+                  {% endif %}
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ candidate.first_name }} {{ candidate.last_name }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ candidate.email }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800"
+                >
+                  {{ candidate.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {% if candidate.manager_feedback %} {{
+                candidate.manager_feedback[:50] }}{% if
+                candidate.manager_feedback|length > 50 %}...{% endif %} {% else
+                %}
+                <span class="text-gray-400">No feedback</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {% if candidate.manager_overall_rating %}
+                <div class="flex items-center space-x-1">
+                  <span class="font-medium text-green-600"
+                    >{{ "%.1f"|format(candidate.manager_overall_rating)
+                    }}/5</span
+                  >
+                  <i class="fas fa-star text-yellow-500 text-xs"></i>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  {% if candidate.manager_communication_skills %}C:{{
+                  candidate.manager_communication_skills }}{% endif %} {% if
+                  candidate.manager_technical_skills %} | T:{{
+                  candidate.manager_technical_skills }}{% endif %} {% if
+                  candidate.manager_problem_solving %} | P:{{
+                  candidate.manager_problem_solving }}{% endif %} {% if
+                  candidate.manager_cultural_fit %} | F:{{
+                  candidate.manager_cultural_fit }}{% endif %}
+                </div>
+                {% else %}
+                <span class="text-gray-400 text-xs">Not rated</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ candidate.reviewed_at.strftime('%Y-%m-%d') if
+                candidate.reviewed_at else 'N/A' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                  <a
+                    href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}"
+                    class="text-blue-600 hover:text-blue-900 btn-animate"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <button
+                    data-candidate-id="{{ candidate._id }}"
+                    data-candidate-name="{{ candidate.first_name }} {{ candidate.last_name }}"
+                    onclick="showReassignModal(this.dataset.candidateId, this.dataset.candidateName)"
+                    class="text-orange-600 hover:text-orange-900 btn-animate"
+                  >
+                    <i class="fas fa-undo"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <i class="fas fa-user-check text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          No Selected Candidates
+        </h3>
+        <p class="text-gray-500">You haven't selected any candidates yet.</p>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Not Selected Candidates Tab -->
+    <div
+      id="not-selected-candidates-tab"
+      class="tab-content p-6"
+      style="display: none"
+    >
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">
+        Not Selected Candidates
+      </h2>
+      {% if not_selected_candidates %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                <input
+                  type="checkbox"
+                  id="select-all-not-selected"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Candidate
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Feedback
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Reasons for Not Selected
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for candidate in not_selected_candidates %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  class="select-item w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  data-id="{{ candidate._id }}"
+                  data-name="{{ candidate.first_name }} {{ candidate.last_name }}"
+                />
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  {% if candidate.image_path %}
+                  <img
+                    src="{{ url_for('static', filename=candidate.image_path.replace('static/', '')) }}"
+                    alt="{{ candidate.first_name }} {{ candidate.last_name }}"
+                    class="w-10 h-10 rounded-full object-cover mr-3"
+                  />
+                  {% else %}
+                  <div
+                    class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3"
+                  >
+                    <i class="fas fa-user text-gray-400"></i>
+                  </div>
+                  {% endif %}
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ candidate.first_name }} {{ candidate.last_name }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ candidate.email }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800"
+                >
+                  {{ candidate.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {% if candidate.manager_feedback %} {{
+                candidate.manager_feedback[:50] }}{% if
+                candidate.manager_feedback|length > 50 %}...{% endif %} {% else
+                %}
+                <span class="text-gray-400">No feedback</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {% if candidate.rejection_reasons %}
+                <div class="space-y-1">
+                  {% for reason in candidate.rejection_reasons %}
+                  <div class="flex items-center space-x-2">
+                    <i class="fas fa-times text-red-500 text-xs"></i>
+                    <span class="text-xs text-gray-700">{{ reason }}</span>
+                  </div>
+                  {% endfor %} {% if candidate.rejection_notes %}
+                  <div
+                    class="mt-2 p-2 bg-gray-50 rounded border-l-2 border-red-300"
+                  >
+                    <span class="text-xs text-gray-600 font-medium"
+                      >Notes:</span
+                    >
+                    <p class="text-xs text-gray-700 mt-1">
+                      {{ candidate.rejection_notes }}
+                    </p>
+                  </div>
+                  {% endif %}
+                </div>
+                {% else %}
+                <button
+                  onclick="showRejectionReasonsModal('{{ candidate._id }}', '{{ candidate.first_name }} {{ candidate.last_name }}')"
+                  class="text-xs bg-red-100 text-red-700 px-2 py-1 rounded-full hover:bg-red-200 transition-colors"
+                >
+                  <i class="fas fa-plus mr-1"></i>Add Reasons
+                </button>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ candidate.reviewed_at.strftime('%Y-%m-%d') if
+                candidate.reviewed_at else 'N/A' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                  <a
+                    href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}"
+                    class="text-blue-600 hover:text-blue-900 btn-animate"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </a>
+                  <button
+                    data-candidate-id="{{ candidate._id }}"
+                    data-candidate-name="{{ candidate.first_name }} {{ candidate.last_name }}"
+                    onclick="showReassignModal(this.dataset.candidateId, this.dataset.candidateName)"
+                    class="text-orange-600 hover:text-orange-900 btn-animate"
+                  >
+                    <i class="fas fa-undo"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <i class="fas fa-user-times text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          No Not Selected Candidates
+        </h3>
+        <p class="text-gray-500">
+          You haven't marked any candidates as not selected yet.
+        </p>
+      </div>
+      {% endif %}
+    </div>
+    <!-- Reassigned Candidates Tab -->
+    <div
+      id="reassigned-candidates-tab"
+      class="tab-content p-6"
+      style="display: none"
+    >
+      <h2 class="text-xl font-semibold text-gray-900 mb-6">
+        Reassigned Candidates
+      </h2>
+      {% if reassigned_candidates %}
+      <div class="overflow-x-auto">
+        <table class="min-w-full bg-white border border-gray-200 rounded-lg">
+          <thead class="bg-gray-50">
+            <tr>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                <input
+                  type="checkbox"
+                  id="select-all-reassigned"
+                  class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                />
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Candidate
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Status
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Feedback
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Manager Rating
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Date
+              </th>
+              <th
+                class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              >
+                Actions
+              </th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {% for candidate in reassigned_candidates %}
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <input
+                  type="checkbox"
+                  class="select-item w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+                  data-id="{{ candidate._id }}"
+                  data-name="{{ candidate.first_name }} {{ candidate.last_name }}"
+                />
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="flex items-center">
+                  {% if candidate.image_path %}
+                  <img
+                    src="{{ url_for('static', filename=candidate.image_path.replace('static/', '')) }}"
+                    alt="{{ candidate.first_name }} {{ candidate.last_name }}"
+                    class="w-10 h-10 rounded-full object-cover mr-3"
+                  />
+                  {% else %}
+                  <div
+                    class="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3"
+                  >
+                    <i class="fas fa-user text-gray-400"></i>
+                  </div>
+                  {% endif %}
+                  <div>
+                    <div class="text-sm font-medium text-gray-900">
+                      {{ candidate.first_name }} {{ candidate.last_name }}
+                    </div>
+                    <div class="text-sm text-gray-500">
+                      {{ candidate.email }}
+                    </div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span
+                  class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-orange-100 text-orange-800"
+                >
+                  {{ candidate.status }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {% if candidate.manager_feedback %} {{
+                candidate.manager_feedback[:50] }}{% if
+                candidate.manager_feedback|length > 50 %}...{% endif %} {% else
+                %}
+                <span class="text-gray-400">No feedback</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {% if candidate.manager_overall_rating %}
+                <div class="flex items-center space-x-1">
+                  <span class="font-medium text-green-600"
+                    >{{ "%.1f"|format(candidate.manager_overall_rating)
+                    }}/5</span
+                  >
+                  <i class="fas fa-star text-yellow-500 text-xs"></i>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  {% if candidate.manager_communication_skills %}C:{{
+                  candidate.manager_communication_skills }}{% endif %} {% if
+                  candidate.manager_technical_skills %} | T:{{
+                  candidate.manager_technical_skills }}{% endif %} {% if
+                  candidate.manager_problem_solving %} | P:{{
+                  candidate.manager_problem_solving }}{% endif %} {% if
+                  candidate.manager_cultural_fit %} | F:{{
+                  candidate.manager_cultural_fit }}{% endif %}
+                </div>
+                {% else %}
+                <span class="text-gray-400 text-xs">Not rated</span>
+                {% endif %}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ candidate.reviewed_at.strftime('%Y-%m-%d') if
+                candidate.reviewed_at else 'N/A' }}
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <div class="flex space-x-2">
+                  <a
+                    href="{{ url_for('manager.candidate_details', candidate_id=candidate._id) }}"
+                    class="text-blue-600 hover:text-blue-900 btn-animate"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="text-center py-12">
+        <i class="fas fa-exchange-alt text-4xl text-gray-300 mb-4"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          No Reassigned Candidates
+        </h3>
+        <p class="text-gray-500">You haven't reassigned any candidates yet.</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+<!-- Feedback Modal -->
+<div
+  id="feedbackModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50"
+>
+  <div
+    class="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+  >
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">Add Feedback</h3>
+      <button
+        onclick="hideFeedbackModal()"
+        class="text-gray-400 hover:text-gray-600"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="feedbackForm">
+      <input type="hidden" id="feedbackCandidateId" name="candidate_id" />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Candidate</label
+          >
+          <p id="feedbackCandidateName" class="text-gray-900 font-medium"></p>
+        </div>
+        <div>
+          <label
+            for="feedbackStatus"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Status *</label
+          >
+          <select
+            id="feedbackStatus"
+            name="status"
+            required
+            onchange="toggleFeedbackSections()"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          >
+            <option value="" disabled selected>Select Status</option>
+            <option value="Selected">Selected</option>
+            <option value="Not Selected">Not Selected</option>
+            <option value="Reassigned">Reassigned</option>
+          </select>
+        </div>
+        <!-- Manager Round Rating System - Show only when status is "Selected" -->
+        <div id="managerRatingSection" class="hidden">
+          <div
+            class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200"
+          >
+            <div class="text-center mb-4">
+              <div
+                class="inline-flex items-center justify-center w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-2 shadow-lg"
+              >
+                <i class="fas fa-star text-lg text-white"></i>
+              </div>
+              <h4 class="text-lg font-bold text-gray-700">
+                Manager Round Rating
+              </h4>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Communication Skills -->
+              <div class="compact-rating-field">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-comments mr-1 text-blue-400"></i
+                  >Communication Skills *
+                </label>
+                <div
+                  class="star-rating compact"
+                  data-field="communication_skills"
+                >
+                  <span class="star" data-rating="1">○</span>
+                  <span class="star" data-rating="2">○</span>
+                  <span class="star" data-rating="3">○</span>
+                  <span class="star" data-rating="4">○</span>
+                  <span class="star" data-rating="5">○</span>
+                </div>
+                <input
+                  type="hidden"
+                  id="communication_skills"
+                  name="communication_skills"
+                  value="0"
+                />
+              </div>
+              <!-- Technical Skills -->
+              <div class="compact-rating-field">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-cog mr-1 text-green-400"></i>Technical Skills
+                  *
+                </label>
+                <div class="star-rating compact" data-field="technical_skills">
+                  <span class="star" data-rating="1">○</span>
+                  <span class="star" data-rating="2">○</span>
+                  <span class="star" data-rating="3">○</span>
+                  <span class="star" data-rating="4">○</span>
+                  <span class="star" data-rating="5">○</span>
+                </div>
+                <input
+                  type="hidden"
+                  id="technical_skills"
+                  name="technical_skills"
+                  value="0"
+                />
+              </div>
+              <!-- Problem Solving -->
+              <div class="compact-rating-field">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-lightbulb mr-1 text-yellow-400"></i>Problem
+                  Solving *
+                </label>
+                <div class="star-rating compact" data-field="problem_solving">
+                  <span class="star" data-rating="1">○</span>
+                  <span class="star" data-rating="2">○</span>
+                  <span class="star" data-rating="3">○</span>
+                  <span class="star" data-rating="4">○</span>
+                  <span class="star" data-rating="5">○</span>
+                </div>
+                <input
+                  type="hidden"
+                  id="problem_solving"
+                  name="problem_solving"
+                  value="0"
+                />
+              </div>
+              <!-- Cultural Fit -->
+              <div class="compact-rating-field">
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                  <i class="fas fa-users mr-1 text-purple-400"></i>Cultural Fit
+                  *
+                </label>
+                <div class="star-rating compact" data-field="cultural_fit">
+                  <span class="star" data-rating="1">○</span>
+                  <span class="star" data-rating="2">○</span>
+                  <span class="star" data-rating="3">○</span>
+                  <span class="star" data-rating="4">○</span>
+                  <span class="star" data-rating="5">○</span>
+                </div>
+                <input
+                  type="hidden"
+                  id="cultural_fit"
+                  name="cultural_fit"
+                  value="0"
+                />
+              </div>
+            </div>
+            <!-- Overall Rating Display -->
+            <div
+              class="mt-4 p-3 bg-gradient-to-r from-pink-50 to-blue-50 rounded border border-pink-200"
+            >
+              <div class="flex items-center justify-between text-sm">
+                <span class="text-pink-700">
+                  <i class="fas fa-brain mr-1"></i>AI calculates overall rating
+                  automatically
+                </span>
+                <div class="flex space-x-2">
+                  <button
+                    type="button"
+                    onclick="calculateManagerOverallRating()"
+                    class="btn-3d btn-manager px-3 py-1 text-xs font-semibold transform hover:scale-105 transition-all duration-300"
+                  >
+                    <i class="fas fa-calculator mr-1"></i>Calculate
+                  </button>
+                  <button
+                    type="button"
+                    onclick="resetManagerRatings()"
+                    class="btn-3d btn-cluster px-3 py-1 text-xs font-semibold transform hover:scale-105 transition-all duration-300"
+                  >
+                    <i class="fas fa-refresh mr-1"></i>Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+            <!-- Overall Rating Result -->
+            <div class="mt-3 text-center">
+              <div class="inline-flex items-center justify-center">
+                <span class="text-sm font-medium text-gray-700 mr-2"
+                  >Overall Rating:</span
+                >
+                <span
+                  id="manager_overall_rating_display"
+                  class="text-3xl font-bold text-pink-400 mb-2"
+                  >--</span
+                >
+                <input
+                  type="hidden"
+                  id="manager_overall_rating"
+                  name="overall_rating"
+                  value="0"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Rejection Reasons Section - Show only when status is "Not Selected" -->
+        <div id="rejectionReasonsSection" class="hidden">
+          <div
+            class="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6 border border-red-200"
+          >
+            <div class="text-center mb-4">
+              <div
+                class="inline-flex items-center justify-center w-10 h-10 bg-red-500 rounded-full mb-2 shadow-lg"
+              >
+                <i class="fas fa-times text-xl text-white"></i>
+              </div>
+              <h4 class="text-lg font-bold text-gray-700">Rejection Reasons</h4>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_wfh_preference"
+                  name="feedback_rejection_reasons"
+                  value="WFH preference"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label
+                  for="feedback_wfh_preference"
+                  class="text-sm text-gray-700"
+                  >WFH preference</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_day_shift"
+                  name="feedback_rejection_reasons"
+                  value="Only Day shift preferred"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label for="feedback_day_shift" class="text-sm text-gray-700"
+                  >Only Day shift preferred</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_night_shift"
+                  name="feedback_rejection_reasons"
+                  value="Only Night shift preferred"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label for="feedback_night_shift" class="text-sm text-gray-700"
+                  >Only Night shift preferred</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_not_budget"
+                  name="feedback_rejection_reasons"
+                  value="Not in the budget"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label for="feedback_not_budget" class="text-sm text-gray-700"
+                  >Not in the budget</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_failed_assessment"
+                  name="feedback_rejection_reasons"
+                  value="Failed in assessment"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label
+                  for="feedback_failed_assessment"
+                  class="text-sm text-gray-700"
+                  >Failed in assessment</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_not_flexible"
+                  name="feedback_rejection_reasons"
+                  value="Not flexible"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label for="feedback_not_flexible" class="text-sm text-gray-700"
+                  >Not flexible</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_not_relevant"
+                  name="feedback_rejection_reasons"
+                  value="Not relevant experience/skills"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label for="feedback_not_relevant" class="text-sm text-gray-700"
+                  >Not relevant experience/skills</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_lack_communication"
+                  name="feedback_rejection_reasons"
+                  value="Lack communication"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label
+                  for="feedback_lack_communication"
+                  class="text-sm text-gray-700"
+                  >Lack communication</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_poor_technical"
+                  name="feedback_rejection_reasons"
+                  value="Poor technical knowledge"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label
+                  for="feedback_poor_technical"
+                  class="text-sm text-gray-700"
+                  >Poor technical knowledge</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_over_qualified"
+                  name="feedback_rejection_reasons"
+                  value="Over qualified"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label
+                  for="feedback_over_qualified"
+                  class="text-sm text-gray-700"
+                  >Over qualified</label
+                >
+              </div>
+              <div class="flex items-center space-x-3">
+                <input
+                  type="checkbox"
+                  id="feedback_other"
+                  name="feedback_rejection_reasons"
+                  value="other"
+                  onchange="toggleFeedbackOtherNotes()"
+                  class="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500 focus:ring-2"
+                />
+                <label for="feedback_other" class="text-sm text-gray-700"
+                  >Other</label
+                >
+              </div>
+            </div>
+            <div id="feedbackOtherNotesField" class="mt-3 hidden">
+              <label
+                for="feedbackOtherNotes"
+                class="block text-sm font-medium text-gray-700 mb-2"
+                >Additional Notes</label
+              >
+              <textarea
+                id="feedbackOtherNotes"
+                name="feedback_other_notes"
+                rows="3"
+                class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                placeholder="Please specify the reason..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label
+            for="feedbackOverallImpression"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Overall Impression</label
+          >
+          <textarea
+            id="feedbackOverallImpression"
+            name="overall_impression"
+            rows="2"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Brief overall impression of the candidate..."
+          ></textarea>
+        </div>
+        <div>
+          <label
+            for="feedbackText"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Detailed Feedback *</label
+          >
+          <textarea
+            id="feedbackText"
+            name="feedback"
+            rows="4"
+            required
+            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Provide detailed feedback about the candidate's performance, strengths, areas for improvement..."
+          ></textarea>
+        </div>
+        <div class="flex space-x-3">
+          <button
+            type="submit"
+            class="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg btn-animate"
+          >
+            <i class="fas fa-save mr-2"></i>Save Feedback
+          </button>
+          <button
+            type="button"
+            onclick="hideFeedbackModal()"
+            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg btn-animate"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Reassign Modal -->
+<div
+  id="reassignModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50"
+>
+  <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4">
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">Reassign Candidate</h3>
+      <button
+        onclick="hideReassignModal()"
+        class="text-gray-400 hover:text-gray-600"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="reassignForm">
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Candidate</label
+          >
+          <p id="reassignCandidateName" class="text-gray-900 font-medium"></p>
+        </div>
+        <div>
+          <label
+            for="reassignNote"
+            class="block text-sm font-medium text-gray-700 mb-2"
+            >Note (Optional)</label
+          >
+          <textarea
+            id="reassignNote"
+            name="note"
+            rows="3"
+            class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            placeholder="Add a note for HR..."
+          ></textarea>
+        </div>
+        <div class="flex space-x-3">
+          <button
+            type="submit"
+            class="flex-1 bg-orange-500 hover:bg-orange-600 text-white py-2 px-4 rounded-lg btn-animate"
+          >
+            <i class="fas fa-undo mr-2"></i>Reassign to HR
+          </button>
+          <button
+            type="button"
+            onclick="hideReassignModal()"
+            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg btn-animate"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Rejection Reasons Modal -->
+<div
+  id="rejectionReasonsModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50"
+>
+  <div
+    class="bg-white rounded-xl shadow-lg p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto"
+  >
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-900">
+        Reasons for Not Selected
+      </h3>
+      <button
+        onclick="hideRejectionReasonsModal()"
+        class="text-gray-400 hover:text-gray-600"
+      >
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form id="rejectionReasonsForm">
+      <input type="hidden" id="rejectionCandidateId" name="candidate_id" />
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2"
+            >Candidate</label
+          >
+          <p id="rejectionCandidateName" class="text-gray-900 font-medium"></p>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-3"
+            >Select Reasons for Not Selecting *</label
+          >
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="wfh_preference"
+                name="rejection_reasons"
+                value="WFH preference"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="wfh_preference" class="text-sm text-gray-700"
+                >WFH preference</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="day_shift"
+                name="rejection_reasons"
+                value="Only Day shift preferred"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="day_shift" class="text-sm text-gray-700"
+                >Only Day shift preferred</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="night_shift"
+                name="rejection_reasons"
+                value="Only Night shift preferred"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="night_shift" class="text-sm text-gray-700"
+                >Only Night shift preferred</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="not_budget"
+                name="rejection_reasons"
+                value="Not in the budget"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="not_budget" class="text-sm text-gray-700"
+                >Not in the budget</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="failed_assessment"
+                name="rejection_reasons"
+                value="Failed in assessment"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="failed_assessment" class="text-sm text-gray-700"
+                >Failed in assessment</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="not_flexible"
+                name="rejection_reasons"
+                value="Not flexible"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="not_flexible" class="text-sm text-gray-700"
+                >Not flexible</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="not_relevant"
+                name="rejection_reasons"
+                value="Not relevant experience/skills"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="not_relevant" class="text-sm text-gray-700"
+                >Not relevant experience/skills</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="lack_communication"
+                name="rejection_reasons"
+                value="Lack communication"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="lack_communication" class="text-sm text-gray-700"
+                >Lack communication</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="poor_technical"
+                name="rejection_reasons"
+                value="Poor technical knowledge"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="poor_technical" class="text-sm text-gray-700"
+                >Poor technical knowledge</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="over_qualified"
+                name="rejection_reasons"
+                value="Over qualified"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="over_qualified" class="text-sm text-gray-700"
+                >Over qualified</label
+              >
+            </div>
+            <div class="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="other"
+                name="rejection_reasons"
+                value="other"
+                onchange="toggleOtherNotes()"
+                class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+              />
+              <label for="other" class="text-sm text-gray-700">Other</label>
+            </div>
+          </div>
+          <div id="otherNotesField" class="mt-3 hidden">
+            <label
+              for="otherNotes"
+              class="block text-sm font-medium text-gray-700 mb-2"
+              >Additional Notes</label
+            >
+            <textarea
+              id="otherNotes"
+              name="other_notes"
+              rows="3"
+              class="block w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              placeholder="Please specify the reason..."
+            ></textarea>
+          </div>
+        </div>
+        <div class="flex space-x-3 pt-4">
+          <button
+            type="button"
+            onclick="saveRejectionReasons()"
+            class="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg btn-animate"
+          >
+            <i class="fas fa-save mr-2"></i>Save Reasons
+          </button>
+          <button
+            type="button"
+            onclick="hideRejectionReasonsModal()"
+            class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg btn-animate"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Bulk Action Bar -->
+<div
+  id="bulk-action-bar"
+  class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-white rounded-lg shadow-lg border border-gray-200 px-6 py-3 hidden z-50"
+>
+  <div class="flex items-center space-x-4">
+    <span id="selected-count" class="text-sm font-medium text-gray-700"
+      >0 selected</span
+    >
+    <div class="flex items-center space-x-2">
+      <button
+        onclick="bulkMove('Selected')"
+        class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      >
+        <i class="fas fa-check mr-1"></i>Select
+      </button>
+      <button
+        onclick="bulkMove('Not Selected')"
+        class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      >
+        <i class="fas fa-times mr-1"></i>Not Select
+      </button>
+      <button
+        onclick="bulkReassign()"
+        class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+      >
+        <i class="fas fa-undo mr-1"></i>Reassign
+      </button>
+    </div>
+    <button
+      onclick="clearSelection()"
+      class="text-gray-500 hover:text-gray-700 text-sm font-medium"
+    >
+      <i class="fas fa-times mr-1"></i>Clear
+    </button>
+  </div>
+</div>
+<!-- Bulk Action Confirmation Modal -->
+<div
+  id="bulkActionModal"
+  class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50"
+>
+  <div class="flex items-center justify-center min-h-screen">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      <div class="flex items-center mb-4">
+        <div
+          class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center mr-3"
+        >
+          <i class="fas fa-exclamation-triangle text-red-600"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900" id="modalTitle">
+          Confirm Action
+        </h3>
+      </div>
+      <p class="text-gray-600 mb-6" id="modalMessage">
+        Are you sure you want to perform this action on the selected candidates?
+      </p>
+      <div class="flex justify-end space-x-3">
+        <button
+          onclick="closeBulkActionModal()"
+          class="px-4 py-2 text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300"
+        >
+          Cancel
+        </button>
+        <button
+          onclick="confirmBulkAction()"
+          class="px-4 py-2 text-white bg-red-600 rounded-lg hover:bg-red-700"
+          id="confirmButton"
+        >
+          Confirm
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  let currentFeedbackCandidateId = null;
+  let currentReassignCandidateId = null;
+
+  // Tab functionality
+  function showTab(tabId) {
+    const tabContents = document.querySelectorAll(".tab-content");
+    tabContents.forEach((content) => {
+      content.style.display = "none";
+    });
+    const tabButtons = document.querySelectorAll(".tab-button");
+    tabButtons.forEach((button) => {
+      button.classList.remove("bg-blue-600", "text-white");
+      button.classList.add("bg-gray-200", "text-gray-700");
+    });
+    document.getElementById(tabId).style.display = "block";
+    event.target.classList.remove("bg-gray-200", "text-gray-700");
+    event.target.classList.add("bg-blue-600", "text-white");
+  }
+
+  // Collapsible candidate functionality
+  function toggleCandidate(candidateId) {
+    const details = document.getElementById(`candidate-${candidateId}`);
+    const expandBtn =
+      details.previousElementSibling.querySelector(".expand-btn i");
+    if (details.classList.contains("hidden")) {
+      details.classList.remove("hidden");
+      expandBtn.classList.remove("fa-chevron-down");
+      expandBtn.classList.add("fa-chevron-up");
+    } else {
+      details.classList.add("hidden");
+      expandBtn.classList.remove("fa-chevron-up");
+      expandBtn.classList.add("fa-chevron-down");
+    }
+
+  // Initialize when DOM is loaded
+  document.addEventListener("DOMContentLoaded", function () {
+    console.log("Manager dashboard loaded");
+  });
+</script>
+
+{% endblock %}
