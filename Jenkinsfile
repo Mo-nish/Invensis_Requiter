@@ -117,14 +117,15 @@ pipeline {
                         echo sonar.sources=.>> sonar-project.properties
                         echo sonar.host.url=http://localhost:9000>> sonar-project.properties
                         echo sonar.login=%SONAR_AUTH_TOKEN%>> sonar-project.properties
-                        echo sonar.python.version=3.14>> sonar-project.properties
-                        echo sonar.coverageReportPaths=coverage.xml>> sonar-project.properties
+                        echo sonar.python.version=3.13>> sonar-project.properties
+                        echo sonar.python.coverage.reportPaths=coverage.xml>> sonar-project.properties
+                        echo sonar.sourceEncoding=UTF-8>> sonar-project.properties
                         
                         echo Updating SonarScanner global config...
                         powershell -Command "(Get-Content '%SONAR_SCANNER_DIR%\\conf\\sonar-scanner.properties') -replace 'sonar.host.url=.*', 'sonar.host.url=http://localhost:9000' | Set-Content '%SONAR_SCANNER_DIR%\\conf\\sonar-scanner.properties'"
                         
                         echo Running SonarQube analysis...
-                        "%SONAR_SCANNER_DIR%\\bin\\sonar-scanner.bat" -Dsonar.host.url=http://localhost:9000 -Dsonar.login=%SONAR_AUTH_TOKEN%
+                        "%SONAR_SCANNER_DIR%\\bin\\sonar-scanner.bat" -Dsonar.host.url=http://localhost:9000 -Dsonar.login=%SONAR_AUTH_TOKEN% -Dsonar.python.coverage.reportPaths=coverage.xml -Dsonar.sourceEncoding=UTF-8
                     """
                 }
             }
