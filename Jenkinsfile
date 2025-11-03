@@ -7,7 +7,6 @@ pipeline {
     }
 
     stages {
-
         stage('Checkout') {
             steps {
                 echo "📦 Checking out source code..."
@@ -44,24 +43,17 @@ pipeline {
             steps {
                 script {
                     echo "Attempting to start Flask and run integration tests..."
-                    def flaskStarted = false
-                    
-                    // Try to start Flask
                     bat """
                         call venv\\Scripts\\activate
                         cd ${env.WORKSPACE_DIR}
                         echo Starting Flask app in background...
                         start "" /MIN ${env.PYTHON} run.py > flask.log 2>&1
                     """
-                    
-                    // Wait and check if Flask started
                     sleep(time: 10, unit: 'SECONDS')
-                    
                     def flaskReady = bat(
                         script: 'powershell -Command "try { $null = Invoke-WebRequest -Uri \'http://localhost:5001/\' -TimeoutSec 3 -UseBasicParsing; Write-Host \'READY\'; exit 0 } catch { Write-Host \'NOT_READY\'; exit 1 }"',
                         returnStatus: true
                     )
-                    
                     if (flaskReady == 0) {
                         echo "✅ Flask is ready! Running integration tests..."
                         bat """
@@ -69,7 +61,6 @@ pipeline {
                             cd ${env.WORKSPACE_DIR}
                             pytest --maxfail=1 --disable-warnings -q test_reset_password_flow.py test_forgot_password.py
                         """
-                        flaskStarted = true
                     } else {
                         echo "⚠️ Flask could not start - skipping integration tests"
                         currentBuild.result = 'UNSTABLE'
@@ -87,30 +78,26 @@ pipeline {
         }
 
         stage('SonarQube Analysis') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
             steps {
-                withSonarQubeEnv('SonarQubeServer') {
-                    bat """
-                        call venv\\Scripts\\activate
-                        cd ${env.WORKSPACE_DIR}
-                        pysonar --sonar-project-key=Invensis
-                    """
+                withSonarQubeEnv('Invensis') {
+                    withEnv(["SONAR_SCANNER_HOME=${tool 'SonarScanner'}"]) {
+                        bat """
+                            call venv\\Scripts\\activate
+                            cd ${env.WORKSPACE_DIR}
+                            echo sonar.projectKey=Invensis> sonar-project.properties
+                            echo sonar.projectName=Invensis>> sonar-project.properties
+                            echo sonar.sources=.>> sonar-project.properties
+                            echo sonar.host.url=%SONAR_HOST_URL%>> sonar-project.properties
+                            echo sonar.python.version=3.14>> sonar-project.properties
+                            echo sonar.coverageReportPaths=coverage.xml>> sonar-project.properties
+                            "%SONAR_SCANNER_HOME%\\bin\\sonar-scanner.bat"
+                        """
+                    }
                 }
             }
         }
 
         stage('Quality Gate') {
-            when {
-                anyOf {
-                    branch 'main'
-                    branch 'master'
-                }
-            }
             steps {
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
@@ -120,12 +107,6 @@ pipeline {
     }
 
     post {
-        success {
-            echo "✅ All tests passed successfully!"
-        }
-        failure {
-            echo "❌ Build failed! Check logs for test errors."
-        }
         always {
             bat """
                 echo Cleaning up Flask processes...
