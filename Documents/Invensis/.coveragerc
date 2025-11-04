@@ -1,0 +1,50 @@
+[run]
+source = .
+omit = 
+    */venv/*
+    */node_modules/*
+    */tests/*
+    */__pycache__/*
+    */static/*
+    */templates/*
+    test_*.py
+    *_test.py
+    */migrations/*
+    */scripts/*
+    */data/*
+    */seeds/*
+    */fixtures/*
+    chatbot_config.py
+    chatbot_engine.py
+    s3_config.py
+    cloudinary_config.py
+    apply_cloudinary_patch.py
+    integrate_cloudinary.py
+    check_database.py
+    check_mongodb_invensis.py
+    check_sqlite_db.py
+    cleanup_remaining_issues.py
+    cleanup_tokens.py
+    create_production_admin.py
+    debug_assignment.py
+    final_fix_all_issues.py
+    final_test.py
+    fix_existing_file_paths.py
+    fix_image_paths_comprehensive.py
+    fix_image_paths_final.py
+    fix_remaining_manager.py
+    fix_vscode_issues.py
+    init_production_db.py
+    verify_admin.py
+    verify_imports.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise AssertionError
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
+    @abstractmethod
+
