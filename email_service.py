@@ -26,56 +26,55 @@ def send_email(subject, recipients, body):
         print(f"❌ Error in send_email: {str(e)}")
         return False
 
+def build_role_assignment_body(role_type: str) -> str:
+    """Return plain-text body for role assignment email (pure, testable)."""
+    registration_link = f"{os.getenv('BASE_URL', 'http://localhost:5000')}/register"
+    return (
+        "Hi there,\n\n"
+        f"You've been designated as {role_type.title()} in the Invensis Hiring Portal.\n\n"
+        "Please register using your Gmail to access your dashboard.\n\n"
+        f"Registration link: {registration_link}\n\n"
+        "Regards,\n"
+        "Admin Team\n"
+        "Invensis Hiring Portal\n"
+    )
+
 def send_role_assignment_email(email, role_type):
     """Send email notification when admin assigns a role"""
     subject = f"You've been designated as {role_type.title()}"
-    
-    body = f"""Hi there,
-
-You've been designated as {role_type.title()} in the Invensis Hiring Portal.
-
-Please register using your Gmail to access your dashboard.
-
-Registration link: {os.getenv('BASE_URL', 'http://localhost:5000')}/register
-
-Regards,
-Admin Team
-Invensis Hiring Portal
-"""
+    body = build_role_assignment_body(role_type)
     
     result = send_email(subject, [email], body)
     if not result:
         print(f"❌ Failed to send role assignment email to {email}")
     return result
 
-def send_candidate_assignment_email(manager_email, candidate, interview_datetime):
-    """Send email notification when HR assigns a candidate to manager"""
-    subject = "New Candidate Assigned"
-    
-    # Format interview date and time
+def build_candidate_assignment_body(candidate, interview_datetime) -> str:
+    """Return plain-text body for candidate assignment (pure, testable)."""
     interview_info = "TBD"
     if interview_datetime:
         interview_info = interview_datetime.strftime('%d %b %Y - %I:%M %p')
-    
-    body = f"""Dear Manager,
+    dashboard = f"{os.getenv('BASE_URL', 'http://localhost:5001')}/manager/dashboard"
+    return (
+        "Dear Manager,\n\n"
+        "A new candidate has been assigned to you.\n\n"
+        f"\ud83d\udcc5 Interview Date: {interview_info}\n"
+        f"\ud83d\udc64 Name: {getattr(candidate, 'first_name', '')} {getattr(candidate, 'last_name', '')}\n"
+        f"\ud83e\uddd0 Experience: {getattr(candidate, 'experience', 'N/A')} Years\n"
+        f"\ud83d\udccd Email: {getattr(candidate, 'email', 'N/A')}\n"
+        f"\ud83d\udcde Phone: {getattr(candidate, 'phone', 'N/A')}\n"
+        f"\ud83c\udd94 Reference ID: {getattr(candidate, 'reference_id', 'N/A')}\n\n"
+        "Please review and proceed with the interview.\n\n"
+        f"Dashboard: {dashboard}\n\n"
+        "Regards,\n"
+        "HR Team\n"
+        "Invensis Hiring Portal\n"
+    )
 
-A new candidate has been assigned to you.
-
-📅 Interview Date: {interview_info}
-👤 Name: {candidate.first_name} {candidate.last_name}
-🧠 Experience: {candidate.experience} Years
-📍 Email: {candidate.email}
-📞 Phone: {candidate.phone}
-🆔 Reference ID: {candidate.reference_id}
-
-Please review and proceed with the interview.
-
-Dashboard: {os.getenv('BASE_URL', 'http://localhost:5001')}/manager/dashboard
-
-Regards,
-HR Team
-Invensis Hiring Portal
-"""
+def send_candidate_assignment_email(manager_email, candidate, interview_datetime):
+    """Send email notification when HR assigns a candidate to manager"""
+    subject = "New Candidate Assigned"
+    body = build_candidate_assignment_body(candidate, interview_datetime)
     
     result = send_email(subject, [manager_email], body)
     if not result:

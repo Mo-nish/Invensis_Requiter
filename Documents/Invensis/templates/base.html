@@ -432,28 +432,13 @@
         
         /* ===== COMPLETE 3D DESIGN SYSTEM ===== */
         
-        /* Global 3D Background */
+        /* Formal Google-like theme override */
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            background-attachment: fixed;
-            position: relative;
-            overflow-x: hidden;
+            background: #ffffff;
+            color: #1f2937;
         }
         
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
-            z-index: -1;
-            animation: backgroundShift 20s ease-in-out infinite;
-        }
+        body::before { content: none; }
         
         @keyframes backgroundShift {
             0%, 100% { transform: scale(1) rotate(0deg); }
