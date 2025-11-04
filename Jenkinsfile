@@ -35,7 +35,10 @@ pipeline {
                     call venv\\Scripts\\activate
                     echo Running unit tests...
                     cd ${env.WORKSPACE_DIR}
-                    pytest --maxfail=1 --disable-warnings -q --ignore=test_reset_password_flow.py --ignore=test_forgot_password.py --cov=. --cov-report=xml:coverage.xml
+                    pytest --maxfail=1 --disable-warnings -q --ignore=test_reset_password_flow.py --ignore=test_forgot_password.py --cov=. --cov-report=xml:coverage.xml --cov-report=term
+                    echo Running tests from tests/ directory...
+                    cd ..\\..
+                    pytest tests/ --maxfail=1 --disable-warnings -q --cov=Documents/Invensis --cov-report=xml:Documents/Invensis/coverage.xml --cov-report=term --cov-append
                 """
             }
         }
