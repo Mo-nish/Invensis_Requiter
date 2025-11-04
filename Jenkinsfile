@@ -38,13 +38,16 @@ pipeline {
                     if exist test_chatbot_config.py del test_chatbot_config.py
                     if exist test_s3_config.py del test_s3_config.py
                     if exist test_cloudinary_config.py del test_cloudinary_config.py
-                    pytest --maxfail=1 --disable-warnings -q --ignore-glob=test_chatbot*.py --ignore-glob=test_s3*.py --ignore-glob=test_cloudinary*.py --ignore-glob=test_reset_password_flow.py --ignore-glob=test_forgot_password.py --cov=. --cov-report=xml:coverage.xml --cov-report=term --cov-config=.coveragerc
+                    if exist test_chatbot.py del test_chatbot.py
+                    if exist test_reset_password_flow.py del test_reset_password_flow.py
+                    if exist test_forgot_password.py del test_forgot_password.py
+                    pytest --maxfail=1 --disable-warnings -q --ignore=test_chatbot_config.py --ignore=test_s3_config.py --ignore=test_cloudinary_config.py --ignore=test_chatbot.py --ignore=test_reset_password_flow.py --ignore=test_forgot_password.py --cov=. --cov-report=xml:coverage.xml --cov-report=term --cov-config=.coveragerc
                     echo Running tests from tests/ directory...
                     cd ..\\..
                     if exist tests\\test_chatbot_config.py del tests\\test_chatbot_config.py
                     if exist tests\\test_s3_config.py del tests\\test_s3_config.py
                     if exist tests\\test_cloudinary_config.py del tests\\test_cloudinary_config.py
-                    pytest tests/ --maxfail=1 --disable-warnings -q --ignore-glob=test_chatbot*.py --ignore-glob=test_s3*.py --ignore-glob=test_cloudinary*.py --cov=Documents/Invensis --cov-report=xml:Documents/Invensis/coverage.xml --cov-report=term --cov-append
+                    pytest tests/ --maxfail=1 --disable-warnings -q --ignore=tests/test_chatbot_config.py --ignore=tests/test_s3_config.py --ignore=tests/test_cloudinary_config.py --cov=Documents/Invensis --cov-report=xml:Documents/Invensis/coverage.xml --cov-report=term --cov-append
                 """
             }
         }
