@@ -239,3 +239,251 @@ def test_password_reset_token_save_existing():
         token.save()
         mock_update.assert_called_once()
 
+
+def test_activity_log_save_new():
+    """Test ActivityLog.save() for new log"""
+    from models_mongo import activity_logs_collection
+    log = ActivityLog("user@example.com", "login")
+    with patch.object(activity_logs_collection, 'insert_one') as mock_insert:
+        mock_insert.return_value.inserted_id = ObjectId()
+        log.save()
+        assert log._id is not None
+        mock_insert.assert_called_once()
+
+
+def test_activity_log_save_existing():
+    """Test ActivityLog.save() for existing log"""
+    from models_mongo import activity_logs_collection
+    log = ActivityLog("user@example.com", "login", _id=str(ObjectId()))
+    with patch.object(activity_logs_collection, 'update_one') as mock_update:
+        log.save()
+        mock_update.assert_called_once()
+
+
+def test_feedback_save_new():
+    """Test Feedback.save() for new feedback"""
+    from models_mongo import feedback_collection
+    feedback = Feedback("candidate123", "manager@example.com", "Good candidate", "shortlisted")
+    with patch.object(feedback_collection, 'insert_one') as mock_insert:
+        mock_insert.return_value.inserted_id = ObjectId()
+        feedback.save()
+        assert feedback._id is not None
+        mock_insert.assert_called_once()
+
+
+def test_feedback_save_existing():
+    """Test Feedback.save() for existing feedback"""
+    from models_mongo import feedback_collection
+    feedback = Feedback("candidate123", "manager@example.com", "Good candidate", "shortlisted", _id=str(ObjectId()))
+    with patch.object(feedback_collection, 'update_one') as mock_update:
+        feedback.save()
+        mock_update.assert_called_once()
+
+
+def test_feedback_find_all():
+    """Test Feedback.find_all()"""
+    from models_mongo import feedback_collection
+    with patch.object(feedback_collection, 'find') as mock_find:
+        mock_find.return_value = [
+            {
+                '_id': ObjectId(),
+                'candidate_id': 'candidate123',
+                'manager_email': 'manager@example.com',
+                'feedback_text': 'Good',
+                'status': 'shortlisted',
+                'timestamp': datetime.utcnow()
+            }
+        ]
+        feedbacks = Feedback.find_all()
+        assert len(feedbacks) == 1
+        assert feedbacks[0].candidate_id == 'candidate123'
+
+
+def test_candidate_find_by_status():
+    """Test Candidate.find_by_status()"""
+    from models_mongo import candidates_collection
+    with patch.object(candidates_collection, 'find') as mock_find:
+        mock_find.return_value = [
+            {
+                '_id': ObjectId(),
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'email': 'john@example.com',
+                'phone': '1234567890',
+                'gender': 'Male',
+                'dob': datetime(1990, 1, 1),
+                'education': 'B.Tech',
+                'experience': '5 years',
+                'assigned_by': 'hr@example.com',
+                'status': 'pending'
+            }
+        ]
+        candidates = Candidate.find_by_status('pending')
+        assert len(candidates) == 1
+        assert candidates[0].first_name == 'John'
+
+
+def test_candidate_find_by_status_list():
+    """Test Candidate.find_by_status_list()"""
+    from models_mongo import candidates_collection
+    with patch.object(candidates_collection, 'find') as mock_find:
+        mock_find.return_value = [
+            {
+                '_id': ObjectId(),
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'email': 'john@example.com',
+                'phone': '1234567890',
+                'gender': 'Male',
+                'dob': datetime(1990, 1, 1),
+                'education': 'B.Tech',
+                'experience': '5 years',
+                'assigned_by': 'hr@example.com',
+                'status': 'pending'
+            }
+        ]
+        candidates = Candidate.find_by_status_list(['pending', 'shortlisted'])
+        assert len(candidates) == 1
+        assert candidates[0].status == 'pending'
+
+
+def test_candidate_find_all():
+    """Test Candidate.find_all()"""
+    from models_mongo import candidates_collection
+    with patch.object(candidates_collection, 'find') as mock_find:
+        mock_find.return_value = [
+            {
+                '_id': ObjectId(),
+                'first_name': 'John',
+                'last_name': 'Doe',
+                'email': 'john@example.com',
+                'phone': '1234567890',
+                'gender': 'Male',
+                'dob': datetime(1990, 1, 1),
+                'education': 'B.Tech',
+                'experience': '5 years',
+                'assigned_by': 'hr@example.com',
+                'status': 'pending'
+            }
+        ]
+        candidates = Candidate.find_all()
+        assert len(candidates) == 1
+        assert candidates[0].first_name == 'John'
+
+
+def test_user_find_by_role():
+    """Test User.find_by_role()"""
+    from models_mongo import users_collection
+    with patch.object(users_collection, 'find_one') as mock_find:
+        mock_find.return_value = {
+            '_id': ObjectId(),
+            'email': 'test@example.com',
+            'name': 'Test User',
+            'role': 'admin',
+            'password_hash': 'hashed'
+        }
+        user = User.find_by_role('admin')
+        assert user is not None
+        assert user.role == 'admin'
+
+
+def test_user_find_all_by_role():
+    """Test User.find_all_by_role()"""
+    from models_mongo import users_collection
+    with patch.object(users_collection, 'find') as mock_find:
+        mock_find.return_value = [
+            {
+                '_id': ObjectId(),
+                'email': 'test@example.com',
+                'name': 'Test User',
+                'role': 'admin',
+                'password_hash': 'hashed'
+            }
+        ]
+        users = User.find_all_by_role('admin')
+        assert len(users) == 1
+        assert users[0].role == 'admin'
+
+
+def test_user_count_by_role():
+    """Test User.count_by_role()"""
+    from models_mongo import users_collection
+    with patch.object(users_collection, 'count_documents', return_value=5) as mock_count:
+        count = User.count_by_role('admin')
+        assert count == 5
+        mock_count.assert_called_once_with({'role': 'admin'})
+
+
+def test_feedback_from_dict():
+    """Test Feedback.from_dict()"""
+    data = {
+        '_id': ObjectId(),
+        'candidate_id': 'candidate123',
+        'manager_email': 'manager@example.com',
+        'feedback_text': 'Good candidate',
+        'status': 'shortlisted',
+        'overall_impression': 'Positive',
+        'communication_rating': 4,
+        'technical_rating': 5,
+        'problem_solving_rating': 4,
+        'cultural_fit_rating': 5,
+        'manager_rating': 4.5,
+        'rejection_reasons': [],
+        'rejection_notes': '',
+        'next_review_date': None,
+        'timestamp': datetime.utcnow(),
+        'created_at': datetime.utcnow()
+    }
+    feedback = Feedback.from_dict(data)
+    assert feedback.candidate_id == 'candidate123'
+    assert feedback.manager_email == 'manager@example.com'
+    assert feedback.communication_rating == 4
+    assert feedback.technical_rating == 5
+
+
+def test_feedback_delete():
+    """Test Feedback.delete()"""
+    from models_mongo import feedback_collection
+    feedback = Feedback("candidate123", "manager@example.com", "Good candidate", "shortlisted", _id=str(ObjectId()))
+    with patch.object(feedback_collection, 'delete_one') as mock_delete:
+        result = feedback.delete()
+        assert result is True
+        mock_delete.assert_called_once()
+
+
+def test_feedback_delete_no_id():
+    """Test Feedback.delete() without _id"""
+    feedback = Feedback("candidate123", "manager@example.com", "Good candidate", "shortlisted")
+    feedback._id = None
+    result = feedback.delete()
+    assert result is False
+
+
+def test_candidate_request_init():
+    """Test CandidateRequest initialization"""
+    from models_mongo import CandidateRequest
+    request_obj = CandidateRequest(
+        manager_email="manager@example.com",
+        position_title="Software Engineer",
+        quantity_needed=5,
+        urgency_level="High"
+    )
+    assert request_obj.manager_email == "manager@example.com"
+    assert request_obj.position_title == "Software Engineer"
+    assert request_obj.quantity_needed == 5
+    assert request_obj.urgency_level == "High"
+    assert request_obj.status == "Active"
+
+
+def test_candidate_request_remaining_count_property():
+    """Test CandidateRequest remaining_count property"""
+    from models_mongo import CandidateRequest
+    request_obj = CandidateRequest(
+        manager_email="manager@example.com",
+        position_title="Software Engineer",
+        quantity_needed=5,
+        urgency_level="High"
+    )
+    request_obj.onboarded_count = 2
+    assert request_obj.remaining_count == 3
+
