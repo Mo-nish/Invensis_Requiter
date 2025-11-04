@@ -189,7 +189,6 @@ from routes.hr_mongo import hr_bp
 from routes.recruiter_mongo import recruiter_bp
 from routes.manager_mongo import manager_bp
 from routes.cluster_mongo import cluster_bp
-from routes.chatbot_mongo import chatbot_bp
 
 # Import email service functions
 from email_service import send_password_reset_email, send_password_changed_confirmation_email
@@ -374,7 +373,6 @@ app.register_blueprint(hr_bp, url_prefix='/hr')
 app.register_blueprint(recruiter_bp, url_prefix='/recruiter')
 app.register_blueprint(manager_bp, url_prefix='/manager')
 app.register_blueprint(cluster_bp, url_prefix='/cluster')
-app.register_blueprint(chatbot_bp, url_prefix='/')
 
 # Contact Support Route
 @app.route('/contact-support')
