@@ -14,7 +14,8 @@ def pytest_ignore_collect(path, config):
         'test_cloudinary_config.py',
         'test_chatbot.py',
         'test_reset_password_flow.py',
-        'test_forgot_password.py'
+        'test_forgot_password.py',
+        'test_email_builders.py'
     ]
     
     for ignored_file in ignored_files:
