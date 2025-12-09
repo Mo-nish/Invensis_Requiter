@@ -1,43 +1,129 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
-    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invensis Hiring Portal</title>
 
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>React App</title>
-  </head>
-  <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
-    <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
+<!-- Tailwind CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+<style>
+    /* LIGHTWEIGHT GPU ANIMATIONS ONLY */
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
-  </body>
+    .float {
+        animation: float 4s ease-in-out infinite;
+    }
+
+    @keyframes float {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+        100% { transform: translateY(0); }
+    }
+
+    .fade {
+        opacity: 0;
+        animation: fadeIn 1s forwards;
+    }
+
+    @keyframes fadeIn {
+        to { opacity: 1; }
+    }
+</style>
+
+</head>
+
+<body class="bg-gray-50">
+
+<!-- HERO SECTION -->
+<section class="relative py-24 bg-gradient-to-br from-indigo-600 to-indigo-500 text-white text-center">
+    <div class="max-w-4xl mx-auto fade">
+        <h1 class="text-5xl font-bold mb-4">Invensis Hiring Portal</h1>
+        <p class="text-xl opacity-90">Streamlined recruitment management for seamless collaboration</p>
+    </div>
+
+    <!-- Light floating shapes -->
+    <div class="absolute top-10 left-20 w-20 h-20 bg-white/10 rounded-full float"></div>
+    <div class="absolute bottom-16 right-24 w-16 h-16 bg-white/10 rounded-full float"></div>
+</section>
+
+<!-- FEATURES -->
+<section class="py-20">
+    <h2 class="text-4xl font-bold text-center mb-12 text-indigo-700">Key Features</h2>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto px-6">
+
+        <div class="p-8 bg-white rounded-xl shadow hover:shadow-lg transition">
+            <div class="w-14 h-14 bg-indigo-500 text-white flex items-center justify-center rounded-full mx-auto mb-4">
+                <i class="fa fa-envelope text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-2">Email Notifications</h3>
+            <p class="text-gray-600 text-center">Automated alerts for role assignments.</p>
+        </div>
+
+        <div class="p-8 bg-white rounded-xl shadow hover:shadow-lg transition">
+            <div class="w-14 h-14 bg-green-500 text-white flex items-center justify-center rounded-full mx-auto mb-4">
+                <i class="fa fa-chart-pie text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-2">Analytics Dashboard</h3>
+            <p class="text-gray-600 text-center">Comprehensive hiring metrics.</p>
+        </div>
+
+        <div class="p-8 bg-white rounded-xl shadow hover:shadow-lg transition">
+            <div class="w-14 h-14 bg-red-500 text-white flex items-center justify-center rounded-full mx-auto mb-4">
+                <i class="fa fa-shield text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-2">Role-Based Access</h3>
+            <p class="text-gray-600 text-center">Secure login for each department.</p>
+        </div>
+
+        <div class="p-8 bg-white rounded-xl shadow hover:shadow-lg transition">
+            <div class="w-14 h-14 bg-purple-500 text-white flex items-center justify-center rounded-full mx-auto mb-4">
+                <i class="fa fa-robot text-xl"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-center mb-2">AI-Powered Intelligence</h3>
+            <p class="text-gray-600 text-center">Smart resume parsing & insights.</p>
+        </div>
+
+    </div>
+</section>
+
+<!-- SUPPORT -->
+<section class="py-20 bg-indigo-50">
+    <div class="max-w-4xl mx-auto text-center">
+        <div class="w-20 h-20 bg-indigo-500 text-white rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fa fa-headset text-3xl"></i>
+        </div>
+
+        <h2 class="text-3xl font-bold mb-4 text-indigo-700">Need Support?</h2>
+        <p class="text-gray-600 mb-6">Get direct help from our development team</p>
+
+        <a href="/contact-support"
+           class="px-8 py-3 bg-indigo-600 text-white rounded-xl shadow hover:bg-indigo-700 transition">
+            Contact Support
+        </a>
+    </div>
+</section>
+
+<!-- LOGIN -->
+<section class="py-20">
+    <h2 class="text-3xl font-bold text-center mb-4 text-indigo-700">Already Have Access?</h2>
+    <p class="text-gray-600 text-center mb-6">Login to your dashboard</p>
+
+    <div class="text-center">
+        <a href="/login"
+           class="px-10 py-4 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition">
+           Login
+        </a>
+    </div>
+</section>
+
+<footer class="py-6 text-center text-gray-500 border-t">
+    © 2024 Invensis Hiring Portal. All rights reserved.
+</footer>
+
+<!-- Cursor AI (Fix this path) -->
+<script src="/static/js/cursor-ai.js"></script>
+
+</body>
 </html>
