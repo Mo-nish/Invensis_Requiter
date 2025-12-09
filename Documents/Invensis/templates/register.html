@@ -13,48 +13,52 @@
         </a>
     </div>
     
-    <!-- Animated Background Elements -->
+    <!-- Animated Background Elements - Invensis Colors -->
     <div class="absolute inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute top-20 left-20 w-32 h-32 bg-green-400/10 rounded-full animate-float-slow"></div>
-        <div class="absolute top-40 right-40 w-24 h-24 bg-blue-400/10 rounded-full animate-float-medium"></div>
-        <div class="absolute bottom-40 left-1/4 w-40 h-40 bg-purple-400/10 rounded-full animate-float-fast"></div>
-        <div class="absolute bottom-20 right-1/4 w-28 h-28 bg-indigo-400/10 rounded-full animate-float-slow"></div>
+        <div class="absolute top-20 left-20 w-32 h-32 rounded-full animate-float-slow" style="background: rgba(0, 102, 204, 0.1);"></div>
+        <div class="absolute top-40 right-40 w-24 h-24 rounded-full animate-float-medium" style="background: rgba(30, 58, 95, 0.1);"></div>
+        <div class="absolute bottom-40 left-1/4 w-40 h-40 rounded-full animate-float-fast" style="background: rgba(0, 102, 204, 0.08);"></div>
+        <div class="absolute bottom-20 right-1/4 w-28 h-28 rounded-full animate-float-slow" style="background: rgba(220, 38, 38, 0.1);"></div>
     </div>
 
     <div class="max-w-md w-full mx-4 relative z-10">
-        <!-- Register Card -->
-        <div class="card-3d p-8 text-center">
+        <!-- Register Card - Invensis Colors -->
+        <div class="card-3d p-8 text-center" style="background: white; border: 1px solid #e5e7eb;">
             <div class="mb-8">
-                <div class="w-20 h-20 bg-gradient-to-r from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <div class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg" style="background: linear-gradient(135deg, var(--invensis-blue) 0%, var(--invensis-navy) 100%);">
                     <i class="fas fa-user-plus text-3xl text-white"></i>
                 </div>
-                <h2 class="text-3xl font-bold text-white mb-2 text-3d">Create Account</h2>
-                <p class="text-purple-200">Join our recruitment platform</p>
+                <h2 class="text-3xl font-bold mb-2 text-3d" style="color: var(--invensis-navy);">Create Account</h2>
+                <p style="color: var(--invensis-gray);">Join our recruitment platform</p>
             </div>
 
             <form method="POST" class="space-y-6">
                 <div>
-                    <label for="name" class="block text-sm font-medium text-purple-200 mb-2 text-left">Full Name</label>
+                    <label for="name" class="block text-sm font-medium mb-2 text-left" style="color: var(--invensis-navy);">Full Name</label>
                     <input type="text" id="name" name="name" required 
-                           class="input-3d w-full" placeholder="Enter your full name">
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           placeholder="Enter your full name" style="color: var(--invensis-black);">
                 </div>
                 
                 <div>
-                    <label for="email" class="block text-sm font-medium text-purple-200 mb-2 text-left">Email Address</label>
+                    <label for="email" class="block text-sm font-medium mb-2 text-left" style="color: var(--invensis-navy);">Email Address</label>
                     <input type="email" id="email" name="email" required 
-                           class="input-3d w-full" placeholder="Enter your email">
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           placeholder="Enter your email" style="color: var(--invensis-black);">
                 </div>
                 
                 <div>
-                    <label for="password" class="block text-sm font-medium text-purple-200 mb-2 text-left">Password</label>
+                    <label for="password" class="block text-sm font-medium mb-2 text-left" style="color: var(--invensis-navy);">Password</label>
                     <input type="password" id="password" name="password" required 
-                           class="input-3d w-full" placeholder="Create a password">
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           placeholder="Create a password" style="color: var(--invensis-black);">
                 </div>
                 
                 <div>
-                    <label for="confirm_password" class="block text-sm font-medium text-purple-200 mb-2 text-left">Confirm Password</label>
+                    <label for="confirm_password" class="block text-sm font-medium mb-2 text-left" style="color: var(--invensis-navy);">Confirm Password</label>
                     <input type="password" id="confirm_password" name="confirm_password" required 
-                           class="input-3d w-full" placeholder="Confirm your password">
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                           placeholder="Confirm your password" style="color: var(--invensis-black);">
                 </div>
                 
                 <button type="submit" class="btn-3d btn-hr w-full py-3 text-lg">
@@ -63,13 +67,13 @@
             </form>
             
             <div class="mt-6 text-center">
-                <p class="text-purple-200">Already have an account? 
-                    <a href="{{ url_for('login') }}" class="text-blue-300 hover:text-blue-200 font-medium">Sign in here</a>
+                <p style="color: var(--invensis-gray);">Already have an account? 
+                    <a href="{{ url_for('login') }}" class="font-medium" style="color: var(--invensis-blue);" onmouseover="this.style.color='var(--invensis-navy)'" onmouseout="this.style.color='var(--invensis-blue)'">Sign in here</a>
                 </p>
             </div>
             
             <div class="mt-4 text-center">
-                <a href="{{ url_for('index') }}" class="text-purple-200 hover:text-purple-100">
+                <a href="{{ url_for('index') }}" style="color: var(--invensis-gray);" onmouseover="this.style.color='var(--invensis-navy)'" onmouseout="this.style.color='var(--invensis-gray)'">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Home
                 </a>
             </div>

@@ -432,10 +432,21 @@
         
         /* ===== COMPLETE 3D DESIGN SYSTEM ===== */
         
+        /* Invensis Brand Colors */
+        :root {
+            --invensis-navy: #1e3a5f;      /* Dark Navy Blue - Primary */
+            --invensis-blue: #0066cc;      /* Bright Blue - Secondary */
+            --invensis-red: #dc2626;       /* Red Accent */
+            --invensis-white: #ffffff;    /* White */
+            --invensis-black: #111827;    /* Black/Dark Gray for text */
+            --invensis-gray: #6b7280;      /* Gray for secondary text */
+            --invensis-light-gray: #f3f4f6; /* Light Gray for backgrounds */
+        }
+        
         /* Formal Google-like theme override */
         body {
             background: #ffffff;
-            color: #1f2937;
+            color: #111827;
         }
         
         body::before { content: none; }
@@ -482,9 +493,9 @@
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
         
-        /* 3D Button System */
+        /* 3D Button System - Invensis Brand Colors */
         .btn-3d {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--invensis-blue) 0%, var(--invensis-navy) 100%);
             border: none;
             border-radius: 15px;
             padding: 12px 24px;
@@ -496,7 +507,7 @@
             position: relative;
             overflow: hidden;
             box-shadow: 
-                0 6px 20px rgba(102, 126, 234, 0.4),
+                0 6px 20px rgba(0, 102, 204, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
         
@@ -518,7 +529,7 @@
         .btn-3d:hover {
             transform: translateY(-3px) scale(1.05);
             box-shadow: 
-                0 12px 30px rgba(102, 126, 234, 0.6),
+                0 12px 30px rgba(0, 102, 204, 0.6),
                 0 0 0 2px rgba(255, 255, 255, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
@@ -527,18 +538,18 @@
             transform: translateY(-1px) scale(1.02);
         }
         
-        /* Execution Button Special Styling */
+        /* Execution Button Special Styling - Invensis Red */
         .btn-execution {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 50%, #ff9ff3 100%);
+            background: linear-gradient(135deg, var(--invensis-red) 0%, #b91c1c 100%);
             box-shadow: 
-                0 6px 20px rgba(255, 107, 107, 0.4),
+                0 6px 20px rgba(220, 38, 38, 0.4),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
             animation: executionGlow 2s ease-in-out infinite alternate;
         }
         
         .btn-execution:hover {
             box-shadow: 
-                0 12px 30px rgba(255, 107, 107, 0.6),
+                0 12px 30px rgba(220, 38, 38, 0.6),
                 0 0 0 2px rgba(255, 255, 255, 0.3),
                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
             transform: translateY(-3px) scale(1.05);
@@ -547,51 +558,51 @@
         @keyframes executionGlow {
             0% {
                 box-shadow: 
-                    0 6px 20px rgba(255, 107, 107, 0.4),
+                    0 6px 20px rgba(220, 38, 38, 0.4),
                     inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
             100% {
                 box-shadow: 
-                    0 6px 20px rgba(255, 107, 107, 0.8),
+                    0 6px 20px rgba(220, 38, 38, 0.8),
                     inset 0 1px 0 rgba(255, 255, 255, 0.2);
             }
         }
         
-        /* Portal-specific button variants */
+        /* Portal-specific button variants - Invensis Colors */
         .btn-admin {
-            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+            background: linear-gradient(135deg, var(--invensis-red) 0%, #b91c1c 100%);
+            box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
         }
         
         .btn-admin:hover {
-            box-shadow: 0 12px 30px rgba(255, 107, 107, 0.6);
+            box-shadow: 0 12px 30px rgba(220, 38, 38, 0.6);
         }
         
         .btn-hr {
-            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
-            box-shadow: 0 6px 20px rgba(78, 205, 196, 0.4);
+            background: linear-gradient(135deg, var(--invensis-blue) 0%, var(--invensis-navy) 100%);
+            box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
         }
         
         .btn-hr:hover {
-            box-shadow: 0 12px 30px rgba(78, 205, 196, 0.6);
+            box-shadow: 0 12px 30px rgba(0, 102, 204, 0.6);
         }
         
         .btn-manager {
-            background: linear-gradient(135deg, #45b7d1 0%, #96c93d 100%);
-            box-shadow: 0 6px 20px rgba(69, 183, 209, 0.4);
+            background: linear-gradient(135deg, var(--invensis-blue) 0%, #0052a3 100%);
+            box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
         }
         
         .btn-manager:hover {
-            box-shadow: 0 12px 30px rgba(69, 183, 209, 0.6);
+            box-shadow: 0 12px 30px rgba(0, 102, 204, 0.6);
         }
         
         .btn-cluster {
-            background: linear-gradient(135deg, #a55eea 0%, #26de81 100%);
-            box-shadow: 0 6px 20px rgba(165, 94, 234, 0.4);
+            background: linear-gradient(135deg, var(--invensis-navy) 0%, var(--invensis-blue) 100%);
+            box-shadow: 0 6px 20px rgba(30, 58, 95, 0.4);
         }
         
         .btn-cluster:hover {
-            box-shadow: 0 12px 30px rgba(165, 94, 234, 0.6);
+            box-shadow: 0 12px 30px rgba(30, 58, 95, 0.6);
         }
         
         /* 3D Form Elements */
@@ -611,10 +622,10 @@
         
         .input-3d:focus {
             outline: none;
-            border-color: rgba(102, 126, 234, 0.8);
+            border-color: var(--invensis-blue);
             box-shadow: 
-                0 8px 25px rgba(102, 126, 234, 0.3),
-                0 0 0 3px rgba(102, 126, 234, 0.1),
+                0 8px 25px rgba(0, 102, 204, 0.3),
+                0 0 0 3px rgba(0, 102, 204, 0.1),
                 inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
         }
@@ -855,13 +866,13 @@
         }
         
         ::-webkit-scrollbar-thumb {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--invensis-blue) 0%, var(--invensis-navy) 100%);
             border-radius: 10px;
             border: 2px solid rgba(255, 255, 255, 0.1);
         }
         
         ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            background: linear-gradient(135deg, #0052a3 0%, #1a2f4d 100%);
         }
         
         /* 3D Responsive Design */
@@ -903,7 +914,7 @@
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold text-purple-600">Invensis Hiring Portal</h1>
+                        <h1 class="text-xl font-bold" style="color: var(--invensis-navy);">Invensis Hiring Portal</h1>
                     </div>
                 </div>
                 
@@ -913,7 +924,7 @@
                         {{ current_user.name if current_user else 'Guest' }} {% if current_user %}({{ current_user.role.title() }}){% endif %}
                     </span>
                     <a href="/logout" 
-                       class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg btn-animate">
+                       class="text-white px-4 py-2 rounded-lg btn-animate" style="background: var(--invensis-red);" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='var(--invensis-red)'">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </a>
                 </div>
