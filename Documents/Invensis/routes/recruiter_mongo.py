@@ -1473,9 +1473,11 @@ def parse_resume():
                 'name': ai_data.get('full_name', ''),
                 'email': ai_data.get('email', ''),
                 'phone': ai_data.get('phone', ''),
+                'dob': ai_data.get('date_of_birth', ''),
+                'gender': ai_data.get('gender', ''),
                 'skills': ai_data.get('skills', []),
-                'education': ai_data.get('education', ''),
-                'experience': ai_data.get('experience', ''),
+                'education': format_ai_education(ai_data.get('education', [])),
+                'experience': format_ai_experience(ai_data.get('experience', [])),
                 'reference_id': reference_id
             }
             
@@ -1496,61 +1498,142 @@ def parse_resume():
                 'parsing_method': 'AI-Powered (GPT-3.5)'
             })
         
-        print("DEBUG: AI parsing failed, falling back to regex parsing")
+        print("DEBUG: AI parsing failed, falling back to enhanced regex parsing")
         
-        # Fallback to simple regex-based parsing
-        import re
-        
-        extracted_data = {
-            'name': '',
-            'email': '',
-            'phone': '',
-            'skills': [],
-            'education': '',
-            'experience': ''
-        }
-        
-        # Extract email
-        email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-        emails = re.findall(email_pattern, resume_text)
-        if emails:
-            extracted_data['email'] = emails[0]
-        
-        # Extract phone number
-        phone_pattern = r'[\+]?[1-9]?[0-9]{7,15}'
-        phones = re.findall(phone_pattern, resume_text)
-        if phones:
-            extracted_data['phone'] = phones[0]
-        
-        # Better name extraction logic
-        lines = resume_text.split('\n')
-        for line in lines[:15]:  # Check first 15 lines
-            line = line.strip()
-            # Skip lines that are likely not names
-            if not line or len(line) < 2:
-                continue
-            if '@' in line or line.lower() in ['resume', 'cv', 'curriculum vitae']:
-                continue
-            if re.match(r'^\d+', line) or re.match(r'^phone', line.lower()):
-                continue
-            if re.match(r'^address', line.lower()) or re.match(r'^email', line.lower()):
-                continue
+        # Use the enhanced parsing function from hr_mongo.py
+        try:
+            from routes.hr_mongo import parse_resume_text_enhanced
+            extracted_data = parse_resume_text_enhanced(resume_text)
+        except ImportError:
+            # Fallback to simple regex-based parsing if import fails
+            import re
             
-            # Check if line looks like a name (contains letters, reasonable length)
-            if any(c.isalpha() for c in line) and len(line.split()) <= 4 and len(line) <= 50:
-                # Additional checks for name-like patterns
-                words = line.split()
-                if len(words) >= 1 and all(word.replace('.', '').replace(',', '').isalpha() or len(word) <= 3 for word in words):
-                    extracted_data['name'] = line
+            extracted_data = {
+                'name': '',
+                'email': '',
+                'phone': '',
+                'dob': '',
+                'gender': '',
+                'skills': [],
+                'education': '',
+                'experience': ''
+            }
+            
+            # Extract email
+            email_pattern = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
+            emails = re.findall(email_pattern, resume_text)
+            if emails:
+                extracted_data['email'] = emails[0]
+            
+            # Extract phone number
+            phone_pattern = r'[\+]?[1-9]?[0-9]{7,15}'
+            phones = re.findall(phone_pattern, resume_text)
+            if phones:
+                extracted_data['phone'] = phones[0]
+            
+            # Extract Date of Birth
+            dob_patterns = [
+                r'(?:DOB|Date of Birth|Birth Date|Born)[\s:]*(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})',
+                r'(\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4})'
+            ]
+            for pattern in dob_patterns:
+                match = re.search(pattern, resume_text, re.IGNORECASE)
+                if match:
+                    extracted_data['dob'] = match.group(1)
                     break
+            
+            # Extract Gender
+            gender_patterns = [
+                r'\b(Male|Female|Other)\b',
+                r'(?:Gender|Sex)[\s:]*([MF]|Male|Female|Other)'
+            ]
+            for pattern in gender_patterns:
+                match = re.search(pattern, resume_text, re.IGNORECASE)
+                if match:
+                    gender = match.group(1).upper()
+                    if gender in ['M', 'MALE']:
+                        extracted_data['gender'] = 'Male'
+                    elif gender in ['F', 'FEMALE']:
+                        extracted_data['gender'] = 'Female'
+                    else:
+                        extracted_data['gender'] = 'Other'
+                    break
+            
+            # Better name extraction logic
+            lines = resume_text.split('\n')
+            for line in lines[:15]:  # Check first 15 lines
+                line = line.strip()
+                # Skip lines that are likely not names
+                if not line or len(line) < 2:
+                    continue
+                if '@' in line or line.lower() in ['resume', 'cv', 'curriculum vitae']:
+                    continue
+                if re.match(r'^\d+', line) or re.match(r'^phone', line.lower()):
+                    continue
+                if re.match(r'^address', line.lower()) or re.match(r'^email', line.lower()):
+                    continue
+                
+                # Check if line looks like a name (contains letters, reasonable length)
+                if any(c.isalpha() for c in line) and len(line.split()) <= 4 and len(line) <= 50:
+                    # Additional checks for name-like patterns
+                    words = line.split()
+                    if len(words) >= 1 and all(word.replace('.', '').replace(',', '').isalpha() or len(word) <= 3 for word in words):
+                        extracted_data['name'] = line
+                        break
+            
+            # Extract Skills (basic)
+            skills_keywords = ['Python', 'Java', 'JavaScript', 'SQL', 'HTML', 'CSS', 'React', 'Angular', 'Node.js', 
+                             'MS Office', 'Excel', 'Word', 'PowerPoint', 'Photoshop', 'Illustrator', 'Communication',
+                             'Leadership', 'Teamwork', 'Problem Solving', 'Web Designing', 'Tally', 'Windows']
+            found_skills = []
+            for skill in skills_keywords:
+                if re.search(rf'\b{re.escape(skill)}\b', resume_text, re.IGNORECASE):
+                    found_skills.append(skill)
+            extracted_data['skills'] = found_skills
+            
+            # Extract Education (basic)
+            education_patterns = [
+                r'(?:Education|EDUCATION)[\s:]*([^•\n]+(?:\n[^•\n]+)*)',
+                r'(?:Bachelor|Master|B\.?S\.?|M\.?S\.?|B\.?A\.?|M\.?A\.?|B\.?Tech|M\.?Tech)[\s\w]*'
+            ]
+            for pattern in education_patterns:
+                match = re.search(pattern, resume_text, re.IGNORECASE | re.MULTILINE)
+                if match:
+                    extracted_data['education'] = match.group(1) if len(match.groups()) > 0 else match.group(0)
+                    break
+            
+            # Extract Experience (basic)
+            experience_patterns = [
+                r'(\d+)\s*(?:years?|yrs?)\s*(?:of\s*)?(?:experience|exp)',
+                r'(?:Experience|Work History|Employment)[\s:]*([^•\n]+(?:\n[^•\n]+)*)'
+            ]
+            for pattern in experience_patterns:
+                match = re.search(pattern, resume_text, re.IGNORECASE)
+                if match:
+                    if len(match.groups()) > 0:
+                        extracted_data['experience'] = match.group(1)
+                    else:
+                        years = match.group(1) if match.group(1).isdigit() else ''
+                        if years:
+                            extracted_data['experience'] = f"{years} years of experience"
+                    break
+        
+        # Generate reference ID
+        current_date = datetime.now().strftime('%Y%m%d')
+        unique_id = str(uuid.uuid4())[:8].upper()
+        extracted_data['reference_id'] = f'REF-{current_date}-{unique_id}'
+        
+        # Format skills if it's an array
+        if isinstance(extracted_data.get('skills'), list):
+            extracted_data['skills'] = ', '.join(extracted_data['skills']) if extracted_data['skills'] else ''
         
         print(f"DEBUG: Fallback extracted data: {extracted_data}")
         
         return jsonify({
             'success': True,
-            'message': 'Resume parsed successfully (basic extraction)',
+            'message': 'Resume parsed successfully (enhanced extraction)',
             'data': extracted_data,
-            'parsing_method': 'Basic Text Extraction'
+            'parsing_method': 'Enhanced Text Extraction'
         })
         
     except Exception as e:
