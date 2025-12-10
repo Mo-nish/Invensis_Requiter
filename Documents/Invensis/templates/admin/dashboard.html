@@ -284,6 +284,60 @@
     </div>
 </div>
 
+<!-- Clear Candidates Modal -->
+<div id="clearCandidatesModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4" style="border: 1px solid #e5e7eb;">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-lg font-semibold" style="color: var(--invensis-red);">
+                <i class="fas fa-exclamation-triangle mr-2"></i>Clear All Candidates
+            </h3>
+            <button onclick="hideClearCandidatesModal()" style="color: var(--invensis-gray);" onmouseover="this.style.color='var(--invensis-navy)'" onmouseout="this.style.color='var(--invensis-gray)'">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mb-4">
+            <p class="text-sm mb-3" style="color: var(--invensis-gray);">
+                This will permanently delete <strong>ALL</strong> candidate data including:
+            </p>
+            <ul class="list-disc list-inside text-sm mb-4 space-y-1" style="color: var(--invensis-gray);">
+                <li>All candidates</li>
+                <li>All feedback records</li>
+                <li>All candidate requests</li>
+            </ul>
+            <div class="rounded-lg p-3 mb-4" style="background: rgba(220, 38, 38, 0.1); border: 1px solid rgba(220, 38, 38, 0.3);">
+                <p class="text-sm font-semibold" style="color: var(--invensis-red);">
+                    <i class="fas fa-exclamation-circle mr-2"></i>
+                    WARNING: This action cannot be undone!
+                </p>
+            </div>
+            <div class="mb-4">
+                <label for="clearConfirmation" class="block text-sm font-medium mb-2" style="color: var(--invensis-navy);">
+                    Type <strong>"DELETE ALL CANDIDATES"</strong> to confirm:
+                </label>
+                <input type="text" id="clearConfirmation" 
+                       class="block w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-300"
+                       style="border-color: #d1d5db; color: #1f2937; focus:ring-color: var(--invensis-red);"
+                       placeholder="DELETE ALL CANDIDATES">
+            </div>
+        </div>
+        
+        <div class="flex space-x-3">
+            <button onclick="clearAllCandidates()" 
+                    class="flex-1 btn-3d btn-admin py-2 px-4 rounded-lg">
+                <i class="fas fa-trash-alt mr-2"></i>Clear All Data
+            </button>
+            <button type="button" onclick="hideClearCandidatesModal()"
+                    class="flex-1 py-2 px-4 rounded-lg btn-animate transition-colors duration-300"
+                    style="background: #f3f4f6; color: var(--invensis-navy); border: 1px solid #e5e7eb;"
+                    onmouseover="this.style.background='#e5e7eb'"
+                    onmouseout="this.style.background='#f3f4f6'">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
 <!-- Add Email Modal -->
 <div id="addRoleModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-lg p-6 w-full max-w-md mx-4" style="border: 1px solid #e5e7eb;">
