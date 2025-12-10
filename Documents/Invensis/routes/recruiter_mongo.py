@@ -1500,11 +1500,16 @@ def parse_resume():
         
         print("DEBUG: AI parsing failed, falling back to enhanced regex parsing")
         
-        # Use the enhanced parsing function from hr_mongo.py
+        # Use enhanced parsing - try to import from hr_mongo, otherwise use inline function
         try:
+            import sys
+            import os
+            # Add parent directory to path to allow import
+            sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
             from routes.hr_mongo import parse_resume_text_enhanced
             extracted_data = parse_resume_text_enhanced(resume_text)
-        except ImportError:
+        except (ImportError, Exception) as e:
+            print(f"DEBUG: Could not import enhanced parser, using fallback: {e}")
             # Fallback to simple regex-based parsing if import fails
             import re
             
