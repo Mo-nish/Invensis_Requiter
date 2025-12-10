@@ -16,6 +16,10 @@
                    class="btn-3d btn-hr inline-flex items-center px-4 py-2 rounded-lg">
                     <i class="fas fa-history mr-2"></i>Activity Logs
                 </a>
+                <button onclick="showClearCandidatesModal()" 
+                        class="btn-3d btn-admin inline-flex items-center px-4 py-2 rounded-lg">
+                    <i class="fas fa-trash-alt mr-2"></i>Clear All Candidates
+                </button>
             </div>
         </div>
     </div>
@@ -461,6 +465,60 @@ function showNotification(message, type) {
     setTimeout(() => {
         notification.remove();
     }, 3000);
+}
+
+// Clear Candidates Modal
+function showClearCandidatesModal() {
+    document.getElementById('clearCandidatesModal').classList.remove('hidden');
+    document.getElementById('clearCandidatesModal').classList.add('flex');
+    document.getElementById('clearConfirmation').value = '';
+}
+
+function hideClearCandidatesModal() {
+    document.getElementById('clearCandidatesModal').classList.add('hidden');
+    document.getElementById('clearCandidatesModal').classList.remove('flex');
+    document.getElementById('clearConfirmation').value = '';
+}
+
+function clearAllCandidates() {
+    const confirmation = document.getElementById('clearConfirmation').value;
+    
+    if (confirmation !== 'DELETE ALL CANDIDATES') {
+        showNotification('Please type "DELETE ALL CANDIDATES" exactly to confirm.', 'error');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = document.querySelector('#clearCandidatesModal button[onclick="clearAllCandidates()"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Clearing...';
+    submitBtn.disabled = true;
+    
+    fetch('{{ url_for("admin.clear_all_candidates") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ confirmation: confirmation })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            setTimeout(() => location.reload(), 2000);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while clearing candidate data.', 'error');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        hideClearCandidatesModal();
+    });
 }
 
 // Tab functionality

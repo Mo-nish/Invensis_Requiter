@@ -330,6 +330,60 @@ def add_cluster_email():
     success, message = add_user_and_send_invite(email, 'Cluster Member')
     return jsonify({'success': success, 'message': message})
 
+@admin_bp.route('/clear_all_candidates', methods=['POST'])
+@admin_required
+def clear_all_candidates():
+    """Clear all candidate data from the database"""
+    try:
+        from models_mongo import candidates_collection, feedback_collection, candidate_requests_collection
+        
+        # Get confirmation from request
+        confirmation = request.json.get('confirmation', '') if request.is_json else request.form.get('confirmation', '')
+        
+        if confirmation != 'DELETE ALL CANDIDATES':
+            return jsonify({
+                'success': False,
+                'message': 'Invalid confirmation. Please type "DELETE ALL CANDIDATES" to confirm.'
+            }), 400
+        
+        # Count before deletion
+        candidates_count = candidates_collection.count_documents({})
+        feedback_count = feedback_collection.count_documents({})
+        candidate_requests_count = candidate_requests_collection.count_documents({})
+        
+        # Delete all candidates
+        candidates_deleted = candidates_collection.delete_many({}).deleted_count
+        
+        # Delete all feedback
+        feedback_deleted = feedback_collection.delete_many({}).deleted_count
+        
+        # Delete all candidate requests
+        candidate_requests_deleted = candidate_requests_collection.delete_many({}).deleted_count
+        
+        # Log the activity
+        try:
+            activity_log = ActivityLog(
+                user_id=current_user.id,
+                user_email=current_user.email,
+                action='clear_all_candidates',
+                details=f'Cleared all candidate data: {candidates_deleted} candidates, {feedback_deleted} feedback records, {candidate_requests_deleted} candidate requests'
+            )
+            activity_log.save()
+        except Exception as log_error:
+            print(f"Warning: Failed to log activity: {log_error}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Successfully cleared all candidate data: {candidates_deleted} candidates, {feedback_deleted} feedback records, {candidate_requests_deleted} candidate requests'
+        })
+        
+    except Exception as e:
+        print(f"Error clearing candidates: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error clearing candidate data: {str(e)}'
+        }), 500
+
 @admin_bp.route('/remove_user_email', methods=['POST'])
 @admin_required
 def remove_user_email():
