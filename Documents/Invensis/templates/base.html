@@ -907,24 +907,36 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body class="bg-gray-50 min-h-screen">
+    <!-- Invensis Logo Header - Appears on all pages -->
+    <div class="bg-white border-b border-gray-200 py-3 px-4" style="position: sticky; top: 0; z-index: 1000; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <a href="{{ url_for('index') }}" class="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-300">
+                <!-- Invensis Logo -->
+                <div class="flex items-center">
+                    <span class="text-2xl font-bold" style="color: #1e3a5f; letter-spacing: -0.5px;">
+                        In<span style="color: #dc2626;">v</span>ensis
+                    </span>
+                </div>
+            </a>
+            {% if current_user %}
+            <div class="flex items-center space-x-4">
+                <span class="text-sm" style="color: var(--invensis-gray);">
+                    <i class="fas fa-user mr-2" style="color: var(--invensis-blue);"></i>
+                    {{ current_user.name if current_user else 'Guest' }} {% if current_user %}<span style="color: var(--invensis-navy);">({{ current_user.role.title() }})</span>{% endif %}
+                </span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
     <!-- Navigation -->
     {% if current_user %}
-    <nav class="bg-white shadow-lg border-b border-gray-200">
+    <nav class="bg-white shadow-sm border-b border-gray-200">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <div class="flex-shrink-0">
-                        <h1 class="text-xl font-bold" style="color: var(--invensis-navy);">Invensis Hiring Portal</h1>
-                    </div>
-                </div>
-                
+            <div class="flex justify-end h-12">
                 <div class="flex items-center space-x-4">
-                    <span class="text-gray-700">
-                        <i class="fas fa-user mr-2"></i>
-                        {{ current_user.name if current_user else 'Guest' }} {% if current_user %}({{ current_user.role.title() }}){% endif %}
-                    </span>
                     <a href="/logout" 
-                       class="text-white px-4 py-2 rounded-lg btn-animate" style="background: var(--invensis-red);" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='var(--invensis-red)'">
+                       class="text-white px-4 py-2 rounded-lg btn-animate text-sm" style="background: var(--invensis-red);" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='var(--invensis-red)'">
                         <i class="fas fa-sign-out-alt mr-2"></i>Logout
                     </a>
                 </div>
@@ -951,7 +963,7 @@
     {% endwith %}
     
     <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" style="padding-top: 1rem;">
         {% block content %}{% endblock %}
     </main>
     

@@ -1,0 +1,12 @@
+<svg width="180" height="50" viewBox="0 0 180 50" xmlns="http://www.w3.org/2000/svg">
+  <!-- Invensis Text Logo -->
+  <text x="0" y="35" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#1e3a5f">
+    Invensis
+  </text>
+  <!-- Stylized E with red accent -->
+  <rect x="50" y="15" width="3" height="20" fill="#1e3a5f"/>
+  <rect x="50" y="15" width="12" height="3" fill="#1e3a5f"/>
+  <rect x="50" y="23" width="12" height="3" fill="#dc2626"/>
+  <rect x="50" y="32" width="12" height="3" fill="#1e3a5f"/>
+</svg>
+

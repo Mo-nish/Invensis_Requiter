@@ -7,9 +7,13 @@
     <div class="max-w-4xl mx-auto">
         <!-- Back Button -->
         <div class="mb-8 fade-in">
-            <a href="{{ url_for('index') }}" class="inline-flex items-center transition-colors duration-300 group" style="color: var(--invensis-navy);">
-                <i class="fas fa-arrow-left mr-3 group-hover:-translate-x-1 transition-transform duration-300"></i>
-                <span class="text-lg font-medium">Back to Home</span>
+            <a href="{{ url_for('index') }}" 
+               class="inline-flex items-center px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md"
+               style="background: white; border: 1px solid #e5e7eb; color: var(--invensis-navy);"
+               onmouseover="this.style.borderColor='var(--invensis-blue)'; this.style.color='var(--invensis-blue)'"
+               onmouseout="this.style.borderColor='#e5e7eb'; this.style.color='var(--invensis-navy)'">
+                <i class="fas fa-arrow-left mr-2"></i>
+                <span class="font-medium">Back to Home</span>
             </a>
         </div>
         

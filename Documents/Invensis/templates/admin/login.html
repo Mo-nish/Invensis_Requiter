@@ -3,12 +3,15 @@
 {% block title %}Admin Login - Invensis Hiring Portal{% endblock %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center relative">
+<div class="min-h-screen flex items-center justify-center relative" style="background: white;">
     <!-- Back to Home Page Link -->
-    <div class="absolute top-6 left-6 z-20">
+    <div class="absolute top-24 left-6 z-20">
         <a href="{{ url_for('index') }}" 
-           class="inline-flex items-center px-4 py-2 bg-white rounded-lg hover:bg-gray-50 transition-all duration-300 border border-gray-300 hover:border-gray-400 shadow-lg" style="color: var(--invensis-navy);">
-            <i class="fas fa-home mr-2"></i>
+           class="inline-flex items-center px-4 py-2 rounded-lg transition-all duration-300 shadow-sm hover:shadow-md"
+           style="background: white; border: 1px solid #e5e7eb; color: var(--invensis-navy);"
+           onmouseover="this.style.borderColor='var(--invensis-blue)'; this.style.color='var(--invensis-blue)'"
+           onmouseout="this.style.borderColor='#e5e7eb'; this.style.color='var(--invensis-navy)'">
+            <i class="fas fa-arrow-left mr-2"></i>
             Back to Home
         </a>
     </div>
@@ -53,7 +56,11 @@
             </form>
             
             <div class="mt-6 text-center">
-                <a href="{{ url_for('index') }}" style="color: var(--invensis-gray);" onmouseover="this.style.color='var(--invensis-navy)'" onmouseout="this.style.color='var(--invensis-gray)'">
+                <a href="{{ url_for('index') }}" 
+                   class="inline-flex items-center px-4 py-2 rounded-lg transition-all duration-300"
+                   style="color: var(--invensis-gray); border: 1px solid transparent;"
+                   onmouseover="this.style.color='var(--invensis-blue)'; this.style.borderColor='#e5e7eb'"
+                   onmouseout="this.style.color='var(--invensis-gray)'; this.style.borderColor='transparent'">
                     <i class="fas fa-arrow-left mr-2"></i>Back to Home
                 </a>
             </div>
