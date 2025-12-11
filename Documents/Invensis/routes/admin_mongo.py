@@ -363,7 +363,6 @@ def clear_all_candidates():
         # Log the activity
         try:
             activity_log = ActivityLog(
-                user_id=current_user.id,
                 user_email=current_user.email,
                 action='clear_all_candidates',
                 details=f'Cleared all candidate data: {candidates_deleted} candidates, {feedback_deleted} feedback records, {candidate_requests_deleted} candidate requests'
