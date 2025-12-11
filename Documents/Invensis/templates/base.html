@@ -920,14 +920,8 @@
                 </div>
             </a>
             
-            <!-- Right Side: User Info or Monish Reddy Logo -->
+            <!-- Right Side: Monish Reddy Logo and User Info -->
             <div class="flex items-center space-x-4">
-                {% if current_user %}
-                <span class="text-sm" style="color: var(--invensis-gray);">
-                    <i class="fas fa-user mr-2" style="color: var(--invensis-blue);"></i>
-                    {{ current_user.name if current_user else 'Guest' }} {% if current_user %}<span style="color: var(--invensis-navy);">({{ current_user.role.title() }})</span>{% endif %}
-                </span>
-                {% else %}
                 <!-- Monish Reddy Logo - Right Side -->
                 <div class="flex items-center">
                     <img src="{{ url_for('static', filename='images/monish-reddy-logo.svg') }}" 
@@ -935,6 +929,11 @@
                          class="h-10"
                          style="max-width: 200px; opacity: 0.85;">
                 </div>
+                {% if current_user %}
+                <span class="text-sm ml-4" style="color: var(--invensis-gray);">
+                    <i class="fas fa-user mr-2" style="color: var(--invensis-blue);"></i>
+                    {{ current_user.name if current_user else 'Guest' }} {% if current_user %}<span style="color: var(--invensis-navy);">({{ current_user.role.title() }})</span>{% endif %}
+                </span>
                 {% endif %}
             </div>
         </div>
