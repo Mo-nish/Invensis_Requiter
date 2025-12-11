@@ -346,6 +346,31 @@ def dashboard():
                 unique_id = str(uuid.uuid4())[:8].upper()
                 reference_id = f'REF-{current_date}-{unique_id}'
                 candidate['reference_id'] = reference_id
+                
+                # Update the database with the new reference ID
+                try:
+                    candidates_collection.update_one(
+                        {'_id': ObjectId(candidate['_id'])},
+                        {'$set': {'reference_id': reference_id}}
+                    )
+                except Exception as update_error:
+                    print(f"Error updating reference ID for candidate {candidate.get('_id')}: {update_error}")
+            
+            # Generate name field if missing
+            if not candidate.get('name') and (candidate.get('first_name') or candidate.get('last_name')):
+                first_name = candidate.get('first_name', '')
+                last_name = candidate.get('last_name', '')
+                combined_name = f"{first_name} {last_name}".strip()
+                candidate['name'] = combined_name
+                
+                # Update the database with the new name field
+                try:
+                    candidates_collection.update_one(
+                        {'_id': ObjectId(candidate['_id'])},
+                        {'$set': {'name': combined_name}}
+                    )
+                except Exception as update_error:
+                    print(f"Error updating name field for candidate {candidate.get('_id')}: {update_error}")
         
         # Process candidate requests with deadline status and manager info
         from models_mongo import users_collection
@@ -435,31 +460,6 @@ def dashboard():
                     request['deadline_color'] = 'green'
                 
                 request['days_remaining'] = days_remaining
-                
-                # Update the database with the new reference ID
-                try:
-                    candidates_collection.update_one(
-                        {'_id': ObjectId(candidate['_id'])},
-                        {'$set': {'reference_id': reference_id}}
-                    )
-                except Exception as update_error:
-                    print(f"Error updating reference ID for candidate {candidate.get('_id')}: {update_error}")
-            
-            # Generate name field if missing
-            if not candidate.get('name') and (candidate.get('first_name') or candidate.get('last_name')):
-                first_name = candidate.get('first_name', '')
-                last_name = candidate.get('last_name', '')
-                combined_name = f"{first_name} {last_name}".strip()
-                candidate['name'] = combined_name
-                
-                # Update the database with the new name field
-                try:
-                    candidates_collection.update_one(
-                        {'_id': ObjectId(candidate['_id'])},
-                        {'$set': {'name': combined_name}}
-                    )
-                except Exception as update_error:
-                    print(f"Error updating name field for candidate {candidate.get('_id')}: {update_error}")
         
         print(f"DEBUG: Dashboard loaded {len(all_candidates)} candidates and {len(candidate_requests)} requests")
         print(f"DEBUG: Sample candidate names: {[c.get('name', 'No name') for c in all_candidates[:3]]}")
