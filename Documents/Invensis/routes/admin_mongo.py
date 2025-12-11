@@ -394,22 +394,41 @@ def remove_user_email():
         return jsonify({'success': False, 'message': 'Email and role are required'})
     
     try:
+        from models_mongo import users_collection, password_reset_tokens_collection
+        from bson import ObjectId
+        
         user_email = UserEmail.find_by_email(email)
         if user_email and user_email.role == role:
+            # Delete UserEmail record
             user_email.delete()
+            
+            # Delete User record from users_collection (if exists)
+            user = User.find_by_email(email)
+            if user:
+                users_collection.delete_one({'email': email})
+                print(f"✅ Deleted User record for {email}")
+            
+            # Delete password reset tokens for this user (if exists)
+            if user:
+                try:
+                    password_reset_tokens_collection.delete_many({'user_id': str(user._id)})
+                    print(f"✅ Deleted password reset tokens for {email}")
+                except Exception as token_error:
+                    print(f"⚠️ Warning: Could not delete password reset tokens: {token_error}")
             
             # Log activity
             activity = ActivityLog(
                 user_email=current_user.email,
                 action=f'Removed {role} email',
                 target_email=email,
-                details=f'Removed {role} email: {email}'
+                details=f'Removed {role} email: {email}. User account and related data completely deleted.'
             )
             activity.save()
             
-            return jsonify({'success': True, 'message': f'{role} email removed successfully'})
+            return jsonify({'success': True, 'message': f'{role} email and user account removed successfully. User can now register again.'})
         else:
             return jsonify({'success': False, 'message': 'Email not found'})
             
     except Exception as e:
+        print(f"❌ Error removing user email: {str(e)}")
         return jsonify({'success': False, 'message': f'Error removing email: {str(e)}'}) 
