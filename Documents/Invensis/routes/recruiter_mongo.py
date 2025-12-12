@@ -560,6 +560,7 @@ def candidate_details(candidate_id):
     try:
         from models_mongo import candidates_collection
         from bson import ObjectId
+        from cloud_storage import is_cloud_url
         
         # Validate candidate_id format
         if not candidate_id or len(candidate_id) != 24:
