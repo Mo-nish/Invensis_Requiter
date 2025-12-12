@@ -17,7 +17,10 @@
                     <i class="fas fa-history mr-2"></i>Activity Logs
                 </a>
                 <button onclick="migrateFilesToGridFS()" 
-                        class="btn-3d btn-hr inline-flex items-center px-4 py-2 rounded-lg mr-3">
+                        class="btn-3d inline-flex items-center px-4 py-2 rounded-lg mr-3"
+                        style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; font-weight: 600; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.3);"
+                        onmouseover="this.style.background='linear-gradient(135deg, #059669 0%, #047857 100%)'; this.style.transform='scale(1.05)'"
+                        onmouseout="this.style.background='linear-gradient(135deg, #10b981 0%, #059669 100%)'; this.style.transform='scale(1)'">
                     <i class="fas fa-cloud-upload-alt mr-2"></i>Migrate Files to GridFS
                 </button>
                 <button onclick="showClearCandidatesModal()" 
@@ -576,45 +579,6 @@ function clearAllCandidates() {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
         hideClearCandidatesModal();
-    });
-}
-
-// Migrate files to GridFS
-function migrateFilesToGridFS() {
-    if (!confirm('This will migrate all local files to MongoDB GridFS. Files that are already in GridFS or cloud storage will be skipped. Continue?')) {
-        return;
-    }
-    
-    const submitBtn = document.querySelector('[onclick="migrateFilesToGridFS()"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Migrating...';
-    submitBtn.disabled = true;
-    
-    fetch('{{ url_for("admin.migrate_files_to_gridfs") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            showNotification(data.message, 'success');
-            if (data.output) {
-                console.log('Migration output:', data.output);
-            }
-            setTimeout(() => location.reload(), 3000);
-        } else {
-            showNotification(data.message, 'error');
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showNotification('An error occurred while migrating files.', 'error');
-    })
-    .finally(() => {
-        submitBtn.innerHTML = originalText;
-        submitBtn.disabled = false;
     });
 }
 
