@@ -48,6 +48,31 @@ login_manager.login_view = 'login'  # type: ignore
 # Import MongoDB models
 from models_mongo import User, Role, Candidate, ActivityLog, Feedback, create_token, verify_token, UserEmail, PasswordResetToken, password_reset_tokens_collection
 
+# GridFS route for serving files
+@app.route('/gridfs/file/<file_id>')
+def serve_gridfs_file(file_id):
+    """Serve files from GridFS"""
+    try:
+        from gridfs_storage import get_file_from_gridfs
+        from flask import Response
+        
+        gridfs_file = get_file_from_gridfs(file_id)
+        if gridfs_file:
+            return Response(
+                gridfs_file.read(),
+                mimetype=gridfs_file.content_type or 'application/octet-stream',
+                headers={
+                    'Content-Disposition': f'inline; filename="{gridfs_file.filename}"'
+                }
+            )
+        else:
+            return "File not found", 404
+    except Exception as e:
+        print(f"Error serving GridFS file: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return "Error serving file", 500
+
 @login_manager.user_loader
 def load_user(user_id):
     return User.find_by_id(user_id)

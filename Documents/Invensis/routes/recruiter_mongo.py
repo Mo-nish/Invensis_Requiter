@@ -627,11 +627,20 @@ def candidate_details(candidate_id):
             else:
                 candidate_data['age'] = None
             
-            # Fix resume_path - handle both S3 URLs and local paths
+            # Fix resume_path - handle GridFS IDs, S3 URLs, and local paths
+            try:
+                from gridfs_storage import is_gridfs_id
+            except ImportError:
+                def is_gridfs_id(file_path):
+                    return False
+            
             if candidate_data.get('resume_path'):
                 resume_path = candidate_data['resume_path']
-                # If it's already a cloud URL (S3), keep it as is
-                if is_cloud_url(resume_path):
+                # If it's a GridFS ID, keep it as is
+                if is_gridfs_id(resume_path):
+                    pass  # Already a GridFS ID, no changes needed
+                # If it's a cloud URL (S3), keep it as is
+                elif is_cloud_url(resume_path):
                     pass  # Already a cloud URL, no changes needed
                 else:
                     # Handle local paths
@@ -642,11 +651,14 @@ def candidate_details(candidate_id):
                     elif not resume_path.startswith('uploads/'):
                         candidate_data['resume_path'] = f"uploads/{resume_path}" if resume_path else None
             
-            # Fix image_path - handle both S3 URLs and local paths
+            # Fix image_path - handle GridFS IDs, S3 URLs, and local paths
             if candidate_data.get('image_path'):
                 image_path = candidate_data['image_path']
-                # If it's already a cloud URL (S3), keep it as is
-                if is_cloud_url(image_path):
+                # If it's a GridFS ID, keep it as is
+                if is_gridfs_id(image_path):
+                    pass  # Already a GridFS ID, no changes needed
+                # If it's a cloud URL (S3), keep it as is
+                elif is_cloud_url(image_path):
                     pass  # Already a cloud URL, no changes needed
                 else:
                     # Handle local paths
@@ -870,46 +882,35 @@ def upload_candidate():
                     candidate_data[field] = field_value if field_value else ''
 
             
-            # Handle file uploads - Use S3 if configured, otherwise local storage
-            from cloud_storage import upload_file_to_s3, is_s3_configured, is_cloud_url
+            # Handle file uploads - Use GridFS (MongoDB) for persistent storage
+            try:
+                from gridfs_storage import upload_file_to_gridfs, is_gridfs_id
+            except ImportError:
+                # Fallback if GridFS module not available
+                def upload_file_to_gridfs(file, folder='uploads', file_type='resume'):
+                    return False, "GridFS not available", None
+                def is_gridfs_id(file_path):
+                    return False
             
             if resume_file and resume_file.filename:
-                if is_s3_configured():
-                    # Upload to S3
-                    success, resume_url, s3_key = upload_file_to_s3(resume_file, folder='invensis', file_type='resumes')
-                    if success:
-                        candidate_data['resume_path'] = resume_url  # Store full S3 URL
-                        candidate_data['resume_s3_key'] = s3_key  # Store S3 key for deletion
-                        print(f"✅ Resume uploaded to S3: {resume_url}")
-                    else:
-                        flash(f"Resume upload failed: {resume_url}", "error")
-                        candidate_data['resume_path'] = None
+                # Upload to GridFS (MongoDB)
+                success, file_id, gridfs_id = upload_file_to_gridfs(resume_file, folder='invensis', file_type='resumes')
+                if success:
+                    candidate_data['resume_path'] = file_id  # Store GridFS file ID
+                    print(f"✅ Resume uploaded to GridFS: {file_id}")
                 else:
-                    # Fallback to local storage
-                    filename = secure_filename(resume_file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    resume_path = os.path.join('static/uploads', unique_filename)
-                    resume_file.save(resume_path)
-                    candidate_data['resume_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
+                    flash(f"Resume upload failed: {file_id}", "error")
+                    candidate_data['resume_path'] = None
             
             if image_file and image_file.filename:
-                if is_s3_configured():
-                    # Upload to S3
-                    success, image_url, s3_key = upload_file_to_s3(image_file, folder='invensis', file_type='images')
-                    if success:
-                        candidate_data['image_path'] = image_url  # Store full S3 URL
-                        candidate_data['image_s3_key'] = s3_key  # Store S3 key for deletion
-                        print(f"✅ Image uploaded to S3: {image_url}")
-                    else:
-                        flash(f"Image upload failed: {image_url}", "error")
-                        candidate_data['image_path'] = None
+                # Upload to GridFS (MongoDB)
+                success, file_id, gridfs_id = upload_file_to_gridfs(image_file, folder='invensis', file_type='images')
+                if success:
+                    candidate_data['image_path'] = file_id  # Store GridFS file ID
+                    print(f"✅ Image uploaded to GridFS: {file_id}")
                 else:
-                    # Fallback to local storage
-                    filename = secure_filename(image_file.filename)
-                    unique_filename = f"{uuid.uuid4()}_{filename}"
-                    image_path = os.path.join('static/uploads', unique_filename)
-                    image_file.save(image_path)
-                    candidate_data['image_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
+                    flash(f"Image upload failed: {file_id}", "error")
+                    candidate_data['image_path'] = None
             
             # Save to database
             from models_mongo import candidates_collection
