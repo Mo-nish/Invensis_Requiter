@@ -119,23 +119,36 @@ def add_candidate():
             if 'resume' in request.files:
                 resume_file = request.files['resume']
                 if resume_file.filename:
-                    filename = secure_filename(f"{uuid.uuid4()}_{resume_file.filename}")
-                    resume_path = os.path.join('static/uploads', filename)
-                    print(f"DEBUG: Saving resume to: {resume_path}")  # Debug logging
+                    from cloud_storage import upload_file_to_s3, is_s3_configured
                     
-                    # Check if file was actually saved
-                    try:
-                        resume_file.save(resume_path)
-                        if os.path.exists(resume_path):
-                            print(f"DEBUG: Resume saved successfully to {resume_path}")
-                            print(f"DEBUG: File size: {os.path.getsize(resume_path)} bytes")
-                            resume_path = os.path.join('uploads', filename)  # Store relative path for database
+                    if is_s3_configured():
+                        # Upload to S3
+                        success, resume_url, s3_key = upload_file_to_s3(resume_file, folder='invensis', file_type='resumes')
+                        if success:
+                            resume_path = resume_url  # Store full S3 URL
+                            print(f"✅ Resume uploaded to S3: {resume_url}")
                         else:
-                            print(f"DEBUG: ERROR: File was not saved to {resume_path}")
+                            print(f"❌ Resume upload failed: {resume_url}")
                             resume_path = None
-                    except Exception as save_error:
-                        print(f"DEBUG: ERROR saving resume: {str(save_error)}")
-                        resume_path = None
+                    else:
+                        # Fallback to local storage
+                        filename = secure_filename(f"{uuid.uuid4()}_{resume_file.filename}")
+                        resume_path_local = os.path.join('static/uploads', filename)
+                        print(f"DEBUG: Saving resume to: {resume_path_local}")  # Debug logging
+                        
+                        # Check if file was actually saved
+                        try:
+                            resume_file.save(resume_path_local)
+                            if os.path.exists(resume_path_local):
+                                print(f"DEBUG: Resume saved successfully to {resume_path_local}")
+                                print(f"DEBUG: File size: {os.path.getsize(resume_path_local)} bytes")
+                                resume_path = os.path.join('uploads', filename)  # Store relative path for database
+                            else:
+                                print(f"DEBUG: ERROR: File was not saved to {resume_path_local}")
+                                resume_path = None
+                        except Exception as save_error:
+                            print(f"DEBUG: ERROR saving resume: {str(save_error)}")
+                            resume_path = None
         except Exception as e:
             print(f"DEBUG: Error saving resume: {str(e)}")  # Debug logging
             resume_path = None

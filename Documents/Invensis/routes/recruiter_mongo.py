@@ -617,15 +617,33 @@ def candidate_details(candidate_id):
             else:
                 candidate_data['age'] = None
             
-            # Fix resume_path if it has 'static/' prefix (for old data compatibility)
+            # Fix resume_path - handle both S3 URLs and local paths
             if candidate_data.get('resume_path'):
                 resume_path = candidate_data['resume_path']
-                # Remove 'static/' prefix if present
-                if resume_path.startswith('static/'):
-                    candidate_data['resume_path'] = resume_path.replace('static/', '', 1)
-                # Ensure it starts with 'uploads/'
-                elif not resume_path.startswith('uploads/'):
-                    candidate_data['resume_path'] = f"uploads/{resume_path}" if resume_path else None
+                # If it's already a cloud URL (S3), keep it as is
+                if is_cloud_url(resume_path):
+                    pass  # Already a cloud URL, no changes needed
+                else:
+                    # Handle local paths
+                    # Remove 'static/' prefix if present
+                    if resume_path.startswith('static/'):
+                        candidate_data['resume_path'] = resume_path.replace('static/', '', 1)
+                    # Ensure it starts with 'uploads/'
+                    elif not resume_path.startswith('uploads/'):
+                        candidate_data['resume_path'] = f"uploads/{resume_path}" if resume_path else None
+            
+            # Fix image_path - handle both S3 URLs and local paths
+            if candidate_data.get('image_path'):
+                image_path = candidate_data['image_path']
+                # If it's already a cloud URL (S3), keep it as is
+                if is_cloud_url(image_path):
+                    pass  # Already a cloud URL, no changes needed
+                else:
+                    # Handle local paths
+                    if image_path.startswith('static/'):
+                        candidate_data['image_path'] = image_path.replace('static/', '', 1)
+                    elif not image_path.startswith('uploads/'):
+                        candidate_data['image_path'] = f"uploads/{image_path}" if image_path else None
             
             return render_template('recruiter/candidate_details.html', candidate=candidate_data)
         else:
@@ -839,20 +857,46 @@ def upload_candidate():
                     candidate_data[field] = field_value if field_value else ''
 
             
-            # Handle file uploads
+            # Handle file uploads - Use S3 if configured, otherwise local storage
+            from cloud_storage import upload_file_to_s3, is_s3_configured, is_cloud_url
+            
             if resume_file and resume_file.filename:
-                filename = secure_filename(resume_file.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                resume_path = os.path.join('static/uploads', unique_filename)
-                resume_file.save(resume_path)
-                candidate_data['resume_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
+                if is_s3_configured():
+                    # Upload to S3
+                    success, resume_url, s3_key = upload_file_to_s3(resume_file, folder='invensis', file_type='resumes')
+                    if success:
+                        candidate_data['resume_path'] = resume_url  # Store full S3 URL
+                        candidate_data['resume_s3_key'] = s3_key  # Store S3 key for deletion
+                        print(f"✅ Resume uploaded to S3: {resume_url}")
+                    else:
+                        flash(f"Resume upload failed: {resume_url}", "error")
+                        candidate_data['resume_path'] = None
+                else:
+                    # Fallback to local storage
+                    filename = secure_filename(resume_file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    resume_path = os.path.join('static/uploads', unique_filename)
+                    resume_file.save(resume_path)
+                    candidate_data['resume_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
             
             if image_file and image_file.filename:
-                filename = secure_filename(image_file.filename)
-                unique_filename = f"{uuid.uuid4()}_{filename}"
-                image_path = os.path.join('static/uploads', unique_filename)
-                image_file.save(image_path)
-                candidate_data['image_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
+                if is_s3_configured():
+                    # Upload to S3
+                    success, image_url, s3_key = upload_file_to_s3(image_file, folder='invensis', file_type='images')
+                    if success:
+                        candidate_data['image_path'] = image_url  # Store full S3 URL
+                        candidate_data['image_s3_key'] = s3_key  # Store S3 key for deletion
+                        print(f"✅ Image uploaded to S3: {image_url}")
+                    else:
+                        flash(f"Image upload failed: {image_url}", "error")
+                        candidate_data['image_path'] = None
+                else:
+                    # Fallback to local storage
+                    filename = secure_filename(image_file.filename)
+                    unique_filename = f"{uuid.uuid4()}_{filename}"
+                    image_path = os.path.join('static/uploads', unique_filename)
+                    image_file.save(image_path)
+                    candidate_data['image_path'] = os.path.join('uploads', unique_filename)  # Store relative path without 'static/'
             
             # Save to database
             from models_mongo import candidates_collection
