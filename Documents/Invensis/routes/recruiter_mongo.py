@@ -617,6 +617,16 @@ def candidate_details(candidate_id):
             else:
                 candidate_data['age'] = None
             
+            # Fix resume_path if it has 'static/' prefix (for old data compatibility)
+            if candidate_data.get('resume_path'):
+                resume_path = candidate_data['resume_path']
+                # Remove 'static/' prefix if present
+                if resume_path.startswith('static/'):
+                    candidate_data['resume_path'] = resume_path.replace('static/', '', 1)
+                # Ensure it starts with 'uploads/'
+                elif not resume_path.startswith('uploads/'):
+                    candidate_data['resume_path'] = f"uploads/{resume_path}" if resume_path else None
+            
             return render_template('recruiter/candidate_details.html', candidate=candidate_data)
         else:
             flash('Candidate not found', 'error')
