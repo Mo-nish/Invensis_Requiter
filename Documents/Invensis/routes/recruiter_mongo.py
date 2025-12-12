@@ -560,7 +560,16 @@ def candidate_details(candidate_id):
     try:
         from models_mongo import candidates_collection
         from bson import ObjectId
-        from cloud_storage import is_cloud_url
+        
+        # Import cloud_storage functions safely
+        try:
+            from cloud_storage import is_cloud_url
+        except ImportError:
+            # Fallback if cloud_storage module is not available
+            def is_cloud_url(file_path):
+                if not file_path:
+                    return False
+                return file_path.startswith('http://') or file_path.startswith('https://')
         
         # Validate candidate_id format
         if not candidate_id or len(candidate_id) != 24:
@@ -652,8 +661,11 @@ def candidate_details(candidate_id):
             return redirect(url_for('recruiter.dashboard'))
             
     except Exception as e:
-        print(f"Error loading candidate details: {str(e)}")
-        flash('Error loading candidate details', 'error')
+        import traceback
+        error_trace = traceback.format_exc()
+        print(f"❌ Error loading candidate details: {str(e)}")
+        print(f"❌ Full traceback:\n{error_trace}")
+        flash(f'Error loading candidate details: {str(e)}', 'error')
         return redirect(url_for('recruiter.dashboard'))
 
 @recruiter_bp.route('/delete_candidate/<candidate_id>', methods=['DELETE'])
