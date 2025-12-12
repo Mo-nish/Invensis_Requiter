@@ -376,19 +376,20 @@
                     </div>
                     <div class="p-6">
                         {% if candidate.image_path %}
-                        {% if candidate.image_path|length == 24 %}
+                        {% set image_path = candidate.image_path|string %}
+                        {% if image_path|length == 24 and '/' not in image_path and '\\' not in image_path and not image_path.startswith('http') %}
                         {# GridFS ID (24 character hex string) #}
-                        <img src="{{ url_for('serve_gridfs_file', file_id=candidate.image_path) }}" 
+                        <img src="{{ url_for('serve_gridfs_file', file_id=image_path) }}" 
                              alt="{{ candidate.first_name }} {{ candidate.last_name }}" 
                              class="w-full h-64 object-cover rounded-lg">
-                        {% elif candidate.image_path.startswith('http://') or candidate.image_path.startswith('https://') %}
+                        {% elif image_path.startswith('http://') or image_path.startswith('https://') %}
                         {# S3 or cloud URL #}
-                        <img src="{{ candidate.image_path }}" 
+                        <img src="{{ image_path }}" 
                              alt="{{ candidate.first_name }} {{ candidate.last_name }}" 
                              class="w-full h-64 object-cover rounded-lg">
                         {% else %}
                         {# Local file path #}
-                        {% set image_url = candidate.image_path if candidate.image_path.startswith('uploads/') else 'uploads/' + candidate.image_path %}
+                        {% set image_url = image_path if image_path.startswith('uploads/') else 'uploads/' + image_path %}
                         <img src="{{ url_for('static', filename=image_url) }}" 
                              alt="{{ candidate.first_name }} {{ candidate.last_name }}" 
                              class="w-full h-64 object-cover rounded-lg">
@@ -408,23 +409,24 @@
                     </div>
                     <div class="p-6">
                         {% if candidate.resume_path %}
-                        {% if candidate.resume_path|length == 24 and candidate.resume_path|regex_match('^[a-f0-9]{24}$') %}
-                        {# GridFS ID (24 character hex string) #}
-                        <a href="{{ url_for('serve_gridfs_file', file_id=candidate.resume_path) }}" 
+                        {% set resume_path = candidate.resume_path|string %}
+                        {% if resume_path|length == 24 and '/' not in resume_path and '\\' not in resume_path and not resume_path.startswith('http') %}
+                        {# GridFS ID (24 character hex string - MongoDB ObjectId) #}
+                        <a href="{{ url_for('serve_gridfs_file', file_id=resume_path) }}" 
                            target="_blank"
                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                             <i class="fas fa-file-pdf mr-2"></i>View Resume
                         </a>
-                        {% elif candidate.resume_path.startswith('http://') or candidate.resume_path.startswith('https://') %}
+                        {% elif resume_path.startswith('http://') or resume_path.startswith('https://') %}
                         {# S3 or cloud URL #}
-                        <a href="{{ candidate.resume_path }}" 
+                        <a href="{{ resume_path }}" 
                            target="_blank"
                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
                             <i class="fas fa-file-pdf mr-2"></i>View Resume
                         </a>
                         {% else %}
                         {# Local file path #}
-                        {% set resume_url = candidate.resume_path if candidate.resume_path.startswith('uploads/') else 'uploads/' + candidate.resume_path %}
+                        {% set resume_url = resume_path if resume_path.startswith('uploads/') else 'uploads/' + resume_path %}
                         <a href="{{ url_for('static', filename=resume_url) }}" 
                            target="_blank"
                            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
