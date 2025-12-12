@@ -4,9 +4,16 @@ from threading import Thread
 import os
 
 def send_async_email(app, msg):
-    with app.app_context():
-        from app_mongo import mail
-        mail.send(msg)
+    try:
+        with app.app_context():
+            from app_mongo import mail
+            mail.send(msg)
+            print(f"✅ Email successfully sent to: {msg.recipients}")
+    except Exception as e:
+        print(f"❌ Error sending email: {str(e)}")
+        print(f"❌ Email details - To: {msg.recipients}, Subject: {msg.subject}")
+        import traceback
+        traceback.print_exc()
 
 def send_email(subject, recipients, body):
     try:
@@ -15,15 +22,30 @@ def send_email(subject, recipients, body):
         msg.body = body
         
         # Check if email is properly configured
-        if not app.config.get('MAIL_USERNAME') or not app.config.get('MAIL_PASSWORD'):
-            print(f"❌ EMAIL NOT CONFIGURED - USER: {app.config.get('MAIL_USERNAME', 'NOT_SET')}, PASS: {'SET' if app.config.get('MAIL_PASSWORD') else 'NOT_SET'}")
+        mail_username = app.config.get('MAIL_USERNAME')
+        mail_password = app.config.get('MAIL_PASSWORD')
+        
+        if not mail_username or not mail_password:
+            print(f"❌ EMAIL NOT CONFIGURED")
+            print(f"   MAIL_USERNAME: {mail_username if mail_username else 'NOT_SET'}")
+            print(f"   MAIL_PASSWORD: {'SET' if mail_password else 'NOT_SET'}")
+            print(f"   EMAIL_USER env: {os.getenv('EMAIL_USER', 'NOT_SET')}")
+            print(f"   EMAIL_PASS env: {'SET' if os.getenv('EMAIL_PASS') else 'NOT_SET'}")
             return False
+        
+        print(f"📧 Email configuration check:")
+        print(f"   MAIL_USERNAME: {mail_username}")
+        print(f"   MAIL_PASSWORD: {'SET' if mail_password else 'NOT_SET'}")
+        print(f"   Recipients: {recipients}")
+        print(f"   Subject: {subject}")
             
         Thread(target=send_async_email, args=(app, msg)).start()
         print(f"✅ Email queued for sending to: {recipients}")
         return True
     except Exception as e:
         print(f"❌ Error in send_email: {str(e)}")
+        import traceback
+        traceback.print_exc()
         return False
 
 def send_role_assignment_email(email, role_type):
