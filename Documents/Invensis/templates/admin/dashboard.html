@@ -575,6 +575,45 @@ function clearAllCandidates() {
     });
 }
 
+// Migrate files to GridFS
+function migrateFilesToGridFS() {
+    if (!confirm('This will migrate all local files to MongoDB GridFS. Files that are already in GridFS or cloud storage will be skipped. Continue?')) {
+        return;
+    }
+    
+    const submitBtn = document.querySelector('[onclick="migrateFilesToGridFS()"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Migrating...';
+    submitBtn.disabled = true;
+    
+    fetch('{{ url_for("admin.migrate_files_to_gridfs") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(data.message, 'success');
+            if (data.output) {
+                console.log('Migration output:', data.output);
+            }
+            setTimeout(() => location.reload(), 3000);
+        } else {
+            showNotification(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification('An error occurred while migrating files.', 'error');
+    })
+    .finally(() => {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    });
+}
+
 // Tab functionality
 function showTab(tabName) {
     // Hide all tab contents

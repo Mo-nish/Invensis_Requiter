@@ -18,36 +18,57 @@ def get_gridfs():
     db = get_database()
     return GridFS(db)
 
-def upload_file_to_gridfs(file, folder='uploads', file_type='resume'):
+def upload_file_to_gridfs(file, folder='uploads', file_type='resume', filename=None):
     """
     Upload a file to MongoDB GridFS
     
     Args:
-        file: FileStorage object from Flask request
+        file: FileStorage object from Flask request, or file-like object with read() and seek() methods
         folder: Folder name (e.g., 'resumes', 'images')
         file_type: Type of file ('resume' or 'image')
+        filename: Optional filename (if file doesn't have filename attribute)
     
     Returns:
         tuple: (success: bool, file_id: str or error_message: str, gridfs_id: str or None)
     """
-    if not file or not file.filename:
+    if not file:
         return False, "No file provided", None
     
     try:
         fs = get_gridfs()
         
-        # Generate unique filename
-        original_filename = secure_filename(file.filename)
+        # Get filename
+        if hasattr(file, 'filename') and file.filename:
+            original_filename = secure_filename(file.filename)
+        elif filename:
+            original_filename = secure_filename(filename)
+        else:
+            original_filename = f"file_{uuid.uuid4()}"
+        
         unique_filename = f"{uuid.uuid4()}_{original_filename}"
         
-        # Reset file pointer to beginning
-        file.seek(0)
+        # Reset file pointer to beginning if possible
+        if hasattr(file, 'seek'):
+            file.seek(0)
+        
+        # Get content type
+        content_type = 'application/octet-stream'
+        if hasattr(file, 'content_type') and file.content_type:
+            content_type = file.content_type
+        else:
+            # Guess from filename
+            if original_filename.lower().endswith('.pdf'):
+                content_type = 'application/pdf'
+            elif original_filename.lower().endswith(('.jpg', '.jpeg')):
+                content_type = 'image/jpeg'
+            elif original_filename.lower().endswith('.png'):
+                content_type = 'image/png'
         
         # Upload to GridFS
         gridfs_id = fs.put(
             file,
             filename=unique_filename,
-            content_type=file.content_type or 'application/octet-stream',
+            content_type=content_type,
             folder=folder,
             file_type=file_type
         )

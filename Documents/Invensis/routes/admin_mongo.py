@@ -330,6 +330,48 @@ def add_cluster_email():
     success, message = add_user_and_send_invite(email, 'Cluster Member')
     return jsonify({'success': success, 'message': message})
 
+@admin_bp.route('/migrate_files_to_gridfs', methods=['POST'])
+@admin_required
+def migrate_files_to_gridfs():
+    """Migrate existing local files to GridFS"""
+    try:
+        from migrate_files_to_gridfs import migrate_candidate_files
+        import sys
+        from io import StringIO
+        
+        # Capture output
+        old_stdout = sys.stdout
+        sys.stdout = captured_output = StringIO()
+        
+        try:
+            migrate_candidate_files()
+            output = captured_output.getvalue()
+        finally:
+            sys.stdout = old_stdout
+        
+        # Log activity
+        activity = ActivityLog(
+            user_email=current_user.email,
+            action='Migrated files to GridFS',
+            details='Migrated local files to MongoDB GridFS for persistent storage'
+        )
+        activity.save()
+        
+        return jsonify({
+            'success': True,
+            'message': 'File migration completed. Check logs for details.',
+            'output': output
+        })
+        
+    except Exception as e:
+        print(f"Error migrating files: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'message': f'Error migrating files: {str(e)}'
+        }), 500
+
 @admin_bp.route('/clear_all_candidates', methods=['POST'])
 @admin_required
 def clear_all_candidates():
