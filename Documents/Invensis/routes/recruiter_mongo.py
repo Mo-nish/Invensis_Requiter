@@ -2037,6 +2037,149 @@ def get_pending_candidates():
         print(f"Error getting pending candidates: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
 
+@recruiter_bp.route('/reupload_resume/<candidate_id>', methods=['POST'])
+@recruiter_required
+def reupload_resume(candidate_id):
+    """Re-upload resume for an existing candidate"""
+    try:
+        from models_mongo import candidates_collection
+        from bson import ObjectId
+        from gridfs_storage import upload_file_to_gridfs, delete_file_from_gridfs, is_gridfs_id
+        
+        # Validate candidate_id
+        if not candidate_id or len(candidate_id) != 24:
+            return jsonify({'success': False, 'message': 'Invalid candidate ID'}), 400
+        
+        # Get candidate
+        candidate = candidates_collection.find_one({'_id': ObjectId(candidate_id)})
+        if not candidate:
+            return jsonify({'success': False, 'message': 'Candidate not found'}), 404
+        
+        # Check if recruiter has permission (only the recruiter who uploaded can re-upload)
+        if candidate.get('recruiter_email') != current_user.email:
+            return jsonify({'success': False, 'message': 'You do not have permission to re-upload this resume'}), 403
+        
+        # Get new resume file
+        resume_file = request.files.get('resume')
+        if not resume_file or not resume_file.filename:
+            return jsonify({'success': False, 'message': 'No resume file provided'}), 400
+        
+        # Delete old resume from GridFS if it exists
+        old_resume_path = candidate.get('resume_path')
+        if old_resume_path and is_gridfs_id(old_resume_path):
+            try:
+                delete_file_from_gridfs(old_resume_path)
+                print(f"✅ Deleted old resume from GridFS: {old_resume_path}")
+            except Exception as e:
+                print(f"⚠️ Warning: Could not delete old resume: {e}")
+        
+        # Upload new resume to GridFS
+        success, file_id, gridfs_id = upload_file_to_gridfs(resume_file, folder='invensis', file_type='resumes')
+        if not success:
+            return jsonify({'success': False, 'message': f'Resume upload failed: {file_id}'}), 500
+        
+        # Parse the new resume to extract updated information
+        try:
+            # Read the resume file for parsing
+            resume_file.seek(0)
+            resume_content = resume_file.read()
+            
+            # Try to extract text from PDF
+            resume_text = ""
+            if resume_file.filename.lower().endswith('.pdf'):
+                try:
+                    import PyPDF2
+                    pdf_reader = PyPDF2.PdfReader(io.BytesIO(resume_content))
+                    resume_text = "\n".join([page.extract_text() for page in pdf_reader.pages])
+                except Exception as pdf_error:
+                    print(f"⚠️ Could not parse PDF: {pdf_error}")
+            
+            # Parse resume with AI
+            if resume_text:
+                parsed_data = parse_resume_with_ai(resume_text)
+                if parsed_data:
+                    # Update candidate with parsed data
+                    update_data = {
+                        'resume_path': file_id,
+                        'updated_at': datetime.now().isoformat(),
+                        'parsing_method': 'AI'
+                    }
+                    
+                    # Add parsed fields if they exist
+                    if parsed_data.get('first_name'):
+                        update_data['first_name'] = parsed_data['first_name']
+                    if parsed_data.get('last_name'):
+                        update_data['last_name'] = parsed_data['last_name']
+                    if parsed_data.get('name'):
+                        update_data['name'] = parsed_data['name']
+                    if parsed_data.get('email'):
+                        update_data['email'] = parsed_data['email']
+                    if parsed_data.get('phone'):
+                        update_data['phone'] = parsed_data['phone']
+                    if parsed_data.get('dob'):
+                        update_data['dob'] = parsed_data['dob']
+                    if parsed_data.get('gender'):
+                        update_data['gender'] = parsed_data['gender']
+                    if parsed_data.get('skills'):
+                        update_data['skills'] = parsed_data['skills']
+                    if parsed_data.get('education'):
+                        update_data['education'] = parsed_data['education']
+                    if parsed_data.get('experience'):
+                        update_data['experience'] = parsed_data['experience']
+                    
+                    candidates_collection.update_one(
+                        {'_id': ObjectId(candidate_id)},
+                        {'$set': update_data}
+                    )
+                else:
+                    # If parsing fails, just update the resume path
+                    candidates_collection.update_one(
+                        {'_id': ObjectId(candidate_id)},
+                        {'$set': {
+                            'resume_path': file_id,
+                            'updated_at': datetime.now().isoformat()
+                        }}
+                    )
+            else:
+                # If we can't extract text, just update the resume path
+                candidates_collection.update_one(
+                    {'_id': ObjectId(candidate_id)},
+                    {'$set': {
+                        'resume_path': file_id,
+                        'updated_at': datetime.now().isoformat()
+                    }}
+                )
+        except Exception as parse_error:
+            print(f"⚠️ Error parsing resume: {parse_error}")
+            # Still update the resume path even if parsing fails
+            candidates_collection.update_one(
+                {'_id': ObjectId(candidate_id)},
+                {'$set': {
+                    'resume_path': file_id,
+                    'updated_at': datetime.now().isoformat()
+                }}
+            )
+        
+        # Log activity
+        activity_log = ActivityLog(
+            user_email=current_user.email,
+            action=f'Re-uploaded resume for candidate: {candidate.get("name", "Unknown")}',
+            target_email=candidate.get('email'),
+            details=f'Resume re-uploaded and candidate data updated'
+        )
+        activity_log.save()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Resume re-uploaded successfully! Candidate data has been updated.'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error re-uploading resume: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': f'Error re-uploading resume: {str(e)}'}), 500
+
 @recruiter_bp.route('/logout')
 @recruiter_required
 def logout():
