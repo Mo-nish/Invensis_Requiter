@@ -266,9 +266,18 @@ def forgot_password():
             if not email_sent:
                 # Email service not configured or failed
                 print(f"❌ Failed to send password reset email to {user.email}")
+                # Check if it's a configuration issue or SMTP error
+                mail_username = app.config.get('MAIL_USERNAME')
+                mail_password = app.config.get('MAIL_PASSWORD')
+                
+                if not mail_username or not mail_password:
+                    error_msg = 'Email service is not configured. Please contact the administrator for password reset assistance.'
+                else:
+                    error_msg = 'Failed to send email. Please check your email configuration or contact the administrator. The password reset token has been generated and saved.'
+                
                 return jsonify({
                     'success': False, 
-                    'error': 'Email service is not configured. Please contact the administrator for password reset assistance.'
+                    'error': error_msg
                 }), 500
             
             # Log the activity

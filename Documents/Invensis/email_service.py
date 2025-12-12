@@ -233,7 +233,7 @@ def send_invitation_email(email, role, registration_link):
     print(f"Invitation email sent to {email} for role: {role}") 
 
 def send_password_reset_email(user_email, user_name, reset_token, base_url):
-    """Send password reset email with secure token"""
+    """Send password reset email with secure token - synchronous for error reporting"""
     subject = "Password Reset Request - Invensis Hiring Portal"
     
     reset_url = f"{base_url}/reset-password?token={reset_token}"
@@ -267,10 +267,37 @@ Invensis Hiring Portal Team
 This is an automated message. Please do not reply to this email.
 """
     
-    result = send_email(subject, [user_email], body)
-    if not result:
-        print(f"❌ Failed to send password reset email to {user_email}")
-    return result
+    try:
+        from flask import current_app
+        from flask_mail import Message
+        from app_mongo import mail
+        
+        app = current_app._get_current_object()
+        
+        # Check if email is properly configured
+        mail_username = app.config.get('MAIL_USERNAME')
+        mail_password = app.config.get('MAIL_PASSWORD')
+        
+        if not mail_username or not mail_password:
+            print(f"❌ EMAIL NOT CONFIGURED for password reset")
+            print(f"   MAIL_USERNAME: {mail_username if mail_username else 'NOT_SET'}")
+            print(f"   MAIL_PASSWORD: {'SET' if mail_password else 'NOT_SET'}")
+            return False
+        
+        # Create message
+        msg = Message(subject, recipients=[user_email], body=body)
+        
+        # Send email synchronously to catch errors
+        with app.app_context():
+            mail.send(msg)
+            print(f"✅ Password reset email successfully sent to: {user_email}")
+            return True
+            
+    except Exception as e:
+        print(f"❌ Error sending password reset email to {user_email}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return False
 
 def send_password_changed_confirmation_email(user_email, user_name, base_url):
     """Send confirmation email when password is successfully changed"""
