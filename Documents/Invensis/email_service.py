@@ -245,7 +245,10 @@ Invensis Hiring Portal Team
 This is an automated message. Please do not reply to this email.
 """
     
-    send_email(subject, [user_email], body)
+    result = send_email(subject, [user_email], body)
+    if not result:
+        print(f"❌ Failed to send password reset email to {user_email}")
+    return result
 
 def send_password_changed_confirmation_email(user_email, user_name, base_url):
     """Send confirmation email when password is successfully changed"""

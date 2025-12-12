@@ -261,7 +261,15 @@ def forgot_password():
             
             # Send email
             base_url = request.host_url.rstrip('/')
-            send_password_reset_email(user.email, user.name, token, base_url)
+            email_sent = send_password_reset_email(user.email, user.name, token, base_url)
+            
+            if not email_sent:
+                # Email service not configured or failed
+                print(f"❌ Failed to send password reset email to {user.email}")
+                return jsonify({
+                    'success': False, 
+                    'error': 'Email service is not configured. Please contact the administrator for password reset assistance.'
+                }), 500
             
             # Log the activity
             activity = ActivityLog(
