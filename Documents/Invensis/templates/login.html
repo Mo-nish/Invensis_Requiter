@@ -44,7 +44,10 @@
                 </div>
                 
                 <div>
-                    <label for="password" class="block text-sm font-medium mb-2 text-left" style="color: var(--invensis-navy);">Password</label>
+                    <div class="flex items-center justify-between mb-2">
+                        <label for="password" class="block text-sm font-medium text-left" style="color: var(--invensis-navy);">Password</label>
+                        <a href="{{ url_for('forgot_password') }}" class="text-sm font-medium" style="color: var(--invensis-blue);" onmouseover="this.style.color='var(--invensis-navy)'" onmouseout="this.style.color='var(--invensis-blue)'">Forgot Password?</a>
+                    </div>
                     <input type="password" id="password" name="password" required 
                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
                            placeholder="Enter your password" style="color: var(--invensis-black);">
